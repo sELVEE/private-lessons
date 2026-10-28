@@ -13,7 +13,11 @@
     "dev:web": "pnpm --filter @pl/web start",
     "db:generate": "pnpm --filter @pl/api db:generate",
     "db:migrate": "pnpm --filter @pl/api db:migrate",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "setup:env": "node scripts/setup-env.mjs",
+    "bootstrap": "pnpm install && pnpm setup:env && docker compose up -d --wait && pnpm build && pnpm db:migrate && pnpm db:seed",
+    "db:seed": "pnpm --filter @pl/api db:seed",
+    "admin:grant": "pnpm --filter @pl/api admin:grant"
   },
   "devDependencies": {
     "prettier": "^3.8.1",

@@ -5,7 +5,7 @@ import { ENV, type Env } from '../config/env.js';
 import { AppError } from '../common/errors.js';
 
 /** OWASP-recommended Argon2id parameters (64 MiB, 3 iterations). */
-const ARGON_OPTS = {
+export const ARGON_OPTS = {
   type: argon2.argon2id,
   memoryCost: 65536,
   timeCost: 3,

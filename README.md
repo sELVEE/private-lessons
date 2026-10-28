@@ -27,28 +27,21 @@ docs/            plan i decyzje
 Wymagania: Node 24 (`.nvmrc`), pnpm 10 (`corepack enable`), Docker.
 
 ```bash
-pnpm install
+pnpm run bootstrap
 ```
 
-```bash
-docker compose up -d
-```
+Jedna komenda robi wszystko: instaluje zależności, tworzy `apps/api/.env` z wygenerowanymi kluczami, uruchamia Postgres/Redis/Mailpit, buduje projekt, wykonuje migracje i zakłada konta demo:
 
-To uruchamia Postgres, Redis i Mailpit. Wszystkie e-maile aplikacji (linki weryfikacyjne, reset hasła) zobaczysz na http://localhost:8025.
+| Login         | Rola                                                |
+| ------------- | --------------------------------------------------- |
+| `admin`       | administrator (przy pierwszym logowaniu wymusi MFA) |
+| `korepetytor` | korepetytor                                         |
+| `uczen`       | uczeń (szkoła średnia, 2 klasa)                     |
+| `rodzic`      | rodzic                                              |
 
-```bash
-cp apps/api/.env.example apps/api/.env
-```
+Hasło do wszystkich: `Demo-haslo-2026` (tylko lokalnie — skrypt odmawia działania przy `NODE_ENV=production`).
 
-Uzupełnij `DATA_ENCRYPTION_KEY` i `TOKEN_HASH_KEY`. Każdy klucz generujesz tak:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
-
-```bash
-pnpm --filter @pl/shared build && pnpm --filter @pl/api build && pnpm db:migrate
-```
+Potem w dwóch terminalach:
 
 ```bash
 pnpm dev:api
@@ -58,7 +51,7 @@ pnpm dev:api
 pnpm dev:web
 ```
 
-Aplikacja: http://localhost:4200 (proxy `/api` → `localhost:3000`).
+Aplikacja: http://localhost:4200. E-maile (linki weryfikacyjne, reset hasła): http://localhost:8025.
 
 ### Cały stack w Dockerze
 
@@ -66,7 +59,7 @@ Aplikacja: http://localhost:4200 (proxy `/api` → `localhost:3000`).
 docker compose --profile app up -d --build
 ```
 
-Aplikacja: http://localhost:8080. Wymaga `apps/api/.env` z kluczami jak wyżej.
+Aplikacja: http://localhost:8080. Wymaga `apps/api/.env` — utworzysz go przez `pnpm setup:env`.
 
 ### Testy
 
@@ -78,13 +71,13 @@ Testy API potrzebują bazy `private_lessons_test` (tworzy ją `docker compose up
 
 ### Konto administratora
 
-Administratora nie da się zarejestrować przez API. Nadaj flagę ręcznie w bazie:
+Uprawnień administratora nie da się nadać przez API, tylko z konsoli serwera:
 
-```sql
-UPDATE users SET is_platform_admin = true WHERE email = 'ty@example.com';
+```bash
+pnpm admin:grant ty@example.com
 ```
 
-Po zalogowaniu aplikacja wymusi włączenie weryfikacji dwuetapowej.
+Odebranie: `pnpm admin:grant ty@example.com --revoke`. W Dockerze: `docker compose exec api node dist/cli/grant-admin.js ty@example.com`. Zmiana kończy sesje tego konta, a przy następnym logowaniu aplikacja wymusi MFA.
 
 ## Bezpieczeństwo w skrócie
 
