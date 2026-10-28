@@ -83,7 +83,12 @@ export class SessionService {
   async revokeAll(userId: string, exceptSessionId?: string): Promise<number> {
     const deleted = await this.db
       .delete(sessions)
-      .where(and(eq(sessions.userId, userId), exceptSessionId ? ne(sessions.id, exceptSessionId) : undefined))
+      .where(
+        and(
+          eq(sessions.userId, userId),
+          exceptSessionId ? ne(sessions.id, exceptSessionId) : undefined,
+        ),
+      )
       .returning({ id: sessions.id });
     return deleted.length;
   }
@@ -91,7 +96,12 @@ export class SessionService {
   async purgeExpired(): Promise<void> {
     await this.db
       .delete(sessions)
-      .where(or(lt(sessions.expiresAt, new Date()), lt(sessions.createdAt, new Date(Date.now() - ABSOLUTE_TIMEOUT_MS))));
+      .where(
+        or(
+          lt(sessions.expiresAt, new Date()),
+          lt(sessions.createdAt, new Date(Date.now() - ABSOLUTE_TIMEOUT_MS)),
+        ),
+      );
   }
 
   setCookie(res: Response, token: string) {
@@ -105,7 +115,12 @@ export class SessionService {
   }
 
   clearCookie(res: Response) {
-    res.clearCookie(this.cookieName, { httpOnly: true, secure: this.env.COOKIE_SECURE, sameSite: 'lax', path: '/' });
+    res.clearCookie(this.cookieName, {
+      httpOnly: true,
+      secure: this.env.COOKIE_SECURE,
+      sameSite: 'lax',
+      path: '/',
+    });
   }
 
   /** Random per-browser id used to detect logins from new devices. */

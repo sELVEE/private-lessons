@@ -1,4 +1,10 @@
-import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, Logger } from '@nestjs/common';
+import {
+  type ArgumentsHost,
+  Catch,
+  type ExceptionFilter,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import type { ApiError } from '@pl/shared';
 
@@ -16,7 +22,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       body =
         typeof r === 'object' && r !== null && 'code' in r
           ? (r as ApiError)
-          : { statusCode: status, code: status === 404 ? 'not_found' : 'http_error', message: exception.message };
+          : {
+              statusCode: status,
+              code: status === 404 ? 'not_found' : 'http_error',
+              message: exception.message,
+            };
     } else {
       this.logger.error(exception instanceof Error ? exception.stack : String(exception));
       body = { statusCode: 500, code: 'internal_error', message: 'Wystąpił nieoczekiwany błąd' };

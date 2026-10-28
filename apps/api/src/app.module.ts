@@ -1,4 +1,9 @@
-import { type DynamicModule, type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
+import {
+  type DynamicModule,
+  type MiddlewareConsumer,
+  Module,
+  type NestModule,
+} from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthGuard } from './auth/auth.guard.js';
@@ -17,7 +22,12 @@ import { RedisModule } from './redis/redis.module.js';
 @Module({})
 class ConfigModule {
   static forRoot(env: Env): DynamicModule {
-    return { module: ConfigModule, global: true, providers: [{ provide: ENV, useValue: env }], exports: [ENV] };
+    return {
+      module: ConfigModule,
+      global: true,
+      providers: [{ provide: ENV, useValue: env }],
+      exports: [ENV],
+    };
   }
 }
 

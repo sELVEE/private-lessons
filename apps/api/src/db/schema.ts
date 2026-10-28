@@ -18,7 +18,10 @@ import { ACCOUNT_TYPES, ORG_ROLES, SCHOOL_LEVELS } from '@pl/shared';
 
 const citext = customType<{ data: string }>({ dataType: () => 'citext' });
 
-const id = () => uuid('id').primaryKey().default(sql`gen_random_uuid()`);
+const id = () =>
+  uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`);
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
 
 export const accountType = pgEnum('account_type', ACCOUNT_TYPES);
@@ -56,7 +59,9 @@ export const users = pgTable('users', {
   mfaEnabledAt: timestamp('mfa_enabled_at', { withTimezone: true }),
   /** Last accepted TOTP time step, prevents code replay. */
   mfaLastStep: bigint('mfa_last_step', { mode: 'number' }),
-  passwordChangedAt: timestamp('password_changed_at', { withTimezone: true }).notNull().defaultNow(),
+  passwordChangedAt: timestamp('password_changed_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   createdAt: createdAt(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { ACCOUNT_TYPES, DIGITAL_CONSENT_AGE, SCHOOL_LEVELS, SCHOOL_LEVEL_MAX_GRADE } from './enums.js';
+import {
+  ACCOUNT_TYPES,
+  DIGITAL_CONSENT_AGE,
+  SCHOOL_LEVELS,
+  SCHOOL_LEVEL_MAX_GRADE,
+} from './enums.js';
 
 export const PASSWORD_MIN_LENGTH = 12;
 export const PASSWORD_MAX_LENGTH = 128;
@@ -56,14 +61,21 @@ const studentProfileSchema = z
     birthYear: z
       .number()
       .int()
-      .refine((y) => y >= currentYear() - 100 && y <= currentYear() - 5, 'Nieprawidłowy rok urodzenia'),
+      .refine(
+        (y) => y >= currentYear() - 100 && y <= currentYear() - 5,
+        'Nieprawidłowy rok urodzenia',
+      ),
     isAtLeast16: z.boolean().optional(),
     parentEmail: emailSchema.optional(),
   })
   .superRefine((p, ctx) => {
     const max = SCHOOL_LEVEL_MAX_GRADE[p.schoolLevel];
     if (p.grade !== undefined && (max === null || p.grade > max)) {
-      ctx.addIssue({ code: 'custom', path: ['grade'], message: 'Nieprawidłowa klasa dla tego poziomu' });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['grade'],
+        message: 'Nieprawidłowa klasa dla tego poziomu',
+      });
     }
     if (needsParentConsent(p.birthYear, p.isAtLeast16) && !p.parentEmail) {
       ctx.addIssue({
@@ -136,7 +148,12 @@ export const changePasswordSchema = z.object({
   newPassword: passwordSchema,
 });
 
-export const mfaEnableSchema = z.object({ code: z.string().trim().regex(/^\d{6}$/) });
+export const mfaEnableSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+});
 export const mfaDisableSchema = z.object({
   password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
   code: mfaCodeSchema,

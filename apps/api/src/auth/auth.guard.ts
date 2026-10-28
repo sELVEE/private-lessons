@@ -27,13 +27,23 @@ export class AuthGuard implements CanActivate {
     if (isPublic) return true;
     if (!auth) throw Errors.unauthenticated();
 
-    if (mfaSetupRequired(auth.user) && !this.reflector.getAllAndOverride<boolean>(ALLOW_MFA_SETUP, targets)) {
-      throw new AppError(HttpStatus.FORBIDDEN, 'mfa_setup_required', 'Administrator musi włączyć weryfikację dwuetapową');
+    if (
+      mfaSetupRequired(auth.user) &&
+      !this.reflector.getAllAndOverride<boolean>(ALLOW_MFA_SETUP, targets)
+    ) {
+      throw new AppError(
+        HttpStatus.FORBIDDEN,
+        'mfa_setup_required',
+        'Administrator musi włączyć weryfikację dwuetapową',
+      );
     }
     return true;
   }
 }
 
-export function mfaSetupRequired(user: { isPlatformAdmin: boolean; mfaEnabledAt: Date | null }): boolean {
+export function mfaSetupRequired(user: {
+  isPlatformAdmin: boolean;
+  mfaEnabledAt: Date | null;
+}): boolean {
   return user.isPlatformAdmin && !user.mfaEnabledAt;
 }

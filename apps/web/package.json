@@ -5,25 +5,34 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "test": "ng test --watch=false"
   },
   "private": true,
   "packageManager": "pnpm@10.34.9",
   "dependencies": {
+    "@angular/cdk": "^22.2.5",
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.0",
     "@angular/core": "^22.2.0",
     "@angular/forms": "^22.2.0",
+    "@angular/material": "^22.2.5",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "@angular/service-worker": "^22.2.0",
+    "@fontsource/roboto": "^5.3.0",
+    "@pl/shared": "workspace:*",
+    "material-symbols": "^0.48.2",
+    "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@angular/build": "^22.2.5",
     "@angular/cli": "^22.2.5",
     "@angular/compiler-cli": "^22.2.0",
+    "@types/qrcode": "^1.5.6",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",

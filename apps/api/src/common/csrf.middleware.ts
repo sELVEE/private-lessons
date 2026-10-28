@@ -43,13 +43,21 @@ export class CsrfMiddleware implements NestMiddleware {
     if (req.get('sec-fetch-site') === 'cross-site') throw this.reject();
 
     const header = req.get(CSRF_HEADER);
-    if (!header || !req.cookies?.[CSRF_COOKIE] || !this.crypto.safeEqual(header, req.cookies[CSRF_COOKIE])) {
+    if (
+      !header ||
+      !req.cookies?.[CSRF_COOKIE] ||
+      !this.crypto.safeEqual(header, req.cookies[CSRF_COOKIE])
+    ) {
       throw this.reject();
     }
     next();
   }
 
   private reject() {
-    return new AppError(HttpStatus.FORBIDDEN, 'csrf_failed', 'Żądanie odrzucone (CSRF). Odśwież stronę.');
+    return new AppError(
+      HttpStatus.FORBIDDEN,
+      'csrf_failed',
+      'Żądanie odrzucone (CSRF). Odśwież stronę.',
+    );
   }
 }

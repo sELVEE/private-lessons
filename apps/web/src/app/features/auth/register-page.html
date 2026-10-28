@@ -1,0 +1,196 @@
+<div class="auth-page">
+  <mat-card appearance="outlined" class="auth-card" style="max-width: 560px">
+    @if (busy()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <mat-card-header>
+      <mat-card-title>Załóż konto</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (done(); as d) {
+        <div class="info-banner" role="status">
+          <p>
+            Wysłaliśmy link potwierdzający na <strong>{{ d.email }}</strong
+            >. Kliknij go, aby aktywować konto.
+          </p>
+          @if (d.parentEmail) {
+            <p>
+              Poprosiliśmy też rodzica (<strong>{{ d.parentEmail }}</strong
+              >) o zgodę. Konto zadziała, gdy rodzic ją potwierdzi.
+            </p>
+          }
+        </div>
+        <a mat-flat-button routerLink="/login">Przejdź do logowania</a>
+      } @else {
+        @if (error(); as message) {
+          <div class="error-banner" role="alert">{{ message }}</div>
+        }
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <mat-button-toggle-group
+            class="type-toggle"
+            [value]="accountType()"
+            (change)="setType($event.value)"
+            aria-label="Rodzaj konta"
+          >
+            <mat-button-toggle value="student">Uczeń</mat-button-toggle>
+            <mat-button-toggle value="tutor">Korepetytor</mat-button-toggle>
+            <mat-button-toggle value="parent">Rodzic</mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <div class="form-stack">
+            <mat-form-field>
+              <mat-label>Imię lub pseudonim</mat-label>
+              <input matInput formControlName="displayName" autocomplete="given-name" />
+              <mat-hint>Widoczne dla korepetytora. Nazwisko nie jest potrzebne.</mat-hint>
+              <mat-error>{{
+                form.controls.displayName.errors?.['server'] ??
+                  'Podaj imię lub pseudonim (2–60 znaków)'
+              }}</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>E-mail</mat-label>
+              <input matInput type="email" formControlName="email" autocomplete="email" />
+              <mat-error>{{
+                form.controls.email.errors?.['server'] ?? 'Podaj poprawny adres e-mail'
+              }}</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Login</mat-label>
+              <input
+                matInput
+                formControlName="username"
+                autocomplete="username"
+                autocapitalize="none"
+              />
+              <mat-hint>3–32 znaki: litery, cyfry, . _ -</mat-hint>
+              <mat-error>{{
+                form.controls.username.errors?.['server'] ??
+                  'Login: 3–32 znaki, litery, cyfry, . _ -'
+              }}</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Hasło</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+                autocomplete="new-password"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="hidePassword.set(!hidePassword())"
+                aria-label="Pokaż lub ukryj hasło"
+              >
+                <mat-icon fontSet="material-symbols-outlined">{{
+                  hidePassword() ? 'visibility' : 'visibility_off'
+                }}</mat-icon>
+              </button>
+              <mat-hint
+                >Co najmniej {{ passwordMin }} znaków. Najlepiej kilka słów — łatwe do
+                zapamiętania.</mat-hint
+              >
+              <mat-error>{{
+                form.controls.password.errors?.['server'] ??
+                  'Hasło musi mieć co najmniej ' + passwordMin + ' znaków'
+              }}</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Powtórz hasło</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="passwordRepeat"
+                autocomplete="new-password"
+              />
+              <mat-error>Hasła muszą być takie same</mat-error>
+            </mat-form-field>
+          </div>
+
+          @if (isStudent()) {
+            <fieldset formGroupName="student">
+              <legend>Szkoła</legend>
+              <div class="two-col">
+                <mat-form-field>
+                  <mat-label>Poziom</mat-label>
+                  <mat-select formControlName="schoolLevel">
+                    @for (l of levels; track l.value) {
+                      <mat-option [value]="l.value">{{ l.label }}</mat-option>
+                    }
+                  </mat-select>
+                  <mat-error>Wybierz poziom</mat-error>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Klasa / rok (opcjonalnie)</mat-label>
+                  <mat-select formControlName="grade">
+                    <mat-option [value]="null">—</mat-option>
+                    @for (g of grades(); track g) {
+                      <mat-option [value]="g">{{ g }}</mat-option>
+                    }
+                  </mat-select>
+                  <mat-error>{{
+                    form.controls.student.controls.grade.errors?.['server']
+                  }}</mat-error>
+                </mat-form-field>
+              </div>
+              <mat-form-field class="full-width">
+                <mat-label>Rok urodzenia</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  inputmode="numeric"
+                  formControlName="birthYear"
+                  [max]="maxBirthYear"
+                />
+                <mat-hint>Tylko rok — pełna data nie jest nam potrzebna.</mat-hint>
+                <mat-error>{{
+                  form.controls.student.controls.birthYear.errors?.['server'] ??
+                    'Podaj poprawny rok urodzenia'
+                }}</mat-error>
+              </mat-form-field>
+              @if (askAtLeast16()) {
+                <mat-checkbox formControlName="isAtLeast16"
+                  >Mam już ukończone {{ consentAge }} lat</mat-checkbox
+                >
+              }
+              @if (needsParent()) {
+                <p class="muted">
+                  Osoby poniżej {{ consentAge }} lat potrzebują zgody rodzica (RODO). Wyślemy mu
+                  link — jego adresu nie zapisujemy.
+                </p>
+                <mat-form-field class="full-width">
+                  <mat-label>E-mail rodzica</mat-label>
+                  <input matInput type="email" formControlName="parentEmail" />
+                  <mat-error>{{
+                    form.controls.student.controls.parentEmail.errors?.['server'] ??
+                      'Podaj poprawny e-mail rodzica'
+                  }}</mat-error>
+                </mat-form-field>
+              }
+            </fieldset>
+          } @else {
+            <mat-checkbox formControlName="declaresAdult"
+              >Oświadczam, że mam ukończone 18 lat</mat-checkbox
+            >
+            @if (form.controls.declaresAdult.errors?.['server']; as msg) {
+              <div class="check-error">{{ msg }}</div>
+            }
+          }
+
+          <mat-checkbox formControlName="acceptTerms"
+            >Akceptuję regulamin i politykę prywatności</mat-checkbox
+          >
+          @if (form.controls.acceptTerms.touched && form.controls.acceptTerms.invalid) {
+            <div class="check-error">Musisz zaakceptować regulamin</div>
+          }
+
+          <div class="row-actions" style="margin-top: 16px">
+            <a mat-button routerLink="/login">Mam już konto</a>
+            <button mat-flat-button type="submit" [disabled]="busy()">Załóż konto</button>
+          </div>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

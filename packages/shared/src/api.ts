@@ -16,8 +16,7 @@ export interface MeResponse {
 }
 
 export type LoginResponse =
-  | { status: 'ok'; user: MeResponse }
-  | { status: 'mfa_required'; challengeId: string };
+  { status: 'ok'; user: MeResponse } | { status: 'mfa_required'; challengeId: string };
 
 export interface SessionInfo {
   id: string;

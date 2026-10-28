@@ -5,8 +5,18 @@ import { ENV, type Env } from '../config/env.js';
 import { AppError } from '../common/errors.js';
 
 /** OWASP-recommended Argon2id parameters (64 MiB, 3 iterations). */
-const ARGON_OPTS = { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 1 } as const;
-const TEST_ARGON_OPTS = { type: argon2.argon2id, memoryCost: 8192, timeCost: 2, parallelism: 1 } as const;
+const ARGON_OPTS = {
+  type: argon2.argon2id,
+  memoryCost: 65536,
+  timeCost: 3,
+  parallelism: 1,
+} as const;
+const TEST_ARGON_OPTS = {
+  type: argon2.argon2id,
+  memoryCost: 8192,
+  timeCost: 2,
+  parallelism: 1,
+} as const;
 
 @Injectable()
 export class PasswordService {
@@ -76,5 +86,7 @@ export class PasswordService {
 }
 
 function weak(message: string) {
-  return new AppError(HttpStatus.BAD_REQUEST, 'weak_password', message, [{ path: 'password', message }]);
+  return new AppError(HttpStatus.BAD_REQUEST, 'weak_password', message, [
+    { path: 'password', message },
+  ]);
 }

@@ -1,4 +1,10 @@
-import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { ENV, type Env } from '../config/env.js';
 
@@ -27,7 +33,12 @@ export class CryptoService {
     cipher.setAAD(Buffer.from(aad));
     const data = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
     const tag = cipher.getAuthTag();
-    return [KEY_VERSION, iv.toString('base64url'), data.toString('base64url'), tag.toString('base64url')].join(':');
+    return [
+      KEY_VERSION,
+      iv.toString('base64url'),
+      data.toString('base64url'),
+      tag.toString('base64url'),
+    ].join(':');
   }
 
   decrypt(payload: string, aad = ''): string {
@@ -36,7 +47,10 @@ export class CryptoService {
     const decipher = createDecipheriv('aes-256-gcm', this.dataKey, Buffer.from(iv, 'base64url'));
     decipher.setAAD(Buffer.from(aad));
     decipher.setAuthTag(Buffer.from(tag, 'base64url'));
-    return Buffer.concat([decipher.update(Buffer.from(data, 'base64url')), decipher.final()]).toString('utf8');
+    return Buffer.concat([
+      decipher.update(Buffer.from(data, 'base64url')),
+      decipher.final(),
+    ]).toString('utf8');
   }
 
   /** Keyed hash for values we look up but never need back (session tokens, e-mail links). */

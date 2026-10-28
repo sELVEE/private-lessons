@@ -52,7 +52,12 @@ describe('registerSchema', () => {
   });
 
   it('rejects short passwords', () => {
-    const r = registerSchema.safeParse({ ...base, password: 'short', accountType: 'tutor', declaresAdult: true });
+    const r = registerSchema.safeParse({
+      ...base,
+      password: 'short',
+      accountType: 'tutor',
+      declaresAdult: true,
+    });
     expect(r.success).toBe(false);
   });
 });

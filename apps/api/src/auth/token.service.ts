@@ -26,7 +26,9 @@ export class TokenService {
     const token = this.crypto.randomToken(32);
     await this.db.transaction(async (tx) => {
       if (purpose !== 'not_me') {
-        await tx.delete(userTokens).where(and(eq(userTokens.userId, userId), eq(userTokens.purpose, purpose)));
+        await tx
+          .delete(userTokens)
+          .where(and(eq(userTokens.userId, userId), eq(userTokens.purpose, purpose)));
       }
       await tx.insert(userTokens).values({
         userId,
@@ -41,10 +43,7 @@ export class TokenService {
 
   /** Atomically deletes and returns a valid token, so it can be used exactly once. */
   async consume(purpose: Purpose, token: string) {
-    const [row] = await this.db
-      .delete(userTokens)
-      .where(this.match(purpose, token))
-      .returning();
+    const [row] = await this.db.delete(userTokens).where(this.match(purpose, token)).returning();
     return row ?? null;
   }
 

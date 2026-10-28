@@ -59,11 +59,17 @@ describe('registration and e-mail verification', () => {
     await t.c.post('/api/auth/verify-email', { token });
     expect((await t.c.post('/api/auth/verify-email', { token })).body.code).toBe('invalid_token');
 
-    const login = await t.c.post('/api/auth/login', { identifier: t.email.toUpperCase(), password: PASSWORD });
+    const login = await t.c.post('/api/auth/login', {
+      identifier: t.email.toUpperCase(),
+      password: PASSWORD,
+    });
     expect(login.status).toBe(200);
     const me = await t.c.get('/api/auth/me');
     expect(me.body.accountType).toBe('tutor');
-    expect(me.body.memberships.map((m: { role: string }) => m.role).sort()).toEqual(['owner', 'tutor']);
+    expect(me.body.memberships.map((m: { role: string }) => m.role).sort()).toEqual([
+      'owner',
+      'tutor',
+    ]);
   });
 
   it('does not reveal that an e-mail is already registered', async () => {
@@ -90,7 +96,11 @@ describe('registration and e-mail verification', () => {
 
   it('validates input on the server and does not store a password containing the login', async () => {
     const c = await client(h.app);
-    const bad = await c.post('/api/auth/register', { accountType: 'admin', email: 'x', password: 'a' });
+    const bad = await c.post('/api/auth/register', {
+      accountType: 'admin',
+      email: 'x',
+      password: 'a',
+    });
     expect(bad.status).toBe(400);
     expect(bad.body.code).toBe('validation_failed');
 
@@ -116,16 +126,25 @@ describe('registration and e-mail verification', () => {
       password: PASSWORD,
       displayName: 'Ola',
       acceptTerms: true,
-      student: { schoolLevel: 'primary', grade: 7, birthYear: new Date().getFullYear() - 13, parentEmail },
+      student: {
+        schoolLevel: 'primary',
+        grade: 7,
+        birthYear: new Date().getFullYear() - 13,
+        parentEmail,
+      },
     });
     expect(res.status).toBe(202);
-    await c.post('/api/auth/verify-email', { token: tokenFromMail(h.mail, u.email, '/verify-email') });
+    await c.post('/api/auth/verify-email', {
+      token: tokenFromMail(h.mail, u.email, '/verify-email'),
+    });
 
     const blocked = await c.post('/api/auth/login', { identifier: u.username, password: PASSWORD });
     expect(blocked.body.code).toBe('parent_consent_pending');
 
     const consent = tokenFromMail(h.mail, parentEmail, '/parent-consent');
-    expect((await c.post('/api/auth/parent-consent/inspect', { token: consent })).body.studentName).toBe('Ola');
+    expect(
+      (await c.post('/api/auth/parent-consent/inspect', { token: consent })).body.studentName,
+    ).toBe('Ola');
     expect((await c.post('/api/auth/parent-consent/confirm', { token: consent })).status).toBe(200);
 
     const ok = await c.post('/api/auth/login', { identifier: u.username, password: PASSWORD });
@@ -137,11 +156,17 @@ describe('login protection', () => {
   it('locks an identifier after repeated failures, even for unknown users', async () => {
     const c = await client(h.app);
     for (let i = 0; i < 5; i++) {
-      const r = await c.post('/api/auth/login', { identifier: 'nobody', password: 'wrong-password' });
+      const r = await c.post('/api/auth/login', {
+        identifier: 'nobody',
+        password: 'wrong-password',
+      });
       expect(r.status).toBe(401);
       expect(r.body.code).toBe('invalid_credentials');
     }
-    const locked = await c.post('/api/auth/login', { identifier: 'nobody', password: 'wrong-password' });
+    const locked = await c.post('/api/auth/login', {
+      identifier: 'nobody',
+      password: 'wrong-password',
+    });
     expect(locked.status).toBe(429);
   });
 
@@ -149,7 +174,9 @@ describe('login protection', () => {
     const c = await client(h.app);
     const noToken = await c.agent.post('/api/auth/login').send({ identifier: 'a', password: 'b' });
     expect(noToken.body.code).toBe('csrf_failed');
-    const foreign = await c.post('/api/auth/login', { identifier: 'a', password: 'b' }).set('origin', 'https://evil.example');
+    const foreign = await c
+      .post('/api/auth/login', { identifier: 'a', password: 'b' })
+      .set('origin', 'https://evil.example');
     expect(foreign.body.code).toBe('csrf_failed');
   });
 
@@ -157,7 +184,9 @@ describe('login protection', () => {
     const t = await verifiedTutor();
     const res = await t.c.post('/api/auth/login', { identifier: t.username, password: PASSWORD });
     const cookie = String(res.headers['set-cookie']);
-    expect(cookie).toMatch(/pl_session=[^;]+; Max-Age=\d+; Path=\/; Expires=[^;]+; HttpOnly; SameSite=Lax/);
+    expect(cookie).toMatch(
+      /pl_session=[^;]+; Max-Age=\d+; Path=\/; Expires=[^;]+; HttpOnly; SameSite=Lax/,
+    );
     expect(JSON.stringify(res.body)).not.toContain(/pl_session=([^;]+)/.exec(cookie)![1]);
   });
 });
@@ -177,7 +206,7 @@ describe('sessions', () => {
     expect((await other.get('/api/auth/me')).status).toBe(401);
   });
 
-  it('cannot revoke another user\'s session', async () => {
+  it("cannot revoke another user's session", async () => {
     const a = await loggedInTutor();
     const b = await loggedInTutor();
     const [bSession] = (await b.c.get('/api/account/sessions')).body;
@@ -202,22 +231,34 @@ describe('password reset', () => {
   it('resets the password once, revokes sessions and unlocks the account', async () => {
     const t = await loggedInTutor();
     const anon = await client(h.app);
-    expect((await anon.post('/api/auth/forgot-password', { email: 'missing@example.com' })).status).toBe(202);
+    expect(
+      (await anon.post('/api/auth/forgot-password', { email: 'missing@example.com' })).status,
+    ).toBe(202);
     expect((await anon.post('/api/auth/forgot-password', { email: t.email })).status).toBe(202);
     const token = tokenFromMail(h.mail, t.email, '/reset-password');
 
     const newPassword = 'Zupelnie-Nowe-Haslo-77';
-    expect((await anon.post('/api/auth/reset-password', { token, password: newPassword })).status).toBe(200);
-    expect((await anon.post('/api/auth/reset-password', { token, password: newPassword })).body.code).toBe('invalid_token');
+    expect(
+      (await anon.post('/api/auth/reset-password', { token, password: newPassword })).status,
+    ).toBe(200);
+    expect(
+      (await anon.post('/api/auth/reset-password', { token, password: newPassword })).body.code,
+    ).toBe('invalid_token');
     expect((await t.c.get('/api/auth/me')).status).toBe(401);
 
-    expect((await anon.post('/api/auth/login', { identifier: t.username, password: PASSWORD })).status).toBe(401);
-    expect((await anon.post('/api/auth/login', { identifier: t.username, password: newPassword })).status).toBe(200);
+    expect(
+      (await anon.post('/api/auth/login', { identifier: t.username, password: PASSWORD })).status,
+    ).toBe(401);
+    expect(
+      (await anon.post('/api/auth/login', { identifier: t.username, password: newPassword }))
+        .status,
+    ).toBe(200);
   });
 });
 
 describe('MFA', () => {
-  const codeFor = (secret: string, offsetSteps = 0) => hotp(secret, Math.floor(Date.now() / 30000) + offsetSteps);
+  const codeFor = (secret: string, offsetSteps = 0) =>
+    hotp(secret, Math.floor(Date.now() / 30000) + offsetSteps);
 
   it('enrols TOTP, requires it on login and accepts a backup code once', async () => {
     const t = await loggedInTutor();
@@ -234,18 +275,30 @@ describe('MFA', () => {
     expect(first.body.status).toBe('mfa_required');
     expect((await c.get('/api/auth/me')).status).toBe(401);
 
-    const wrong = await c.post('/api/auth/login/mfa', { challengeId: first.body.challengeId, code: '000000' });
+    const wrong = await c.post('/api/auth/login/mfa', {
+      challengeId: first.body.challengeId,
+      code: '000000',
+    });
     expect(wrong.status).toBe(401);
-    const ok = await c.post('/api/auth/login/mfa', { challengeId: first.body.challengeId, code: codeFor(setup.body.secret, 1) });
+    const ok = await c.post('/api/auth/login/mfa', {
+      challengeId: first.body.challengeId,
+      code: codeFor(setup.body.secret, 1),
+    });
     expect(ok.body.status).toBe('ok');
 
     const backup = enable.body.backupCodes[0];
     const c2 = await client(h.app);
-    const ch = (await c2.post('/api/auth/login', { identifier: t.username, password: PASSWORD })).body.challengeId;
-    expect((await c2.post('/api/auth/login/mfa', { challengeId: ch, code: backup })).body.status).toBe('ok');
+    const ch = (await c2.post('/api/auth/login', { identifier: t.username, password: PASSWORD }))
+      .body.challengeId;
+    expect(
+      (await c2.post('/api/auth/login/mfa', { challengeId: ch, code: backup })).body.status,
+    ).toBe('ok');
     const c3 = await client(h.app);
-    const ch3 = (await c3.post('/api/auth/login', { identifier: t.username, password: PASSWORD })).body.challengeId;
-    expect((await c3.post('/api/auth/login/mfa', { challengeId: ch3, code: backup })).status).toBe(401);
+    const ch3 = (await c3.post('/api/auth/login', { identifier: t.username, password: PASSWORD }))
+      .body.challengeId;
+    expect((await c3.post('/api/auth/login/mfa', { challengeId: ch3, code: backup })).status).toBe(
+      401,
+    );
   });
 
   it('forces platform admins to enrol MFA before anything else', async () => {
@@ -260,7 +313,10 @@ describe('MFA', () => {
     const setup = await t.c.post('/api/account/mfa/setup');
     await t.c.post('/api/account/mfa/enable', { code: codeFor(setup.body.secret) });
     expect((await t.c.get('/api/account/sessions')).status).toBe(200);
-    const disable = await t.c.post('/api/account/mfa/disable', { password: PASSWORD, code: codeFor(setup.body.secret, 1) });
+    const disable = await t.c.post('/api/account/mfa/disable', {
+      password: PASSWORD,
+      code: codeFor(setup.body.secret, 1),
+    });
     expect(disable.body.code).toBe('mfa_required_for_admin');
   });
 });
@@ -268,8 +324,14 @@ describe('MFA', () => {
 describe('audit log', () => {
   it('is append-only', async () => {
     await loggedInTutor();
-    const cause = (q: Promise<unknown>) => q.then(() => null, (e: Error) => String((e.cause as Error)?.message));
-    expect(await cause(h.db.execute(sql`update audit_log set action = 'x'`))).toMatch(/append-only/);
+    const cause = (q: Promise<unknown>) =>
+      q.then(
+        () => null,
+        (e: Error) => String((e.cause as Error)?.message),
+      );
+    expect(await cause(h.db.execute(sql`update audit_log set action = 'x'`))).toMatch(
+      /append-only/,
+    );
     expect(await cause(h.db.execute(sql`delete from audit_log`))).toMatch(/append-only/);
   });
 });

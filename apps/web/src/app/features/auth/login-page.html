@@ -1,0 +1,120 @@
+<div class="welcome">
+  <section class="hero">
+    <div class="brand">
+      <mat-icon fontSet="material-symbols-outlined">school</mat-icon>
+      <span>Korepetycje</span>
+    </div>
+    <h1>Wszystko o Twoich lekcjach w jednym miejscu</h1>
+    <ul>
+      <li>
+        <mat-icon fontSet="material-symbols-outlined">calendar_month</mat-icon> Plan lekcji i
+        przypomnienia
+      </li>
+      <li>
+        <mat-icon fontSet="material-symbols-outlined">edit_note</mat-icon> Notatki, zadania i
+        materiały
+      </li>
+      <li><mat-icon fontSet="material-symbols-outlined">trending_up</mat-icon> Postępy i oceny</li>
+      <li>
+        <mat-icon fontSet="material-symbols-outlined">payments</mat-icon> Rozliczenia bez arkuszy
+      </li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <mat-card appearance="outlined" class="auth-card">
+      @if (busy()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+      <mat-card-header>
+        <mat-card-title>{{
+          challengeId() ? 'Weryfikacja dwuetapowa' : 'Zaloguj się'
+        }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (error(); as message) {
+          <div class="error-banner" role="alert">
+            {{ message }}
+            @if (unverified()) {
+              <button mat-button type="button" (click)="resendVerification()">
+                Wyślij link ponownie
+              </button>
+            }
+          </div>
+        }
+        @if (info(); as message) {
+          <div class="info-banner" role="status">{{ message }}</div>
+        }
+
+        @if (!challengeId()) {
+          <form [formGroup]="form" (ngSubmit)="submit()" class="form-stack" novalidate>
+            <mat-form-field>
+              <mat-label>E-mail lub login</mat-label>
+              <input
+                matInput
+                formControlName="identifier"
+                autocomplete="username"
+                autocapitalize="none"
+              />
+              @if (form.controls.identifier.hasError('required')) {
+                <mat-error>Podaj e-mail lub login</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Hasło</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+                autocomplete="current-password"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="hidePassword.set(!hidePassword())"
+                [attr.aria-label]="hidePassword() ? 'Pokaż hasło' : 'Ukryj hasło'"
+              >
+                <mat-icon fontSet="material-symbols-outlined">{{
+                  hidePassword() ? 'visibility' : 'visibility_off'
+                }}</mat-icon>
+              </button>
+              @if (form.controls.password.hasError('required')) {
+                <mat-error>Podaj hasło</mat-error>
+              }
+            </mat-form-field>
+            <div class="row-actions">
+              <a mat-button routerLink="/forgot-password">Nie pamiętam hasła</a>
+              <button mat-flat-button type="submit" [disabled]="busy()">Zaloguj</button>
+            </div>
+          </form>
+        } @else {
+          <form [formGroup]="mfaForm" (ngSubmit)="submitMfa()" class="form-stack" novalidate>
+            <p class="muted">
+              Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej albo jeden z kodów zapasowych.
+            </p>
+            <mat-form-field>
+              <mat-label>Kod</mat-label>
+              <input
+                matInput
+                formControlName="code"
+                autocomplete="one-time-code"
+                inputmode="numeric"
+              />
+            </mat-form-field>
+            <div class="row-actions">
+              <button mat-button type="button" (click)="backToCredentials()">Wróć</button>
+              <button mat-flat-button type="submit" [disabled]="busy()">Potwierdź</button>
+            </div>
+          </form>
+        }
+      </mat-card-content>
+      @if (!challengeId()) {
+        <mat-card-footer class="footer">
+          <span class="muted">Nie masz konta?</span>
+          <a mat-button routerLink="/register">Zarejestruj się</a>
+        </mat-card-footer>
+      }
+    </mat-card>
+  </section>
+</div>

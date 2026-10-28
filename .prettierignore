@@ -3,3 +3,4 @@ dist
 coverage
 .angular
 apps/api/drizzle
+apps/web/public

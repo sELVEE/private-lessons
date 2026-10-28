@@ -17,7 +17,9 @@ export class MailService {
 
   constructor(@Inject(ENV) private readonly env: Env) {
     this.transport =
-      env.MAIL_TRANSPORT === 'smtp' && env.SMTP_URL ? nodemailer.createTransport(env.SMTP_URL) : null;
+      env.MAIL_TRANSPORT === 'smtp' && env.SMTP_URL
+        ? nodemailer.createTransport(env.SMTP_URL)
+        : null;
   }
 
   link(path: string): string {
@@ -29,7 +31,8 @@ export class MailService {
     if (!this.transport) {
       this.outbox.push(mail);
       if (this.outbox.length > 50) this.outbox.shift();
-      if (this.env.NODE_ENV !== 'test') this.logger.log(`[mail] to=${mail.to} subject="${mail.subject}"\n${mail.text}`);
+      if (this.env.NODE_ENV !== 'test')
+        this.logger.log(`[mail] to=${mail.to} subject="${mail.subject}"\n${mail.text}`);
       return;
     }
     try {

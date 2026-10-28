@@ -5,9 +5,16 @@ import { memberships, organizations, studentProfiles, type users } from '../db/s
 import { mfaSetupRequired } from './auth.guard.js';
 
 export async function buildMe(db: Db, user: typeof users.$inferSelect): Promise<MeResponse> {
-  const [profile] = await db.select().from(studentProfiles).where(eq(studentProfiles.userId, user.id));
+  const [profile] = await db
+    .select()
+    .from(studentProfiles)
+    .where(eq(studentProfiles.userId, user.id));
   const orgs = await db
-    .select({ organizationId: organizations.id, organizationName: organizations.name, role: memberships.role })
+    .select({
+      organizationId: organizations.id,
+      organizationName: organizations.name,
+      role: memberships.role,
+    })
     .from(memberships)
     .innerJoin(organizations, eq(organizations.id, memberships.organizationId))
     .where(eq(memberships.userId, user.id));
@@ -20,7 +27,9 @@ export async function buildMe(db: Db, user: typeof users.$inferSelect): Promise<
     isPlatformAdmin: user.isPlatformAdmin,
     mfaEnabled: !!user.mfaEnabledAt,
     mfaSetupRequired: mfaSetupRequired(user),
-    student: profile ? { schoolLevel: profile.schoolLevel, grade: profile.grade, birthYear: profile.birthYear } : null,
+    student: profile
+      ? { schoolLevel: profile.schoolLevel, grade: profile.grade, birthYear: profile.birthYear }
+      : null,
     memberships: orgs,
   };
 }

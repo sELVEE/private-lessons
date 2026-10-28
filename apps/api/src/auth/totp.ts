@@ -26,7 +26,12 @@ export function hotp(secret: string, counter: number): string {
  * Checks a code against the current step ±1 (clock drift). Returns the matched step, which the
  * caller stores so the same code cannot be replayed, or null.
  */
-export function verifyTotp(secret: string, code: string, lastUsedStep: number | null, now = Date.now()): number | null {
+export function verifyTotp(
+  secret: string,
+  code: string,
+  lastUsedStep: number | null,
+  now = Date.now(),
+): number | null {
   const step = currentStep(now);
   for (const s of [step - 1, step, step + 1]) {
     if (lastUsedStep !== null && s <= lastUsedStep) continue;
@@ -37,7 +42,13 @@ export function verifyTotp(secret: string, code: string, lastUsedStep: number | 
 
 export function otpauthUri(secret: string, account: string, issuer: string): string {
   const label = encodeURIComponent(`${issuer}:${account}`);
-  const params = new URLSearchParams({ secret, issuer, algorithm: 'SHA1', digits: String(DIGITS), period: String(STEP_SEC) });
+  const params = new URLSearchParams({
+    secret,
+    issuer,
+    algorithm: 'SHA1',
+    digits: String(DIGITS),
+    period: String(STEP_SEC),
+  });
   return `otpauth://totp/${label}?${params}`;
 }
 

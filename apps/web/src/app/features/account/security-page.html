@@ -1,0 +1,185 @@
+<div class="page">
+  <h1>Konto i bezpieczeństwo</h1>
+
+  @if (me()?.mfaSetupRequired) {
+    <div class="error-banner" role="alert">
+      Konto administratora wymaga weryfikacji dwuetapowej. Włącz ją, aby korzystać z aplikacji.
+    </div>
+  }
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+  @if (message(); as m) {
+    <div class="info-banner" role="status">{{ m }}</div>
+  }
+
+  <div class="sections">
+    <mat-card appearance="outlined">
+      <mat-card-header>
+        <mat-icon mat-card-avatar fontSet="material-symbols-outlined">phonelink_lock</mat-icon>
+        <mat-card-title>Weryfikacja dwuetapowa</mat-card-title>
+        <mat-card-subtitle>{{ me()?.mfaEnabled ? 'Włączona' : 'Wyłączona' }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (backupCodes(); as codes) {
+          <div class="info-banner">
+            <p>
+              <strong>Zapisz kody zapasowe</strong> — każdy działa raz, gdy nie masz telefonu. Nie
+              pokażemy ich ponownie.
+            </p>
+            <ul class="codes">
+              @for (c of codes; track c) {
+                <li>
+                  <code>{{ c }}</code>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (!me()?.mfaEnabled) {
+          @if (setup(); as s) {
+            <ol class="steps">
+              <li>Zeskanuj kod w aplikacji (np. Google Authenticator, Aegis, 1Password).</li>
+              <li>
+                <img
+                  [src]="s.qr"
+                  alt="Kod QR do aplikacji uwierzytelniającej"
+                  width="220"
+                  height="220"
+                />
+                <div class="muted">
+                  Albo wpisz klucz ręcznie: <code class="secret">{{ s.secret }}</code>
+                </div>
+              </li>
+              <li>Wpisz kod wyświetlony w aplikacji:</li>
+            </ol>
+            <form [formGroup]="enableForm" (ngSubmit)="enableMfa()" class="inline-form">
+              <mat-form-field>
+                <mat-label>6-cyfrowy kod</mat-label>
+                <input
+                  matInput
+                  formControlName="code"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                />
+                <mat-error>{{
+                  enableForm.controls.code.errors?.['server'] ?? 'Podaj 6 cyfr'
+                }}</mat-error>
+              </mat-form-field>
+              <button mat-flat-button type="submit" [disabled]="busy()">Włącz</button>
+            </form>
+          } @else {
+            <p class="muted">
+              Po włączeniu przy logowaniu podasz także kod z aplikacji w telefonie.
+            </p>
+            <button mat-flat-button (click)="startMfa()" [disabled]="busy()">Skonfiguruj</button>
+          }
+        } @else if (!me()?.isPlatformAdmin) {
+          <form [formGroup]="disableForm" (ngSubmit)="disableMfa()" class="form-stack narrow">
+            <p class="muted">Aby wyłączyć, potwierdź hasłem i kodem.</p>
+            <mat-form-field>
+              <mat-label>Hasło</mat-label>
+              <input
+                matInput
+                type="password"
+                formControlName="password"
+                autocomplete="current-password"
+              />
+              <mat-error>{{
+                disableForm.controls.password.errors?.['server'] ?? 'Podaj hasło'
+              }}</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Kod z aplikacji lub zapasowy</mat-label>
+              <input matInput formControlName="code" autocomplete="one-time-code" />
+              <mat-error>{{
+                disableForm.controls.code.errors?.['server'] ?? 'Podaj kod'
+              }}</mat-error>
+            </mat-form-field>
+            <button mat-stroked-button type="submit" [disabled]="busy()">
+              Wyłącz weryfikację dwuetapową
+            </button>
+          </form>
+        } @else {
+          <p class="muted">Dla administratorów weryfikacja dwuetapowa jest obowiązkowa.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (!me()?.mfaSetupRequired) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-icon mat-card-avatar fontSet="material-symbols-outlined">password</mat-icon>
+          <mat-card-title>Zmiana hasła</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="form-stack narrow">
+            <mat-form-field>
+              <mat-label>Obecne hasło</mat-label>
+              <input
+                matInput
+                type="password"
+                formControlName="currentPassword"
+                autocomplete="current-password"
+              />
+              <mat-error>{{
+                passwordForm.controls.currentPassword.errors?.['server'] ?? 'Podaj obecne hasło'
+              }}</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Nowe hasło</mat-label>
+              <input
+                matInput
+                type="password"
+                formControlName="newPassword"
+                autocomplete="new-password"
+              />
+              <mat-error>{{
+                passwordForm.controls.newPassword.errors?.['server'] ??
+                  'Co najmniej ' + passwordMin + ' znaków'
+              }}</mat-error>
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="busy()">Zmień hasło</button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-icon mat-card-avatar fontSet="material-symbols-outlined">devices</mat-icon>
+          <mat-card-title>Zalogowane urządzenia</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list>
+            @for (s of sessions(); track s.id) {
+              <mat-list-item>
+                <span matListItemTitle>
+                  {{ describeAgent(s.userAgent) }}
+                  @if (s.current) {
+                    <strong>(to urządzenie)</strong>
+                  }
+                </span>
+                <span matListItemLine class="muted">
+                  Ostatnio: {{ s.lastSeenAt | date: 'short' }} · zalogowano
+                  {{ s.createdAt | date: 'short' }}
+                </span>
+                @if (!s.current) {
+                  <button mat-button matListItemMeta (click)="revoke(s.id)" [disabled]="busy()">
+                    Wyloguj
+                  </button>
+                }
+              </mat-list-item>
+            }
+          </mat-list>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-stroked-button (click)="revokeAll()" [disabled]="busy()">
+            Wyloguj ze wszystkich urządzeń
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+</div>

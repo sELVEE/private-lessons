@@ -8,7 +8,14 @@ import { AuditService } from '../audit/audit.service.js';
 import { AppError, Errors } from '../common/errors.js';
 import { CryptoService } from '../crypto/crypto.service.js';
 import { DB, type Db } from '../db/db.module.js';
-import { knownDevices, memberships, organizations, parentConsents, studentProfiles, users } from '../db/schema.js';
+import {
+  knownDevices,
+  memberships,
+  organizations,
+  parentConsents,
+  studentProfiles,
+  users,
+} from '../db/schema.js';
 import { MailService } from '../mail/mail.service.js';
 import { REDIS } from '../redis/redis.module.js';
 import { buildMe } from './me.js';
@@ -48,7 +55,10 @@ export class AuthService {
   // ---------------------------------------------------------------- registration
 
   async register(input: RegisterInput, meta: RequestMeta): Promise<void> {
-    await this.passwords.assertAcceptable(input.password, [input.username, input.email.split('@')[0]!]);
+    await this.passwords.assertAcceptable(input.password, [
+      input.username,
+      input.email.split('@')[0]!,
+    ]);
 
     const existing = await this.db.query.users.findFirst({
       where: or(eq(users.email, input.email), eq(users.username, input.username)),
@@ -73,7 +83,9 @@ export class AuthService {
 
     const passwordHash = await this.passwords.hash(input.password);
     const student = input.accountType === 'student' ? input.student! : undefined;
-    const requiresParentConsent = student ? needsParentConsent(student.birthYear, student.isAtLeast16) : false;
+    const requiresParentConsent = student
+      ? needsParentConsent(student.birthYear, student.isAtLeast16)
+      : false;
 
     const user = await this.db.transaction(async (tx) => {
       const [created] = await tx
@@ -112,7 +124,12 @@ export class AuthService {
     if (requiresParentConsent && student?.parentEmail) {
       await this.sendParentConsent(user, student.parentEmail);
     }
-    await this.audit.log({ actorId: user.id, action: 'user.registered', ip: meta.ip, metadata: { accountType: user.accountType } });
+    await this.audit.log({
+      actorId: user.id,
+      action: 'user.registered',
+      ip: meta.ip,
+      metadata: { accountType: user.accountType },
+    });
   }
 
   async resendVerification(email: string): Promise<void> {
@@ -144,10 +161,21 @@ export class AuthService {
     const row = await this.tokens.consume('parent_consent', token);
     if (!row) throw Errors.invalidToken();
     await this.db.transaction(async (tx) => {
-      await tx.update(users).set({ parentConsentAt: new Date(), updatedAt: new Date() }).where(eq(users.id, row.userId));
-      await tx.insert(parentConsents).values({ studentId: row.userId, parentEmailHash: row.meta?.parentEmailHash ?? '' });
+      await tx
+        .update(users)
+        .set({ parentConsentAt: new Date(), updatedAt: new Date() })
+        .where(eq(users.id, row.userId));
+      await tx
+        .insert(parentConsents)
+        .values({ studentId: row.userId, parentEmailHash: row.meta?.parentEmailHash ?? '' });
     });
-    await this.audit.log({ actorId: null, action: 'user.parent_consent', targetType: 'user', targetId: row.userId, ip });
+    await this.audit.log({
+      actorId: null,
+      action: 'user.parent_consent',
+      targetType: 'user',
+      targetId: row.userId,
+      ip,
+    });
   }
 
   // ---------------------------------------------------------------- login
@@ -169,7 +197,10 @@ export class AuthService {
     await this.redis.del(`login:fail:${idKey}`);
 
     if (this.passwords.needsRehash(user.passwordHash)) {
-      await this.db.update(users).set({ passwordHash: await this.passwords.hash(input.password) }).where(eq(users.id, user.id));
+      await this.db
+        .update(users)
+        .set({ passwordHash: await this.passwords.hash(input.password) })
+        .where(eq(users.id, user.id));
     }
     this.assertCanLogIn(user);
 
@@ -181,10 +212,20 @@ export class AuthService {
     return this.completeLogin(user, meta, res, false);
   }
 
-  async loginMfa(challengeId: string, code: string, meta: RequestMeta, res: Response): Promise<LoginResponse> {
+  async loginMfa(
+    challengeId: string,
+    code: string,
+    meta: RequestMeta,
+    res: Response,
+  ): Promise<LoginResponse> {
     const key = `mfa:challenge:${challengeId}`;
     const userId = await this.redis.get(key);
-    if (!userId) throw new AppError(HttpStatus.UNAUTHORIZED, 'mfa_expired', 'Sesja logowania wygasła — zaloguj się ponownie');
+    if (!userId)
+      throw new AppError(
+        HttpStatus.UNAUTHORIZED,
+        'mfa_expired',
+        'Sesja logowania wygasła — zaloguj się ponownie',
+      );
     const attempts = await this.redis.incr(`${key}:attempts`);
     await this.redis.expire(`${key}:attempts`, MFA_CHALLENGE_TTL_SEC);
     if (attempts > MFA_MAX_ATTEMPTS) {
@@ -272,16 +313,29 @@ export class AuthService {
     await this.notifyPasswordChanged(user);
   }
 
-  async changePassword(user: User, sessionId: string, current: string, next: string, ip: string | null) {
+  async changePassword(
+    user: User,
+    sessionId: string,
+    current: string,
+    next: string,
+    ip: string | null,
+  ) {
     if (!(await this.passwords.verify(user.passwordHash, current))) {
-      throw new AppError(HttpStatus.BAD_REQUEST, 'invalid_password', 'Obecne hasło jest nieprawidłowe', [
-        { path: 'currentPassword', message: 'Nieprawidłowe hasło' },
-      ]);
+      throw new AppError(
+        HttpStatus.BAD_REQUEST,
+        'invalid_password',
+        'Obecne hasło jest nieprawidłowe',
+        [{ path: 'currentPassword', message: 'Nieprawidłowe hasło' }],
+      );
     }
     await this.passwords.assertAcceptable(next, [user.username, user.email.split('@')[0]!]);
     await this.db
       .update(users)
-      .set({ passwordHash: await this.passwords.hash(next), passwordChangedAt: new Date(), updatedAt: new Date() })
+      .set({
+        passwordHash: await this.passwords.hash(next),
+        passwordChangedAt: new Date(),
+        updatedAt: new Date(),
+      })
       .where(eq(users.id, user.id));
     await this.sessions.revokeAll(user.id, sessionId);
     await this.audit.log({ actorId: user.id, action: 'auth.password_changed', ip });
@@ -299,7 +353,11 @@ export class AuthService {
       );
     }
     if (!user.emailVerifiedAt) {
-      throw new AppError(HttpStatus.FORBIDDEN, 'email_not_verified', 'Potwierdź adres e-mail — wysłaliśmy Ci link');
+      throw new AppError(
+        HttpStatus.FORBIDDEN,
+        'email_not_verified',
+        'Potwierdź adres e-mail — wysłaliśmy Ci link',
+      );
     }
     if (user.requiresParentConsent && !user.parentConsentAt) {
       throw new AppError(
@@ -310,11 +368,24 @@ export class AuthService {
     }
   }
 
-  private async completeLogin(user: User, meta: RequestMeta, res: Response, mfaVerified: boolean): Promise<LoginResponse> {
-    const { token } = await this.sessions.create(user.id, { userAgent: meta.userAgent, mfaVerified });
+  private async completeLogin(
+    user: User,
+    meta: RequestMeta,
+    res: Response,
+    mfaVerified: boolean,
+  ): Promise<LoginResponse> {
+    const { token } = await this.sessions.create(user.id, {
+      userAgent: meta.userAgent,
+      mfaVerified,
+    });
     this.sessions.setCookie(res, token);
     await this.trackDevice(user, meta, res);
-    await this.audit.log({ actorId: user.id, action: 'auth.login', ip: meta.ip, metadata: { mfa: mfaVerified } });
+    await this.audit.log({
+      actorId: user.id,
+      action: 'auth.login',
+      ip: meta.ip,
+      metadata: { mfa: mfaVerified },
+    });
     return { status: 'ok', user: await buildMe(this.db, user) };
   }
 
@@ -325,9 +396,13 @@ export class AuthService {
     const inserted = await this.db
       .insert(knownDevices)
       .values({ userId: user.id, deviceHash })
-      .onConflictDoUpdate({ target: [knownDevices.userId, knownDevices.deviceHash], set: { lastSeenAt: new Date() } })
+      .onConflictDoUpdate({
+        target: [knownDevices.userId, knownDevices.deviceHash],
+        set: { lastSeenAt: new Date() },
+      })
       .returning({ createdAt: knownDevices.createdAt, lastSeenAt: knownDevices.lastSeenAt });
-    const isNew = inserted[0] && inserted[0].createdAt.getTime() === inserted[0].lastSeenAt.getTime();
+    const isNew =
+      inserted[0] && inserted[0].createdAt.getTime() === inserted[0].lastSeenAt.getTime();
     if (!isNew) return;
     const known = await this.db.$count(knownDevices, eq(knownDevices.userId, user.id));
     if (known <= 1) return; // first login ever, nothing to compare with
@@ -365,7 +440,9 @@ export class AuthService {
   }
 
   private async sendParentConsent(user: User, parentEmail: string) {
-    const token = await this.tokens.issue(user.id, 'parent_consent', { parentEmailHash: this.crypto.hash(parentEmail) });
+    const token = await this.tokens.issue(user.id, 'parent_consent', {
+      parentEmailHash: this.crypto.hash(parentEmail),
+    });
     await this.mail.send({
       to: parentEmail,
       subject: 'Prośba o zgodę rodzica',
@@ -387,4 +464,3 @@ export class AuthService {
     });
   }
 }
-

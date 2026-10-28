@@ -23,7 +23,11 @@ export class RateLimitGuard implements CanActivate {
       ctx.getClass(),
     ]);
     if (!wait && route) {
-      wait = await this.limiter.hit(`route:${ctx.getClass().name}.${ctx.getHandler().name}:${ip}`, route.limit, route.windowSec);
+      wait = await this.limiter.hit(
+        `route:${ctx.getClass().name}.${ctx.getHandler().name}:${ip}`,
+        route.limit,
+        route.windowSec,
+      );
     }
     if (wait) throw Errors.tooManyRequests(wait);
     return true;

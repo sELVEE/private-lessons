@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import {
   type MfaEnableResponse,
   type MfaSetupResponse,
@@ -49,17 +61,31 @@ export class AccountController {
     if (!(await this.sessions.revoke(user.id, id))) {
       throw new AppError(HttpStatus.NOT_FOUND, 'not_found', 'Nie znaleziono sesji');
     }
-    await this.audit.log({ actorId: user.id, action: 'auth.session_revoked', targetType: 'session', targetId: id });
+    await this.audit.log({
+      actorId: user.id,
+      action: 'auth.session_revoked',
+      targetType: 'session',
+      targetId: id,
+    });
   }
 
   /** "Wyloguj ze wszystkich urządzeń", including this one. */
   @AllowDuringMfaSetup()
   @Post('sessions/revoke-all')
   @HttpCode(204)
-  async revokeAll(@Auth() { user }: AuthContext, @Res({ passthrough: true }) res: Response, @Req() req: Request) {
+  async revokeAll(
+    @Auth() { user }: AuthContext,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ) {
     const count = await this.sessions.revokeAll(user.id);
     this.sessions.clearCookie(res);
-    await this.audit.log({ actorId: user.id, action: 'auth.sessions_revoked_all', ip: clientIp(req), metadata: { count } });
+    await this.audit.log({
+      actorId: user.id,
+      action: 'auth.sessions_revoked_all',
+      ip: clientIp(req),
+      metadata: { count },
+    });
   }
 
   @RateLimit({ limit: 5, windowSec: 900 })
@@ -70,7 +96,13 @@ export class AccountController {
     @Body(new ZodPipe(changePasswordSchema)) body: z.infer<typeof changePasswordSchema>,
     @Req() req: Request,
   ) {
-    await this.auth.changePassword(user, session.id, body.currentPassword, body.newPassword, clientIp(req));
+    await this.auth.changePassword(
+      user,
+      session.id,
+      body.currentPassword,
+      body.newPassword,
+      clientIp(req),
+    );
   }
 
   @AllowDuringMfaSetup()
@@ -84,14 +116,20 @@ export class AccountController {
   @RateLimit({ limit: 10, windowSec: 300 })
   @Post('mfa/enable')
   @HttpCode(200)
-  mfaEnable(@Auth() { user }: AuthContext, @Body(new ZodPipe(mfaEnableSchema)) body: { code: string }): Promise<MfaEnableResponse> {
+  mfaEnable(
+    @Auth() { user }: AuthContext,
+    @Body(new ZodPipe(mfaEnableSchema)) body: { code: string },
+  ): Promise<MfaEnableResponse> {
     return this.mfa.enable(user, body.code);
   }
 
   @RateLimit({ limit: 5, windowSec: 300 })
   @Post('mfa/disable')
   @HttpCode(204)
-  async mfaDisable(@Auth() { user }: AuthContext, @Body(new ZodPipe(mfaDisableSchema)) body: z.infer<typeof mfaDisableSchema>) {
+  async mfaDisable(
+    @Auth() { user }: AuthContext,
+    @Body(new ZodPipe(mfaDisableSchema)) body: z.infer<typeof mfaDisableSchema>,
+  ) {
     if (!(await this.passwords.verify(user.passwordHash, body.password))) {
       throw new AppError(HttpStatus.BAD_REQUEST, 'invalid_password', 'Nieprawidłowe hasło', [
         { path: 'password', message: 'Nieprawidłowe hasło' },

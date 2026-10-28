@@ -32,7 +32,10 @@ export class AuthController {
   @RateLimit({ limit: 5, windowSec: 3600 })
   @Post('register')
   @HttpCode(202)
-  async register(@Body(new ZodPipe(registerSchema)) body: z.infer<typeof registerSchema>, @Req() req: Request) {
+  async register(
+    @Body(new ZodPipe(registerSchema)) body: z.infer<typeof registerSchema>,
+    @Req() req: Request,
+  ) {
     await this.auth.register(body, this.meta(req));
     return { status: 'verification_sent' };
   }
@@ -41,7 +44,9 @@ export class AuthController {
   @RateLimit({ limit: 5, windowSec: 900 })
   @Post('resend-verification')
   @HttpCode(202)
-  async resendVerification(@Body(new ZodPipe(z.object({ email: emailSchema }))) body: { email: string }) {
+  async resendVerification(
+    @Body(new ZodPipe(z.object({ email: emailSchema }))) body: { email: string },
+  ) {
     await this.auth.resendVerification(body.email);
     return { status: 'ok' };
   }
@@ -66,7 +71,10 @@ export class AuthController {
   @RateLimit({ limit: 20, windowSec: 900 })
   @Post('parent-consent/confirm')
   @HttpCode(200)
-  async confirmConsent(@Body(new ZodPipe(tokenSchema)) body: { token: string }, @Req() req: Request) {
+  async confirmConsent(
+    @Body(new ZodPipe(tokenSchema)) body: { token: string },
+    @Req() req: Request,
+  ) {
     await this.auth.confirmParentConsent(body.token, clientIp(req));
     return { status: 'ok' };
   }
@@ -115,7 +123,10 @@ export class AuthController {
   @RateLimit({ limit: 5, windowSec: 900 })
   @Post('forgot-password')
   @HttpCode(202)
-  async forgotPassword(@Body(new ZodPipe(forgotPasswordSchema)) body: { email: string }, @Req() req: Request) {
+  async forgotPassword(
+    @Body(new ZodPipe(forgotPasswordSchema)) body: { email: string },
+    @Req() req: Request,
+  ) {
     await this.auth.forgotPassword(body.email, clientIp(req));
     return { status: 'ok' };
   }
@@ -124,7 +135,10 @@ export class AuthController {
   @RateLimit({ limit: 10, windowSec: 900 })
   @Post('reset-password')
   @HttpCode(200)
-  async resetPassword(@Body(new ZodPipe(resetPasswordSchema)) body: { token: string; password: string }, @Req() req: Request) {
+  async resetPassword(
+    @Body(new ZodPipe(resetPasswordSchema)) body: { token: string; password: string },
+    @Req() req: Request,
+  ) {
     await this.auth.resetPassword(body.token, body.password, clientIp(req));
     return { status: 'ok' };
   }
@@ -136,6 +150,10 @@ export class AuthController {
   }
 
   private meta(req: Request): RequestMeta {
-    return { ip: clientIp(req), userAgent: userAgent(req), deviceCookie: req.cookies?.[this.sessions.deviceCookieName] };
+    return {
+      ip: clientIp(req),
+      userAgent: userAgent(req),
+      deviceCookie: req.cookies?.[this.sessions.deviceCookieName],
+    };
   }
 }
