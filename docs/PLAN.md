@@ -35,14 +35,16 @@ Legenda: ✅ zrobione · 🔜 następne · ⏳ później (świadomie odłożone)
 - Dziennik audytu tylko do dopisywania.
 - Widoki zależne od roli (menu, pulpit).
 
-### Etap 2 — role, organizacje i uczniowie 🔜
+### Etap 2 — role, organizacje i uczniowie ✅
 
-- Zaproszenia: korepetytor generuje kod/link → uczeń dołącza; korepetytor zaprasza e-mailem.
-- Powiązanie rodzic ↔ dziecko (potwierdzane przez dziecko lub w ramach zgody rodzica).
-- `enrollments`: korepetytor × uczeń × przedmiot, cele nauki, status, historia współpracy.
-- Profile uczniów, przedmioty (`subjects`) i drzewo tematów (`topics`).
-- Polityki dostępu do rekordów + **Row-Level Security** w Postgresie (`organization_id`, `user_id`).
-- Panel administratora z ograniczonym, audytowanym dostępem.
+- Zaproszenia: korepetytor tworzy kod/link (z limitem użyć i ważnością) albo wysyła zaproszenie e-mail (przyjmie je tylko konto z tym adresem). Uczeń bez konta otwiera link → rejestracja → po zalogowaniu wraca do dołączania.
+- Współpraca (`enrollments`): korepetytor × uczeń × przedmiot, cele nauki, status (aktywna / wstrzymana / zakończona), historia zmian (`enrollment_events`).
+- Przedmioty i drzewo tematów; nowy korepetytor dostaje „Matematykę”.
+- Rodzic ↔ dziecko: dziecko generuje jednorazowy kod (24 h), rodzic go wpisuje; każda strona może usunąć połączenie, dziecko dostaje e-mail o połączeniu.
+- Uczeń edytuje poziom szkoły i klasę.
+- **Row-Level Security**: dane domenowe czytane wyłącznie jako rola `pl_app` z ustawionym `app.user_id`; polityki w migracji `0001_teaching_core.sql`. Inny korepetytor — nawet w tej samej organizacji — nie widzi cudzych uczniów; rola `pl_app` nie ma dostępu do hashy haseł ani sekretów MFA.
+- Panel administratora: wyszukiwanie kont i blokowanie, tylko z MFA zweryfikowanym w tej sesji, z obowiązkowym powodem zapisywanym w audycie; bez wglądu w lekcje, notatki i płatności.
+- ⏳ Wybór organizacji dla korepetytora uczącego w kilku szkołach; zapraszanie korepetytorów do organizacji-szkoły.
 
 ### Etap 3 — kalendarz i lekcje
 
@@ -102,7 +104,9 @@ Zaimplementowane (`apps/api/src/db/schema.ts`):
 | `parent_consents`  | dowód zgody rodzica (HMAC e-maila, data)                                       |
 | `audit_log`        | dziennik bezpieczeństwa, tylko dopisywanie                                     |
 
-Planowane: `subjects`, `topics`, `enrollments`, `parent_links`, `invites`, `lessons`, `lesson_participants`, `lesson_changes`, `lesson_notes`, `note_revisions`, `price_plans`, `packages`, `ledger_entries`, `monthly_statements`, `materials`, `homework`, `homework_submissions`, `assessments`, `topic_mastery`, `goals`, `lesson_reports`, `org_settings` (m.in. polityka odwołań).
+Etap 2: `subjects`, `topics`, `invites`, `enrollments`, `enrollment_events`, `parent_link_codes`, `parent_links` — wszystkie z RLS.
+
+Planowane: `lessons`, `lesson_participants`, `lesson_changes`, `lesson_notes`, `note_revisions`, `price_plans`, `packages`, `ledger_entries`, `monthly_statements`, `materials`, `homework`, `homework_submissions`, `assessments`, `topic_mastery`, `goals`, `lesson_reports`, `org_settings` (m.in. polityka odwołań).
 
 ## Bezpieczeństwo
 

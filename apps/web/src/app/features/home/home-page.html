@@ -1,0 +1,113 @@
+<div class="page">
+  <h1>Cześć, {{ me()?.displayName }}!</h1>
+
+  @if (joined()) {
+    <div class="info-banner" role="status">Dołączono do korepetytora. Powodzenia w nauce!</div>
+  }
+  @if (!me()?.mfaEnabled) {
+    <div class="info-banner">
+      Zabezpiecz konto weryfikacją dwuetapową.
+      <a mat-button routerLink="/app/account">Włącz</a>
+    </div>
+  }
+
+  <div class="grid">
+    @switch (role()) {
+      @case ('tutor') {
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Aktywni uczniowie</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <p class="big">{{ active().length }}</p>
+            <mat-list>
+              @for (e of active().slice(0, 5); track e.id) {
+                <a mat-list-item [routerLink]="['/app/students', e.id]">
+                  <span matListItemTitle>{{ e.student.displayName }}</span>
+                  <span matListItemLine class="muted"
+                    >{{ e.subject.name }} · {{ level(e.student) }}</span
+                  >
+                </a>
+              }
+            </mat-list>
+          </mat-card-content>
+          <mat-card-actions>
+            <a mat-button routerLink="/app/students">Wszyscy uczniowie</a>
+            <a mat-button routerLink="/app/students">Zaproś ucznia</a>
+          </mat-card-actions>
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
+          <mat-card-content class="muted">Kalendarz pojawi się w etapie 3.</mat-card-content>
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Zarobki w tym miesiącu</mat-card-title></mat-card-header>
+          <mat-card-content class="muted">Rozliczenia pojawią się w etapie 5.</mat-card-content>
+        </mat-card>
+      }
+      @case ('student') {
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Moi korepetytorzy</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <mat-list>
+              @for (e of enrollments(); track e.id) {
+                <a mat-list-item [routerLink]="['/app/cooperation', e.id]">
+                  <span matListItemTitle>{{ e.subject.name }} — {{ e.tutor.displayName }}</span>
+                  <span matListItemLine class="muted"
+                    >od {{ e.startedAt | date: 'd.MM.yyyy' }}</span
+                  >
+                </a>
+              } @empty {
+                <p class="muted">Nie masz jeszcze korepetytora. Poproś go o kod zaproszenia.</p>
+              }
+            </mat-list>
+          </mat-card-content>
+          <mat-card-actions>
+            <a mat-button routerLink="/app/join">Dołącz z kodem</a>
+          </mat-card-actions>
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Mój profil</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <p>{{ schoolLabel() }}</p>
+          </mat-card-content>
+          <mat-card-actions><a mat-button routerLink="/app/account">Zmień</a></mat-card-actions>
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
+          <mat-card-content class="muted">Plan lekcji pojawi się w etapie 3.</mat-card-content>
+        </mat-card>
+      }
+      @case ('parent') {
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Moje dzieci</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <mat-list>
+              @for (c of children(); track c.id) {
+                <a mat-list-item routerLink="/app/children">
+                  <span matListItemTitle>{{ c.displayName }}</span>
+                  <span matListItemLine class="muted">
+                    {{ c.enrollments.length }}
+                    {{ c.enrollments.length === 1 ? 'przedmiot' : 'przedmioty' }} · {{ level(c) }}
+                  </span>
+                </a>
+              } @empty {
+                <p class="muted">Połącz konto dziecka kodem, który wygeneruje w swoim koncie.</p>
+              }
+            </mat-list>
+          </mat-card-content>
+          <mat-card-actions
+            ><a mat-button routerLink="/app/children">Zarządzaj</a></mat-card-actions
+          >
+        </mat-card>
+      }
+      @case ('admin') {
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Administracja</mat-card-title></mat-card-header>
+          <mat-card-content class="muted"
+            >Wyszukiwanie i blokowanie kont, z audytem każdej operacji.</mat-card-content
+          >
+          <mat-card-actions><a mat-button routerLink="/app/admin">Otwórz</a></mat-card-actions>
+        </mat-card>
+      }
+    }
+  </div>
+</div>

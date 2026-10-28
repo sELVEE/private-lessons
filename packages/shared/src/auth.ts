@@ -96,8 +96,6 @@ export const registerSchema = z
     acceptTerms: z.literal(true, { message: 'Musisz zaakceptować regulamin' }),
     declaresAdult: z.boolean().optional(),
     student: studentProfileSchema.optional(),
-    /** Optional tutor invite code; joining is handled after registration. */
-    inviteCode: z.string().trim().max(64).optional(),
   })
   .superRefine((r, ctx) => {
     if (r.accountType === 'student' && !r.student) {

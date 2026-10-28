@@ -1,6 +1,6 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { LoginInput, LoginResponse, RegisterInput } from '@pl/shared';
-import { needsParentConsent } from '@pl/shared';
+import { DEFAULT_SUBJECT, needsParentConsent } from '@pl/shared';
 import { and, eq, or } from 'drizzle-orm';
 import type { Response } from 'express';
 import type { Redis } from 'ioredis';
@@ -14,6 +14,7 @@ import {
   organizations,
   parentConsents,
   studentProfiles,
+  subjects,
   users,
 } from '../db/schema.js';
 import { MailService } from '../mail/mail.service.js';
@@ -116,6 +117,7 @@ export class AuthService {
           { organizationId: org!.id, userId: created!.id, role: 'owner' },
           { organizationId: org!.id, userId: created!.id, role: 'tutor' },
         ]);
+        await tx.insert(subjects).values({ organizationId: org!.id, name: DEFAULT_SUBJECT });
       }
       return created!;
     });

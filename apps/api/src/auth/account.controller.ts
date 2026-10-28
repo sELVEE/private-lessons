@@ -117,10 +117,10 @@ export class AccountController {
   @Post('mfa/enable')
   @HttpCode(200)
   mfaEnable(
-    @Auth() { user }: AuthContext,
+    @Auth() { user, session }: AuthContext,
     @Body(new ZodPipe(mfaEnableSchema)) body: { code: string },
   ): Promise<MfaEnableResponse> {
-    return this.mfa.enable(user, body.code);
+    return this.mfa.enable(user, body.code, session.id);
   }
 
   @RateLimit({ limit: 5, windowSec: 300 })

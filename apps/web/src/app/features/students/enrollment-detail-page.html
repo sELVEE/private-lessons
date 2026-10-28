@@ -1,0 +1,119 @@
+<div class="page">
+  <div class="head">
+    <button mat-icon-button (click)="location.back()" aria-label="Wstecz">
+      <mat-icon fontSet="material-symbols-outlined">arrow_back</mat-icon>
+    </button>
+    @if (e(); as e) {
+      <h1>{{ isTutor() ? e.student.displayName : e.tutor.displayName }} · {{ e.subject.name }}</h1>
+    }
+  </div>
+
+  @if (error(); as msg) {
+    <div class="error-banner" role="alert">{{ msg }}</div>
+  }
+
+  @if (e(); as e) {
+    <div class="cards">
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Współpraca</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <dl>
+            <dt>Uczeń</dt>
+            <dd>{{ e.student.displayName }}</dd>
+            <dt>Korepetytor</dt>
+            <dd>{{ e.tutor.displayName }}</dd>
+            <dt>Przedmiot</dt>
+            <dd>{{ e.subject.name }}</dd>
+            <dt>Poziom</dt>
+            <dd>{{ level(e.student) || '—' }}</dd>
+            @if (e.student.age) {
+              <dt>Wiek</dt>
+              <dd>ok. {{ e.student.age }} lat</dd>
+            }
+            @if (e.studentEmail) {
+              <dt>E-mail</dt>
+              <dd>
+                <a [href]="'mailto:' + e.studentEmail">{{ e.studentEmail }}</a>
+              </dd>
+            }
+            <dt>Status</dt>
+            <dd>{{ statusLabel(e.status) }}</dd>
+            <dt>Od</dt>
+            <dd>{{ e.startedAt | date: 'd MMMM yyyy' }}</dd>
+            @if (e.endedAt) {
+              <dt>Do</dt>
+              <dd>{{ e.endedAt | date: 'd MMMM yyyy' }}</dd>
+            }
+          </dl>
+          @if (isTutor()) {
+            <div class="actions">
+              @if (e.status === 'active') {
+                <button mat-stroked-button (click)="setStatus('paused')" [disabled]="busy()">
+                  Wstrzymaj
+                </button>
+                <button mat-stroked-button (click)="setStatus('ended')" [disabled]="busy()">
+                  Zakończ współpracę
+                </button>
+              } @else {
+                <button mat-flat-button (click)="setStatus('active')" [disabled]="busy()">
+                  Wznów
+                </button>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Cele nauki</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @if (editing()) {
+            <mat-form-field class="full-width">
+              <mat-label>Cele</mat-label>
+              <textarea
+                matInput
+                [formControl]="goals"
+                rows="5"
+                placeholder="np. matura rozszerzona, cel 80%"
+              ></textarea>
+              <mat-hint align="end">{{ goals.value.length }}/2000</mat-hint>
+            </mat-form-field>
+            <div class="actions">
+              <button mat-button (click)="editing.set(false)">Anuluj</button>
+              <button mat-flat-button (click)="saveGoals()" [disabled]="busy()">Zapisz</button>
+            </div>
+          } @else {
+            @if (e.goals) {
+              <p class="goals">{{ e.goals }}</p>
+            } @else {
+              <p class="muted">Cele nie zostały jeszcze określone.</p>
+            }
+            @if (isTutor()) {
+              <button mat-stroked-button (click)="startEdit()">Edytuj cele</button>
+            }
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Historia współpracy</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <mat-list>
+            @for (ev of e.events; track $index) {
+              <mat-list-item>
+                <span matListItemTitle>{{ eventLabel(ev.type) }}</span>
+                <span matListItemLine class="muted">
+                  {{ ev.createdAt | date: 'd.MM.yyyy HH:mm' }}
+                  @if (ev.actor) {
+                    · {{ ev.actor }}
+                  }
+                </span>
+              </mat-list-item>
+            }
+          </mat-list>
+          <p class="muted">Frekwencja i historia lekcji pojawią się z kalendarzem (etap 3).</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

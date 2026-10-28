@@ -14,6 +14,7 @@ import QRCode from 'qrcode';
 import { firstValueFrom } from 'rxjs';
 import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
+import { StudentSettings } from './student-settings';
 
 @Component({
   selector: 'pl-security-page',
@@ -26,6 +27,7 @@ import { AuthStore } from '../../core/auth.store';
     MatIconModule,
     MatInputModule,
     MatListModule,
+    StudentSettings,
   ],
   templateUrl: './security-page.html',
   styleUrl: './security-page.scss',

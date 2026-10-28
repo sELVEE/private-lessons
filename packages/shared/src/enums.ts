@@ -28,3 +28,6 @@ export const SCHOOL_LEVEL_MAX_GRADE: Record<SchoolLevel, number | null> = {
 
 /** Age (RODO art. 8, Polish implementation) below which a parent must consent. */
 export const DIGITAL_CONSENT_AGE = 16;
+
+/** Every new tutor starts with this subject; more can be added in the app. */
+export const DEFAULT_SUBJECT = 'Matematyka';

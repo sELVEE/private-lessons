@@ -6,7 +6,7 @@ import { AuditService } from '../audit/audit.service.js';
 import { AppError } from '../common/errors.js';
 import { CryptoService } from '../crypto/crypto.service.js';
 import { DB, type Db } from '../db/db.module.js';
-import { mfaBackupCodes, users } from '../db/schema.js';
+import { mfaBackupCodes, sessions, users } from '../db/schema.js';
 import { MailService } from '../mail/mail.service.js';
 import { generateSecret, otpauthUri, verifyTotp } from './totp.js';
 
@@ -45,7 +45,8 @@ export class MfaService {
     return { secret, otpauthUri: otpauthUri(secret, user.email, ISSUER) };
   }
 
-  async enable(user: User, code: string): Promise<MfaEnableResponse> {
+  /** Enrolment proves possession of the authenticator, so the current session counts as MFA-verified. */
+  async enable(user: User, code: string, sessionId: string): Promise<MfaEnableResponse> {
     if (user.mfaEnabledAt)
       throw new AppError(
         HttpStatus.CONFLICT,
@@ -67,6 +68,7 @@ export class MfaService {
       await tx
         .insert(mfaBackupCodes)
         .values(codes.map((c) => ({ userId: user.id, codeHash: this.crypto.hash(c) })));
+      await tx.update(sessions).set({ mfaVerified: true }).where(eq(sessions.id, sessionId));
     });
     await this.audit.log({ actorId: user.id, action: 'auth.mfa_enabled' });
     await this.mail.send({

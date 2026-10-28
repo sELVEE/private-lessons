@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  type AnyPgColumn,
   bigint,
   boolean,
   customType,
@@ -14,7 +15,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { ACCOUNT_TYPES, ORG_ROLES, SCHOOL_LEVELS } from '@pl/shared';
+import { ACCOUNT_TYPES, ENROLLMENT_STATUSES, ORG_ROLES, SCHOOL_LEVELS } from '@pl/shared';
 
 const citext = customType<{ data: string }>({ dataType: () => 'citext' });
 
@@ -27,6 +28,7 @@ const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull(
 export const accountType = pgEnum('account_type', ACCOUNT_TYPES);
 export const orgRole = pgEnum('org_role', ORG_ROLES);
 export const schoolLevel = pgEnum('school_level', SCHOOL_LEVELS);
+export const enrollmentStatus = pgEnum('enrollment_status', ENROLLMENT_STATUSES);
 export const userStatus = pgEnum('user_status', ['active', 'locked', 'disabled']);
 export const tokenPurpose = pgEnum('token_purpose', [
   'email_verify',
@@ -188,5 +190,138 @@ export const auditLog = pgTable(
   (t) => [
     index('audit_log_actor_idx').on(t.actorId, t.createdAt),
     index('audit_log_action_idx').on(t.action, t.createdAt),
+  ],
+);
+
+// ---------------------------------------------------------------- stage 2: tenants' teaching data
+// Tables below are protected by Postgres row-level security (see the migration); the API reaches
+// them only through RlsService, which runs queries as the restricted `pl_app` role.
+
+export const subjects = pgTable(
+  'subjects',
+  {
+    id: id(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('subjects_org_name_uq').on(t.organizationId, t.name)],
+);
+
+export const topics = pgTable(
+  'topics',
+  {
+    id: id(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    parentId: uuid('parent_id').references((): AnyPgColumn => topics.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('topics_subject_idx').on(t.subjectId)],
+);
+
+/** Invitation to start lessons with a tutor: a typeable code/link or a personal e-mail. */
+export const invites = pgTable(
+  'invites',
+  {
+    id: id(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    tutorId: uuid('tutor_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    codeHash: text('code_hash').notNull().unique(),
+    /** HMAC of the invited address for e-mail invites; only that account may accept. */
+    emailHash: text('email_hash'),
+    maxUses: smallint('max_uses').notNull().default(1),
+    uses: smallint('uses').notNull().default(0),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('invites_tutor_idx').on(t.tutorId)],
+);
+
+/** Tutor × student × subject: the unit of cooperation (goals, status, history). */
+export const enrollments = pgTable(
+  'enrollments',
+  {
+    id: id(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    tutorId: uuid('tutor_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'restrict' }),
+    status: enrollmentStatus('status').notNull().default('active'),
+    goals: text('goals'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('enrollments_tutor_student_subject_uq').on(t.tutorId, t.studentId, t.subjectId),
+    index('enrollments_student_idx').on(t.studentId),
+  ],
+);
+
+export const enrollmentEvents = pgTable(
+  'enrollment_events',
+  {
+    id: id(),
+    enrollmentId: uuid('enrollment_id')
+      .notNull()
+      .references(() => enrollments.id, { onDelete: 'cascade' }),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    type: text('type').notNull(),
+    note: text('note'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('enrollment_events_enrollment_idx').on(t.enrollmentId, t.createdAt)],
+);
+
+/** One-time code a student gives to their parent to link accounts (24 h). */
+export const parentLinkCodes = pgTable('parent_link_codes', {
+  id: id(),
+  studentId: uuid('student_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  codeHash: text('code_hash').notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: createdAt(),
+});
+
+export const parentLinks = pgTable(
+  'parent_links',
+  {
+    id: id(),
+    parentId: uuid('parent_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('parent_links_parent_student_uq').on(t.parentId, t.studentId),
+    index('parent_links_student_idx').on(t.studentId),
   ],
 );

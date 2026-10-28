@@ -1,10 +1,21 @@
 // Usage: node dist/cli/seed-dev.js — demo accounts for local development only.
+import { DEFAULT_SUBJECT } from '@pl/shared';
 import argon2 from 'argon2';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import { ARGON_OPTS } from '../auth/password.service.js';
-import { memberships, organizations, studentProfiles, users } from '../db/schema.js';
+import {
+  enrollmentEvents,
+  enrollments,
+  memberships,
+  organizations,
+  parentLinks,
+  studentProfiles,
+  subjects,
+  topics,
+  users,
+} from '../db/schema.js';
 
 const DEMO_PASSWORD = 'Demo-haslo-2026';
 
@@ -60,8 +71,70 @@ try {
     });
     console.log(`  ${a.username}: utworzono`);
   }
+  await seedTeaching();
   console.log(`\nLoginy: ${accounts.map((a) => a.username).join(', ')} · hasło: ${DEMO_PASSWORD}`);
   console.log('Konto admin przy pierwszym logowaniu wymusi konfigurację MFA.');
 } finally {
   await pool.end();
+}
+
+/** Demo cooperation: Kasia learns maths with Anna, Marek is Kasia's parent. Idempotent. */
+async function seedTeaching() {
+  const byUsername = async (username: string) =>
+    (await db.select().from(users).where(eq(users.username, username)))[0]!;
+  const tutor = await byUsername('korepetytor');
+  const student = await byUsername('uczen');
+  const parent = await byUsername('rodzic');
+  const [m] = await db
+    .select()
+    .from(memberships)
+    .where(and(eq(memberships.userId, tutor.id), eq(memberships.role, 'tutor')));
+  const orgId = m!.organizationId;
+
+  let [math] = await db
+    .select()
+    .from(subjects)
+    .where(and(eq(subjects.organizationId, orgId), eq(subjects.name, DEFAULT_SUBJECT)));
+  if (!math) {
+    [math] = await db
+      .insert(subjects)
+      .values({ organizationId: orgId, name: DEFAULT_SUBJECT })
+      .returning();
+    await db.insert(topics).values(
+      ['Funkcje', 'Równania kwadratowe', 'Trygonometria', 'Ciągi'].map((name) => ({
+        organizationId: orgId,
+        subjectId: math!.id,
+        name,
+      })),
+    );
+  }
+
+  await db
+    .insert(memberships)
+    .values({ organizationId: orgId, userId: student.id, role: 'student' })
+    .onConflictDoNothing();
+  const [existing] = await db
+    .select()
+    .from(enrollments)
+    .where(and(eq(enrollments.tutorId, tutor.id), eq(enrollments.studentId, student.id)));
+  if (!existing) {
+    const [e] = await db
+      .insert(enrollments)
+      .values({
+        organizationId: orgId,
+        tutorId: tutor.id,
+        studentId: student.id,
+        subjectId: math!.id,
+        goals: 'Matura rozszerzona z matematyki — cel 80%',
+      })
+      .returning();
+    await db
+      .insert(enrollmentEvents)
+      .values({ enrollmentId: e!.id, actorId: student.id, type: 'joined' });
+  }
+  await db
+    .insert(parentLinks)
+    .values({ parentId: parent.id, studentId: student.id })
+    .onConflictDoNothing();
+  console.log('  Kasia uczy się matematyki u Anny, Marek jest połączony z Kasią');
 }

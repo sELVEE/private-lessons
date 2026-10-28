@@ -15,6 +15,7 @@ export const NAV: Record<AccountType | 'admin', NavItem[]> = {
     HOME,
     { path: '/app/calendar', label: 'Kalendarz', icon: 'calendar_month' },
     { path: '/app/students', label: 'Uczniowie', icon: 'groups' },
+    { path: '/app/subjects', label: 'Przedmioty', icon: 'category' },
     { path: '/app/billing', label: 'Rozliczenia', icon: 'payments' },
     { path: '/app/materials', label: 'Materiały', icon: 'library_books' },
     { path: '/app/homework', label: 'Zadania domowe', icon: 'assignment' },

@@ -1,0 +1,155 @@
+<div class="page">
+  <div class="header">
+    <h1>Uczniowie</h1>
+    <button mat-flat-button (click)="openInvite()">
+      <mat-icon fontSet="material-symbols-outlined">person_add</mat-icon>
+      Zaproś ucznia
+    </button>
+  </div>
+
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+
+  @if (showInvite()) {
+    <mat-card appearance="outlined" class="invite-card">
+      <mat-card-header>
+        <mat-card-title>Zaproś ucznia</mat-card-title>
+        <button mat-icon-button class="close" (click)="showInvite.set(false)" aria-label="Zamknij">
+          <mat-icon fontSet="material-symbols-outlined">close</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        @if (created(); as inv) {
+          <p>
+            Przekaż uczniowi link albo kod. Po zalogowaniu (lub założeniu konta) od razu dołączy do
+            Ciebie.
+          </p>
+          <div class="code-box">
+            <span class="code">{{ inv.code }}</span>
+            <button mat-stroked-button (click)="copy(inv.code!, 'kod')">Kopiuj kod</button>
+            <button mat-stroked-button (click)="copy(inv.link!, 'link')">Kopiuj link</button>
+          </div>
+          <p class="muted">
+            Ważny do {{ inv.expiresAt | date: 'd MMMM, HH:mm' }} · liczba użyć: {{ inv.maxUses }}.
+            Kodu nie pokażemy ponownie — w razie potrzeby utwórz nowy.
+          </p>
+          <button mat-button (click)="created.set(null)">Utwórz kolejne zaproszenie</button>
+        } @else {
+          <form [formGroup]="inviteForm" (ngSubmit)="createInvite()" class="form-stack">
+            <mat-button-toggle-group formControlName="mode" class="mode">
+              <mat-button-toggle value="code">Kod / link</mat-button-toggle>
+              <mat-button-toggle value="email">E-mail</mat-button-toggle>
+            </mat-button-toggle-group>
+            <mat-form-field>
+              <mat-label>Przedmiot</mat-label>
+              <mat-select formControlName="subjectId">
+                @for (s of subjects(); track s.id) {
+                  <mat-option [value]="s.id">{{ s.name }}</mat-option>
+                }
+              </mat-select>
+              <mat-hint><a routerLink="/app/subjects">Zarządzaj przedmiotami</a></mat-hint>
+            </mat-form-field>
+            @if (inviteForm.controls.mode.value === 'email') {
+              <mat-form-field>
+                <mat-label>E-mail ucznia</mat-label>
+                <input matInput type="email" formControlName="email" />
+                <mat-hint>Tylko konto z tym adresem przyjmie zaproszenie.</mat-hint>
+                <mat-error>{{
+                  inviteForm.controls.email.errors?.['server'] ?? 'Podaj poprawny e-mail'
+                }}</mat-error>
+              </mat-form-field>
+            } @else {
+              <mat-form-field>
+                <mat-label>Ilu uczniów może użyć kodu</mat-label>
+                <input matInput type="number" formControlName="maxUses" min="1" max="50" />
+                <mat-hint>Dla jednej osoby zostaw 1.</mat-hint>
+              </mat-form-field>
+            }
+            <mat-form-field>
+              <mat-label>Ważność (dni)</mat-label>
+              <input matInput type="number" formControlName="expiresInDays" min="1" max="30" />
+            </mat-form-field>
+            <div class="row-actions">
+              <span></span>
+              <button mat-flat-button type="submit" [disabled]="busy()">
+                {{
+                  inviteForm.controls.mode.value === 'email' ? 'Wyślij zaproszenie' : 'Utwórz kod'
+                }}
+              </button>
+            </div>
+          </form>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (invites().length) {
+    <h2 class="section">Oczekujące zaproszenia</h2>
+    <div class="invites">
+      @for (i of invites(); track i.id) {
+        <div class="invite-row">
+          <mat-icon fontSet="material-symbols-outlined">{{ i.sentTo ? 'mail' : 'key' }}</mat-icon>
+          <span>
+            {{ i.subject.name }} · {{ i.sentTo ? 'zaproszenie e-mail' : 'kod' }} · użyto
+            {{ i.uses }}/{{ i.maxUses }}
+            <span class="muted">· do {{ i.expiresAt | date: 'd.MM' }}</span>
+          </span>
+          <button mat-button (click)="revoke(i)">Unieważnij</button>
+        </div>
+      }
+    </div>
+  }
+
+  <div class="list-header">
+    <h2 class="section">Lista uczniów</h2>
+    <mat-button-toggle-group
+      [value]="filter()"
+      (change)="filter.set($event.value)"
+      aria-label="Filtr"
+    >
+      <mat-button-toggle value="active">Aktywni ({{ counts().active }})</mat-button-toggle>
+      <mat-button-toggle value="paused">Wstrzymani</mat-button-toggle>
+      <mat-button-toggle value="ended">Zakończeni</mat-button-toggle>
+      <mat-button-toggle value="all">Wszyscy ({{ counts().all }})</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  @if (loaded() && !visible().length) {
+    <mat-card appearance="outlined">
+      <mat-card-content class="empty">
+        <mat-icon fontSet="material-symbols-outlined">group_add</mat-icon>
+        @if (counts().all) {
+          <p>Brak uczniów w tym widoku.</p>
+        } @else {
+          <p>Nie masz jeszcze uczniów. Zaproś pierwszego — wyślij mu kod albo e-mail.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <div class="grid">
+    @for (e of visible(); track e.id) {
+      <a class="student" [routerLink]="['/app/students', e.id]">
+        <mat-card appearance="outlined">
+          <mat-card-header>
+            <div mat-card-avatar class="avatar">{{ e.student.displayName.charAt(0) }}</div>
+            <mat-card-title>{{ e.student.displayName }}</mat-card-title>
+            <mat-card-subtitle>{{ e.subject.name }} · {{ level(e.student) }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (e.goals) {
+              <p class="goals">{{ e.goals }}</p>
+            } @else {
+              <p class="muted">Brak określonych celów</p>
+            }
+            <mat-chip-set>
+              <mat-chip [class]="'status-' + e.status">{{ statusLabel(e.status) }}</mat-chip>
+              <mat-chip>od {{ e.startedAt | date: 'd.MM.yyyy' }}</mat-chip>
+            </mat-chip-set>
+          </mat-card-content>
+        </mat-card>
+      </a>
+    }
+  </div>
+</div>

@@ -11,6 +11,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
+import { pendingInvite } from '../../core/pending-invite';
 
 /** Welcome screen and login. Second step asks for the MFA code when enabled. */
 @Component({
@@ -87,6 +88,11 @@ export default class LoginPage {
   }
 
   private async goIn() {
+    // A student who opened an invite link before logging in continues with joining.
+    if (pendingInvite.get() && this.store.role() === 'student') {
+      await this.router.navigateByUrl('/app/join');
+      return;
+    }
     const target = this.returnUrl();
     // Only allow in-app redirects.
     await this.router.navigateByUrl(target?.startsWith('/app') ? target : '/app');

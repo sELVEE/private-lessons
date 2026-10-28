@@ -14,6 +14,9 @@
   }
 
   <div class="sections">
+    @if (me()?.accountType === 'student' && !me()?.mfaSetupRequired) {
+      <pl-student-settings />
+    }
     <mat-card appearance="outlined">
       <mat-card-header>
         <mat-icon mat-card-avatar fontSet="material-symbols-outlined">phonelink_lock</mat-icon>
