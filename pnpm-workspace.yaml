@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+onlyBuiltDependencies:
+  - argon2
+  - esbuild
+  - lmdb
+  - msgpackr-extract
+  - '@swc/core'

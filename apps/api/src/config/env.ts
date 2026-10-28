@@ -1,0 +1,38 @@
+import { z } from 'zod';
+
+const base64Key = z
+  .string()
+  .refine((v) => Buffer.from(v, 'base64').length === 32, 'must be 32 bytes encoded as base64');
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  PORT: z.coerce.number().int().default(3000),
+  APP_URL: z.url(),
+  DATABASE_URL: z.string().min(1),
+  REDIS_URL: z.string().min(1),
+  DATA_ENCRYPTION_KEY: base64Key,
+  TOKEN_HASH_KEY: base64Key,
+  COOKIE_SECURE: z.stringbool().default(true),
+  MAIL_TRANSPORT: z.enum(['smtp', 'log']).default('smtp'),
+  SMTP_URL: z.string().optional(),
+  MAIL_FROM: z.string().default('Korepetycje <no-reply@localhost>'),
+  HIBP_ENABLED: z.stringbool().default(true),
+  TRUST_PROXY: z.stringbool().default(false),
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
+  const parsed = envSchema.safeParse(source);
+  if (!parsed.success) {
+    const details = parsed.error.issues.map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n');
+    throw new Error(`Invalid environment configuration:\n${details}`);
+  }
+  const env = parsed.data;
+  if (env.NODE_ENV === 'production' && !env.COOKIE_SECURE) {
+    throw new Error('COOKIE_SECURE must be true in production');
+  }
+  return env;
+}
+
+export const ENV = Symbol('ENV');
