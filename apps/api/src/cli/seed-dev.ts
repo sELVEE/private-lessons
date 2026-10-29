@@ -157,7 +157,9 @@ async function seedTeaching() {
     base.setHours(17, 0, 0, 0);
     await db.insert(lessons).values(
       Array.from({ length: 7 }, (_, i) => {
-        const startsAt = new Date(base.getTime() + i * 7 * 24 * 3600_000);
+        // Calendar-day arithmetic keeps 17:00 local across the DST change (adding 7 × 24 h does not).
+        const startsAt = new Date(base);
+        startsAt.setDate(base.getDate() + i * 7);
         const past = startsAt.getTime() < Date.now();
         return {
           organizationId: orgId,

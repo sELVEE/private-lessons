@@ -15,7 +15,7 @@
   gap: var(--pl-space-lg);
 
   h1 {
-    font-size: clamp(40px, 5vw, 64px);
+    font-size: clamp(36px, 4vw, 52px);
     margin: 0;
     max-width: 14ch;
 
@@ -74,7 +74,7 @@
     border-radius: 0 0 var(--mat-sys-corner-extra-large) var(--mat-sys-corner-extra-large);
 
     h1 {
-      font-size: 34px;
+      font-size: 30px;
     }
 
     ul {

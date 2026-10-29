@@ -301,6 +301,41 @@
   }
 }
 
+/* ── Drag & drop ───────────────────────────────────────────────────────── */
+
+.lesson.draggable,
+.chip.draggable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.lesson.dragging,
+.chip.dragging {
+  opacity: 0.35;
+}
+
+.col.drop-day,
+.cell.drop-day {
+  background: color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+}
+
+.drop-preview {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  z-index: 3;
+  box-sizing: border-box;
+  padding: var(--pl-space-xs) var(--pl-space-sm);
+  border: 2px dashed var(--c);
+  border-radius: var(--mat-sys-corner-small);
+  background: color-mix(in srgb, var(--c) 22%, var(--mat-sys-surface-container-lowest));
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+  box-shadow: var(--mat-sys-level2);
+}
+
 /* ── Month ──────────────────────────────────────────────────────────────── */
 
 .month {

@@ -56,7 +56,7 @@ html {
       ),
       typography: (
         plain-family: 'Manrope Variable',
-        brand-family: 'Instrument Serif',
+        brand-family: 'Newsreader Variable',
         bold-weight: 700,
         medium-weight: 600,
         regular-weight: 450,
@@ -104,7 +104,8 @@ html {
       outlined-container-shape: var(--mat-sys-corner-large),
       elevated-container-color: #f7f8f1,
       elevated-container-shape: var(--mat-sys-corner-large),
-      title-text-size: 26px,
+      title-text-size: 22px,
+      title-text-weight: 500,
       subtitle-text-color: var(--mat-sys-on-surface-variant),
       subtitle-text-weight: 450,
       subtitle-text-size: 14px,
@@ -209,12 +210,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Newsreader: an editorial serif with normal proportions; optical size follows the font size. */
 h1 {
   font-family: var(--mat-sys-display-medium-font);
-  font-weight: var(--mat-sys-display-medium-weight);
-  font-size: clamp(32px, 4vw, 44px);
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-weight: 500;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
   margin: 0;
 }
 
@@ -226,9 +228,10 @@ h1 em,
 /* One size per level: h1 page title, h2 section/card title (= mat-card-title), h3 subsection. */
 h2 {
   font-family: var(--mat-sys-headline-medium-font);
-  font-weight: var(--mat-sys-headline-medium-weight);
-  font-size: 26px;
-  line-height: 1.15;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 h3 {
@@ -281,7 +284,8 @@ h3 {
 
 .display {
   font-family: var(--pl-font-display);
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .material-symbols-outlined {
@@ -357,8 +361,6 @@ h3 {
   flex-direction: column;
   gap: var(--pl-space-xl);
   padding: var(--pl-space-xl) var(--pl-space-2xl) var(--pl-space-3xl);
-  max-width: 1280px;
-  margin: 0 auto;
   box-sizing: border-box;
 }
 

@@ -1,12 +1,16 @@
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { filter } from 'rxjs';
 import { AuthStore } from '../../core/auth.store';
 import { NAV } from '../nav';
+
+const COLLAPSED_KEY = 'pl.nav.collapsed';
 
 const ROLE_LABEL = {
   tutor: 'Korepetytor',
@@ -16,8 +20,8 @@ const ROLE_LABEL = {
 } as const;
 
 /**
- * Layout per Material 3 navigation guidance: side navigation (expanded) or rail (medium) on larger
- * screens, a bottom navigation bar on phones.
+ * Layout per Material 3 navigation guidance: side navigation (collapsible to icons) on wide screens,
+ * icons only on medium ones, a bottom navigation bar on phones.
  */
 @Component({
   selector: 'pl-shell',
@@ -25,9 +29,11 @@ const ROLE_LABEL = {
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
+    MatButtonModule,
     MatIconModule,
     MatMenuModule,
     MatSnackBarModule,
+    MatTooltipModule,
   ],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
@@ -52,9 +58,20 @@ export default class Shell {
     day: 'numeric',
     month: 'long',
   });
+  /** The user's choice on wide screens (remembered in this browser). */
+  readonly userCollapsed = signal(readCollapsed());
+  /** Medium windows (rail): always icons only. */
+  readonly medium = signal(false);
+  readonly collapsed = computed(() => this.userCollapsed() || this.medium());
   readonly online = signal(typeof navigator === 'undefined' ? true : navigator.onLine);
 
   constructor() {
+    const mq = matchMedia('(min-width: 600px) and (max-width: 1199.98px)');
+    const onMq = () => this.medium.set(mq.matches);
+    onMq();
+    mq.addEventListener('change', onMq);
+    inject(DestroyRef).onDestroy(() => mq.removeEventListener('change', onMq));
+
     const set = () => this.online.set(navigator.onLine);
     window.addEventListener('online', set);
     window.addEventListener('offline', set);
@@ -76,7 +93,27 @@ export default class Shell {
     }
   }
 
+  toggleCollapsed() {
+    // On medium windows the rail is always compact; the toggle then has nothing to change.
+    if (this.medium()) return;
+    const next = !this.userCollapsed();
+    this.userCollapsed.set(next);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
+    } catch {
+      /* storage unavailable: the choice lasts for this visit */
+    }
+  }
+
   logout() {
     void this.store.logout();
+  }
+}
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
   }
 }

@@ -31,8 +31,8 @@
             ],
             "styles": [
               "@fontsource-variable/manrope/index.css",
-              "@fontsource/instrument-serif/400.css",
-              "@fontsource/instrument-serif/400-italic.css",
+              "@fontsource-variable/newsreader/opsz.css",
+              "@fontsource-variable/newsreader/opsz-italic.css",
               "material-symbols/outlined.css",
               "katex/dist/katex.min.css",
               "src/styles.scss"

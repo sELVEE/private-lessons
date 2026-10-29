@@ -28,7 +28,8 @@ import { Component, input } from '@angular/core';
     }
     .value {
       font-family: var(--pl-font-display);
-      font-size: 32px;
+      font-weight: 500;
+      font-size: 28px;
       line-height: 1.1;
       font-variant-numeric: tabular-nums;
     }

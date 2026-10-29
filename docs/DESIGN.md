@@ -11,28 +11,32 @@ Status: **wdrożony** (kierunek C, z późniejszymi poprawkami: nawigacja M3, su
   działania są dostępne od razu — bez szukania w menu. Tytuły i etykiety są rzeczowe („Należności”, „Wymaga
   uwagi”, „Plan tygodnia”), bez potocznych sformułowań.
 - Nawigacja według wytycznych Material 3 (`features/shell`, `features/nav.ts`): od 1200 px boczna nawigacja
-  z etykietami, 600–1199 px „navigation rail” (ikona nad podpisem), poniżej 600 px dolny pasek nawigacji
-  z maks. 5 miejscami + „Więcej” i górny pasek z menu konta.
+  z etykietami (272 px), którą można zwinąć do ikon i inicjału (80 px, wybór zapamiętany w przeglądarce);
+  600–1199 px same ikony; poniżej 600 px dolny pasek nawigacji z maks. 5 miejscami + „Więcej” i górny
+  pasek z menu konta. Konto jest przyciskiem na dole menu, oddzielonym separatorem z odstępem.
+- Strony zajmują całą szerokość okna (bez limitu szerokości treści).
 - Ciemna sekcja (`<pl-section tone="dark">`) wyróżnia jedną najważniejszą rzecz na ekranie: najbliższą lekcję,
   podsumowanie ucznia, wykres wpłat.
 - Interakcje: klikalne kafelki unoszą się po najechaniu (`.pl-hover`), wiersze dostają warstwę stanu
   (`.pl-row-hover`), wykresy pokazują wartość punktu w tooltipie Material; `prefers-reduced-motion` wyłącza animacje.
 - Kalendarz: widok dzień / tydzień / miesiąc, pionowa siatka godzin, szczegóły i formularze w bocznym panelu
-  (`mat-drawer`), godziny poza pracą (szablon tygodnia + wyjątki na dni) są wyszarzone.
+  (`mat-drawer`), godziny poza pracą (szablon tygodnia + wyjątki na dni) są wyszarzone. Korepetytor
+  przeciąga zaplanowane lekcje na inny dzień i godzinę (z przyciąganiem do kroku rezerwacji, podglądem
+  i „Cofnij”); w widoku miesiąca przeciągnięcie zmienia dzień, godzina zostaje.
 - Każdy uczeń ma stały kolor (`shared/person-color.ts`) — w tygodniu, kalendarzu i rozliczeniach.
 
 ## Tokeny
 
-| Element      | Wartość                                                                          |
-| ------------ | -------------------------------------------------------------------------------- |
-| Tło          | `#DFE2CF` (szałwia), karty `#F7F8F1`                                             |
-| Tusz         | `#23291E` — tekst, ciemne karty, główne przyciski                                |
-| Akcent       | terakota: wypełnienie `#E08A5F`, tekst `#A84F2C` (bez żółtego)                   |
-| Kroje        | Instrument Serif (nagłówki, kwoty), Manrope (interfejs); hostowane lokalnie      |
-| Zaokrąglenia | subtelne: 4–6 px kontrolki i przyciski, 8 px panele, 12 px karty                 |
-| Kontrolki    | 42 px: przyciski, pola (outline), selecty, przełączniki, przyciski-ikony         |
-| Tagi         | 28 px (2/3 kontrolki): chipy, statusy `.pl-tag`, liczniki, małe awatary          |
-| Nagłówki     | h1 32–44 px (`.page-head` z akcjami po prawej), h2 = tytuł karty 26 px, h3 18 px |
+| Element      | Wartość                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| Tło          | `#DFE2CF` (szałwia), karty `#F7F8F1`                                                       |
+| Tusz         | `#23291E` — tekst, ciemne karty, główne przyciski                                          |
+| Akcent       | terakota: wypełnienie `#E08A5F`, tekst `#A84F2C` (bez żółtego)                             |
+| Kroje        | Newsreader (nagłówki, kwoty; szeryf o zwykłych proporcjach), Manrope (interfejs); lokalnie |
+| Zaokrąglenia | subtelne: 4–6 px kontrolki i przyciski, 8 px panele, 12 px karty                           |
+| Kontrolki    | 42 px: przyciski, pola (outline), selecty, przełączniki, przyciski-ikony                   |
+| Tagi         | 28 px (2/3 kontrolki): chipy, statusy `.pl-tag`, liczniki, małe awatary                    |
+| Nagłówki     | h1 28–38 px (`pl-page-header`), h2 = tytuł karty 22 px, h3 18 px; waga 500                 |
 
 ## Wspólne komponenty (`apps/web/src/app/shared/ui`)
 

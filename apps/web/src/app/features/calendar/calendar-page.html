@@ -359,6 +359,8 @@
               [class.outside]="d.outside"
               [class.today]="d.today"
               [class.closed]="!isWorkingDay(d)"
+              [class.drop-day]="isDropDay(d.key)"
+              [attr.data-day]="d.key"
             >
               <button
                 type="button"
@@ -374,6 +376,9 @@
                   class="chip"
                   [style.--c]="color(l.student.id)"
                   [class.cancelled]="l.status === 'cancelled'"
+                  [class.draggable]="canDrag(l)"
+                  [class.dragging]="drag()?.moved && drag()?.lesson?.id === l.id"
+                  (pointerdown)="startDrag($event, l)"
                   (click)="select(l)"
                   [attr.aria-label]="lessonLabel(l)"
                   [matTooltip]="lessonLabel(l)"
@@ -426,6 +431,8 @@
               <div
                 class="col"
                 [class.today]="d.today"
+                [class.drop-day]="isDropDay(d.key)"
+                [attr.data-day]="d.key"
                 (click)="planAt($event, d.date)"
                 (mousemove)="trackHover($event, d)"
                 (mouseleave)="hoverSlot.set(null)"
@@ -446,6 +453,16 @@
                 @if (d.today) {
                   <span class="now" [style.top.px]="nowTop()" aria-hidden="true"></span>
                 }
+                @if (dropPreview(d.key); as p) {
+                  <span
+                    class="drop-preview"
+                    [style.top.px]="p.top"
+                    [style.height.px]="p.height"
+                    [style.--c]="p.color"
+                    aria-hidden="true"
+                    >{{ p.label }}</span
+                  >
+                }
                 @for (l of d.lessons; track l.id) {
                   <button
                     type="button"
@@ -454,7 +471,10 @@
                     [class.done]="l.status === 'completed'"
                     [class.selected]="panel() === 'lesson' && selectedId() === l.id"
                     [class.short]="l.durationMin < 45"
+                    [class.draggable]="canDrag(l)"
+                    [class.dragging]="drag()?.moved && drag()?.lesson?.id === l.id"
                     [style]="lessonBox(l)"
+                    (pointerdown)="startDrag($event, l)"
                     (click)="$event.stopPropagation(); select(l)"
                     [attr.aria-label]="lessonLabel(l)"
                   >

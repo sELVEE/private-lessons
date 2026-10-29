@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import {
   Component,
+  HostListener,
   computed,
   type ElementRef,
   inject,
@@ -21,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -43,6 +45,18 @@ import { Avatar, DateTimeField, PageHeader, PeriodNav, Section } from '../../sha
 import { AvailabilityEditor } from './availability-editor';
 
 export type CalendarView = 'day' | 'week' | 'month';
+
+interface DragState {
+  lesson: LessonInfo;
+  /** Where in the lesson the pointer grabbed it, in minutes from its start (grid only). */
+  grabMin: number;
+  startX: number;
+  startY: number;
+  moved: boolean;
+  /** Target day (`YYYY-MM-DD`) and start minute of the day. */
+  key: string;
+  minute: number;
+}
 type Panel = 'lesson' | 'create' | 'hours' | 'rules';
 
 /** Pixel height of one hour in the day and week grids — taller when the working day is short. */
@@ -83,6 +97,7 @@ export default class CalendarPage implements OnInit {
   private readonly store = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly snack = inject(MatSnackBar);
 
   /** `?new=1` opens the „new lesson” form (quick action from „Pulpit”). */
   readonly new = input<string>();
@@ -116,6 +131,10 @@ export default class CalendarPage implements OnInit {
   readonly now = signal(new Date());
   /** Hover hint in an empty slot: where a click would plan a lesson. */
   readonly hoverSlot = signal<{ key: string; top: number; label: string } | null>(null);
+  /** A lesson being dragged to a new time/day (tutor only); `moved` once the pointer really moved. */
+  readonly drag = signal<DragState | null>(null);
+  /** Swallows the click that follows a drop, so dropping does not also open the lesson. */
+  private justDropped = false;
 
   /** First and last day (exclusive) of what is on screen. */
   readonly range = computed(() => {
@@ -386,12 +405,13 @@ export default class CalendarPage implements OnInit {
 
   /** Click on an empty part of a day column plans a lesson at that slot (booking step). */
   planAt(ev: MouseEvent, day: Date) {
+    if (this.justDropped) return;
     if (!this.isTutor() || !this.activeEnrollments().length) return;
     this.openCreate(this.slotAt(ev, day));
   }
 
   trackHover(ev: MouseEvent, day: { date: Date; key: string }) {
-    if (!this.isTutor()) return;
+    if (!this.isTutor() || this.drag()) return this.hoverSlot.set(null);
     if ((ev.target as HTMLElement).closest('.lesson')) return this.hoverSlot.set(null);
     const at = this.slotAt(ev, day.date);
     this.hoverSlot.set({
@@ -408,9 +428,126 @@ export default class CalendarPage implements OnInit {
     this.hiddenStudents.set(next);
   }
 
+  // ── Drag & drop ───────────────────────────────────────────────────────────
+
+  /** Only the tutor moves lessons, and only scheduled ones that have not started yet. */
+  canDrag(l: LessonInfo) {
+    return this.isTutor() && l.status === 'scheduled' && Date.parse(l.startsAt) > Date.now();
+  }
+
+  startDrag(ev: PointerEvent, l: LessonInfo) {
+    if (ev.button !== 0 || !this.canDrag(l)) return;
+    const start = new Date(l.startsAt);
+    const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+    this.drag.set({
+      lesson: l,
+      grabMin: this.mode() === 'month' ? 0 : ((ev.clientY - rect.top) / this.hourPx()) * 60,
+      startX: ev.clientX,
+      startY: ev.clientY,
+      moved: false,
+      key: isoDay(start),
+      minute: minutesOf(start),
+    });
+  }
+
+  @HostListener('window:pointermove', ['$event'])
+  onDragMove(ev: PointerEvent) {
+    const d = this.drag();
+    if (!d) return;
+    const moved = d.moved || Math.hypot(ev.clientX - d.startX, ev.clientY - d.startY) > 5;
+    if (!moved) return;
+    ev.preventDefault();
+    const target = document
+      .elementFromPoint(ev.clientX, ev.clientY)
+      ?.closest<HTMLElement>('[data-day]');
+    if (!target) return this.drag.set({ ...d, moved });
+    const key = target.dataset['day']!;
+    let minute = d.minute;
+    if (this.mode() !== 'month') {
+      const rect = target.getBoundingClientRect();
+      const raw =
+        this.span().from * 60 + ((ev.clientY - rect.top) / this.hourPx()) * 60 - d.grabMin;
+      const step = this.step();
+      const latest = this.span().to * 60 - d.lesson.durationMin;
+      minute = Math.min(latest, Math.max(this.span().from * 60, Math.round(raw / step) * step));
+    }
+    this.drag.set({ ...d, moved, key, minute });
+  }
+
+  @HostListener('window:pointerup')
+  onDragEnd() {
+    const d = this.drag();
+    if (!d) return;
+    this.drag.set(null);
+    if (!d.moved) return;
+    this.justDropped = true;
+    setTimeout(() => (this.justDropped = false));
+    const day = parseIsoDay(d.key);
+    if (!day) return;
+    day.setHours(0, d.minute, 0, 0);
+    if (day.getTime() === Date.parse(d.lesson.startsAt)) return;
+    void this.moveLesson(d.lesson, day);
+  }
+
+  @HostListener('window:keydown.escape')
+  cancelDrag() {
+    if (this.drag()) this.drag.set(null);
+  }
+
+  /** Preview of the drop target in the grid: position and label. */
+  dropPreview(key: string) {
+    const d = this.drag();
+    if (!d?.moved || d.key !== key || this.mode() === 'month') return null;
+    const end = d.minute + d.lesson.durationMin;
+    const fmt = (m: number) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+    return {
+      top: this.top(d.minute),
+      height: Math.max(22, (d.lesson.durationMin / 60) * this.hourPx() - 3),
+      label: `${fmt(d.minute)}–${fmt(end)}`,
+      color: this.color(d.lesson.student.id),
+    };
+  }
+
+  isDropDay(key: string) {
+    const d = this.drag();
+    return !!d?.moved && d.key === key;
+  }
+
+  /** Optimistic move with „Cofnij” in the snackbar; on error the lesson goes back. */
+  private async moveLesson(l: LessonInfo, to: Date, undo = true) {
+    const from = l.startsAt;
+    this.lessons.update((all) =>
+      all.map((x) => (x.id === l.id ? { ...x, startsAt: to.toISOString() } : x)),
+    );
+    this.error.set(null);
+    try {
+      await this.api.rescheduleLesson(l.id, to.toISOString(), l.durationMin);
+      if (undo) {
+        const when = to.toLocaleString('pl-PL', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        this.snack
+          .open(`Przeniesiono lekcję: ${this.who(l)}, ${when}`, 'Cofnij', { duration: 6000 })
+          .onAction()
+          .subscribe(
+            () => void this.moveLesson({ ...l, startsAt: to.toISOString() }, new Date(from), false),
+          );
+      }
+    } catch (err) {
+      this.lessons.update((all) => all.map((x) => (x.id === l.id ? { ...x, startsAt: from } : x)));
+      this.error.set(toApiError(err).message);
+    }
+    await this.load();
+  }
+
   // ── Side panel ────────────────────────────────────────────────────────────
 
   select(l: LessonInfo) {
+    if (this.justDropped) return;
     this.selectedId.set(l.id);
     this.editing.set(false);
     this.cancelling.set(false);

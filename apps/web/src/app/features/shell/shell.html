@@ -25,13 +25,29 @@
 </mat-menu>
 
 <!--
-  Nawigacja wg Material 3: na szerokim ekranie boczna z etykietami, na średnim „rail”
-  (ikony z podpisem), na telefonie dolny pasek z najważniejszymi miejscami.
+  Nawigacja wg Material 3: na szerokim ekranie boczna z etykietami (można ją zwinąć do ikon),
+  na średnim same ikony, na telefonie dolny pasek z najważniejszymi miejscami.
 -->
-<nav class="pl-side" aria-label="Menu główne">
-  <a routerLink="/app" class="brand" aria-label="korepetycje — strona główna">
-    <span class="mark">k</span><span class="word">korepetycje</span>
-  </a>
+<nav class="pl-side" [class.collapsed]="collapsed()" aria-label="Menu główne">
+  <div class="top">
+    <a routerLink="/app" class="brand" aria-label="korepetycje — strona główna">
+      <span class="mark">k</span><span class="word">korepetycje</span>
+    </a>
+    <button
+      matIconButton
+      type="button"
+      class="toggle"
+      (click)="toggleCollapsed()"
+      [attr.aria-label]="collapsed() ? 'Rozwiń menu' : 'Zwiń menu'"
+      [attr.aria-expanded]="!collapsed()"
+      [matTooltip]="collapsed() ? 'Rozwiń menu' : 'Zwiń menu'"
+      matTooltipPosition="right"
+    >
+      <mat-icon fontSet="material-symbols-outlined">{{
+        collapsed() ? 'left_panel_open' : 'left_panel_close'
+      }}</mat-icon>
+    </button>
+  </div>
   <div class="items">
     @for (item of all(); track item.path) {
       <a
@@ -40,29 +56,37 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: item.path === '/app' }"
         ariaCurrentWhenActive="page"
+        [matTooltip]="item.label"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="!collapsed()"
       >
-        <span class="indicator">
-          <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">{{
-            item.icon
-          }}</mat-icon>
-        </span>
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</mat-icon>
         <span class="label">{{ item.label }}</span>
       </a>
     }
   </div>
+  <hr class="sep" />
   <button
+    type="button"
     class="item account"
     [matMenuTriggerFor]="userMenu"
     [attr.aria-label]="'Konto: ' + me()?.displayName"
+    [matTooltip]="me()?.displayName ?? ''"
+    matTooltipPosition="right"
+    [matTooltipDisabled]="!collapsed()"
   >
-    <span class="indicator"
-      ><span class="avatar">{{ initial() }}</span></span
+    <span class="avatar small">{{ initial() }}</span>
+    <span class="label">
+      <strong>{{ me()?.displayName }}</strong>
+      <span class="role">{{ roleLabel() }}</span>
+    </span>
+    <mat-icon class="chev" fontSet="material-symbols-outlined" aria-hidden="true"
+      >unfold_more</mat-icon
     >
-    <span class="label">{{ me()?.displayName }}</span>
   </button>
 </nav>
 
-<div class="frame">
+<div class="frame" [class.collapsed]="collapsed()">
   <header class="pl-topbar">
     <a routerLink="/app" class="brand">korepetycje</a>
     <span class="spacer"></span>
