@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -29,6 +30,7 @@ const PAD = 24;
 @Component({
   selector: 'pl-progress-page',
   imports: [
+    MatTooltipModule,
     DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
@@ -85,7 +87,7 @@ export default class ProgressPage implements OnInit {
     const coords = pts.map((a) => ({
       x: PAD + ((Date.parse(a.takenAt) - t0) / span) * (W - 2 * PAD),
       y: H - PAD - (a.percent! / 100) * (H - 2 * PAD),
-      label: `${a.title}: ${a.percent}%`,
+      label: `${a.title}: ${a.percent}% · ${new Date(a.takenAt).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}`,
     }));
     return { w: W, h: H, pad: PAD, points: coords.map((c) => `${c.x},${c.y}`).join(' '), coords };
   });

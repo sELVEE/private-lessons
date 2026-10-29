@@ -3,6 +3,7 @@ import { Component, computed, inject, type OnInit, signal } from '@angular/core'
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import {
   type BalanceRow,
@@ -20,7 +21,7 @@ import { currentMonth, money, monthLabel, shiftMonth } from './money';
 /** „Pieniądze”: the month in one sentence, who owes what with one-click actions, then the ledger. */
 @Component({
   selector: 'pl-billing-page',
-  imports: [DatePipe, MatButtonModule, MatIconModule, MatMenuModule, RouterLink],
+  imports: [DatePipe, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule, RouterLink],
   templateUrl: './billing-page.html',
   styleUrl: './billing-page.scss',
 })

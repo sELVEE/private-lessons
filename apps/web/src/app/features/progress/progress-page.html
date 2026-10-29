@@ -112,9 +112,16 @@
               }
               <polyline [attr.points]="c.points" class="line" />
               @for (pt of c.coords; track $index) {
-                <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="4" class="dot">
-                  <title>{{ pt.label }}</title>
-                </circle>
+                <g
+                  class="point"
+                  [matTooltip]="pt.label"
+                  matTooltipPosition="above"
+                  tabindex="0"
+                  [attr.aria-label]="pt.label"
+                >
+                  <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="14" class="hit" />
+                  <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="4" class="dot" />
+                </g>
               }
             </svg>
           } @else {

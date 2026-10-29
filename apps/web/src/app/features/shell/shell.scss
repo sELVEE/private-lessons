@@ -1,23 +1,158 @@
+/*
+ * Material 3 navigation by window size:
+ *  ≥ 1200 px  side navigation with labels (240 px),
+ *  600–1199   navigation rail (88 px, icon over label),
+ *  < 600 px   bottom navigation bar + top app bar.
+ */
 :host {
+  --side-w: 240px;
+
   display: block;
   min-height: 100dvh;
 }
+
+.frame {
+  margin-left: var(--side-w);
+  min-height: 100dvh;
+}
+
+/* ── Side navigation / rail ─────────────────────────────────────────────── */
+
+.pl-side {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+  width: var(--side-w);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 12px 16px;
+  box-sizing: border-box;
+  background: var(--mat-sys-surface-container-low);
+  border-right: 1px solid var(--pl-line);
+  overflow-y: auto;
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px 20px;
+    text-decoration: none;
+    color: var(--pl-ink);
+  }
+
+  .mark {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--mat-sys-corner-small);
+    background: var(--pl-ink);
+    color: var(--pl-on-ink);
+    font-family: var(--pl-font-display);
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .word {
+    font-family: var(--pl-font-display);
+    font-size: 24px;
+  }
+
+  .items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+}
+
+.item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: var(--mat-sys-corner-small);
+  color: var(--mat-sys-on-surface-variant);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+
+  .indicator {
+    display: grid;
+    place-items: center;
+  }
+
+  mat-icon {
+    transition: font-variation-settings 150ms ease;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+    color: var(--mat-sys-on-surface);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: -2px;
+  }
+
+  &.active {
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+    font-weight: 700;
+
+    mat-icon {
+      font-variation-settings:
+        'FILL' 1,
+        'wght' 500;
+    }
+  }
+}
+
+.account {
+  border-top: 1px solid var(--pl-line);
+  border-radius: 0 0 var(--mat-sys-corner-small) var(--mat-sys-corner-small);
+  padding-top: 8px;
+  padding-bottom: 8px;
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ── Top app bar ─────────────────────────────────────────────────────────── */
 
 .pl-topbar {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 20px 32px 4px;
+  padding: 16px 32px 0;
   max-width: 1280px;
   margin: 0 auto;
   box-sizing: border-box;
-}
 
-.brand {
-  font-family: var(--pl-font-display);
-  font-size: 28px;
-  color: var(--pl-ink);
-  text-decoration: none;
+  .brand {
+    display: none;
+    font-family: var(--pl-font-display);
+    font-size: 26px;
+    color: var(--pl-ink);
+    text-decoration: none;
+  }
 }
 
 .spacer {
@@ -27,20 +162,30 @@
 .today {
   font-size: 14px;
   color: var(--pl-ink-soft);
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
 }
 
-.account {
-  width: 44px;
-  height: 44px;
+.account-small {
+  display: none;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 0;
   background: var(--pl-ink);
-  color: var(--pl-bg);
-  font: 700 16px var(--pl-font-ui);
+  color: var(--pl-on-ink);
+  font: 700 15px var(--pl-font-ui);
   cursor: pointer;
+  transition: box-shadow 150ms ease;
+
+  &:hover {
+    box-shadow: var(--mat-sys-level2);
+  }
 
   &:focus-visible {
-    outline: 3px solid var(--pl-accent);
+    outline: 2px solid var(--mat-sys-primary);
     outline-offset: 2px;
   }
 }
@@ -54,7 +199,7 @@
 .offline {
   margin: 8px auto 0;
   max-width: 1216px;
-  border-radius: 16px;
+  border-radius: var(--mat-sys-corner-medium);
   background: var(--pl-ink);
   color: var(--pl-card);
   padding: 10px 16px;
@@ -65,57 +210,54 @@ main:focus {
   outline: none;
 }
 
-/* Floating dock */
-.pl-dock {
+/* ── Bottom navigation bar (phones) ─────────────────────────────────────── */
+
+.pl-bar {
+  display: none;
   position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
+  inset: auto 0 0 0;
   z-index: 20;
-  display: flex;
-  gap: 4px;
-  padding: 8px;
-  border-radius: 999px;
-  background: var(--pl-ink);
-  box-shadow: 0 16px 40px color-mix(in srgb, var(--pl-ink) 30%, transparent);
-  max-width: calc(100vw - 24px);
+  height: calc(80px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
+  background: var(--mat-sys-surface-container-low);
+  border-top: 1px solid var(--pl-line);
 
-  a,
-  .more {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: 48px;
-    padding: 0 18px;
-    border-radius: 999px;
-    border: 0;
-    background: transparent;
-    color: var(--pl-bg);
-    font: 600 14px var(--pl-font-ui);
-    text-decoration: none;
-    white-space: nowrap;
-    cursor: pointer;
+  .item {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 0;
+    border-radius: 0;
+    font-size: 12px;
+    min-width: 0;
 
-    mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-
-    &:hover {
-      background: color-mix(in srgb, var(--pl-on-ink) 10%, transparent);
-    }
-
-    &:focus-visible {
-      outline: 3px solid var(--pl-accent);
-      outline-offset: 2px;
-    }
-
+    &:hover,
     &.active {
-      background: var(--pl-card);
-      color: var(--pl-ink);
-      font-weight: 800;
+      background: transparent;
+    }
+
+    .indicator {
+      width: 56px;
+      height: 32px;
+      border-radius: var(--mat-sys-corner-full);
+      transition: background-color 150ms ease;
+    }
+
+    &:hover .indicator {
+      background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+    }
+
+    &.active .indicator {
+      background: var(--mat-sys-secondary-container);
+    }
+
+    .label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
   }
 }
@@ -126,7 +268,7 @@ main:focus {
   top: -48px;
   z-index: 30;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-small);
   background: var(--pl-ink);
   color: var(--pl-card);
 
@@ -135,32 +277,102 @@ main:focus {
   }
 }
 
-@media (max-width: 900px) {
+/* Medium: navigation rail — icon with a short label underneath. */
+@media (max-width: 1199.98px) {
+  :host {
+    --side-w: 88px;
+  }
+
+  .pl-side {
+    align-items: center;
+    padding: 16px 4px;
+
+    .brand {
+      padding: 0 0 16px;
+    }
+
+    .word {
+      display: none;
+    }
+
+    .items {
+      width: 100%;
+    }
+  }
+
+  .pl-side .item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-height: 64px;
+    padding: 4px 2px;
+    font-size: 11px;
+    text-align: center;
+    border-radius: var(--mat-sys-corner-small);
+
+    .label {
+      max-width: 80px;
+      line-height: 1.2;
+    }
+
+    .indicator {
+      width: 56px;
+      height: 32px;
+      border-radius: var(--mat-sys-corner-full);
+      transition: background-color 150ms ease;
+    }
+
+    &:hover,
+    &.active {
+      background: transparent;
+    }
+
+    &:hover .indicator {
+      background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+    }
+
+    &.active .indicator {
+      background: var(--mat-sys-secondary-container);
+    }
+  }
+
+  .pl-side .account {
+    width: 100%;
+
+    .label {
+      display: none;
+    }
+  }
+}
+
+/* Compact (phones): top app bar + bottom navigation bar. */
+@media (max-width: 599.98px) {
+  .pl-side {
+    display: none;
+  }
+
+  .frame {
+    margin-left: 0;
+    padding-bottom: 80px;
+  }
+
+  .pl-topbar {
+    padding: 12px 16px 0;
+
+    .brand {
+      display: block;
+    }
+  }
+
   .today {
     display: none;
   }
 
-  .pl-topbar {
-    padding: 16px 16px 0;
+  .account-small {
+    display: block;
   }
 
-  /* On phones the dock spans the width and shows icons over short labels. */
-  .pl-dock {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    transform: none;
-    justify-content: space-between;
-
-    a,
-    .more {
-      flex: 1;
-      flex-direction: column;
-      gap: 2px;
-      height: 56px;
-      padding: 0 4px;
-      font-size: 11px;
-      justify-content: center;
-    }
+  .pl-bar {
+    display: flex;
   }
 }

@@ -27,7 +27,12 @@
       }
       <nav class="list">
         @for (m of visible(); track m.id) {
-          <button class="item" [class.active]="selected()?.id === m.id" (click)="open(m)">
+          <button
+            class="item"
+            [class.active]="selected()?.id === m.id"
+            [attr.aria-expanded]="selected()?.id === m.id"
+            (click)="open(m)"
+          >
             <span class="title">{{ m.title }}</span>
             <span class="muted"
               >{{ m.subject.name }}

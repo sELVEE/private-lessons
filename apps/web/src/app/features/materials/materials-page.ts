@@ -88,8 +88,9 @@ export default class MaterialsPage implements OnInit {
     }
   }
 
+  /** Clicking the open material again closes it. */
   open(m: MaterialInfo) {
-    this.selected.set(m);
+    this.selected.set(this.selected()?.id === m.id && !this.editing() ? null : m);
     this.editing.set(null);
     this.sharing.set(false);
   }

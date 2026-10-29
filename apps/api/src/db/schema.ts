@@ -4,6 +4,7 @@ import {
   bigint,
   integer,
   boolean,
+  check,
   customType,
   date,
   index,
@@ -649,4 +650,34 @@ export const pushSubscriptions = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('push_subscriptions_user_idx').on(t.userId)],
+);
+
+/**
+ * Godziny pracy korepetytora: tygodniowy szablon (weekday) i wyjątki na konkretne dni (on_date).
+ * Wiersz bez start/end przy on_date oznacza dzień wolny.
+ */
+export const availability = pgTable(
+  'availability',
+  {
+    id: id(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    tutorId: uuid('tutor_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    weekday: smallint('weekday'),
+    onDate: date('on_date', { mode: 'string' }),
+    startMin: smallint('start_min'),
+    endMin: smallint('end_min'),
+    note: text('note'),
+  },
+  (t) => [
+    index('availability_tutor_idx').on(t.tutorId),
+    check('availability_kind', sql`(${t.weekday} IS NULL) <> (${t.onDate} IS NULL)`),
+    check(
+      'availability_range',
+      sql`(${t.startMin} IS NULL AND ${t.endMin} IS NULL AND ${t.onDate} IS NOT NULL) OR (${t.startMin} >= 0 AND ${t.endMin} <= 1440 AND ${t.endMin} > ${t.startMin})`,
+    ),
+  ],
 );

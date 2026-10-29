@@ -70,10 +70,11 @@ html {
       surface-variant: #e1e4d2,
       outline: #9aa58a,
       outline-variant: #c9ceb4,
-      corner-small: 10px,
-      corner-medium: 16px,
-      corner-large: 24px,
-      corner-extra-large: 28px,
+      corner-extra-small: 4px,
+      corner-small: 6px,
+      corner-medium: 8px,
+      corner-large: 12px,
+      corner-extra-large: 16px,
     )
   );
 
@@ -81,26 +82,26 @@ html {
     (
       outlined-container-color: #f7f8f1,
       outlined-outline-width: 0,
-      outlined-container-shape: 24px,
+      outlined-container-shape: var(--mat-sys-corner-large),
       elevated-container-color: #f7f8f1,
-      elevated-container-shape: 24px,
-      title-text-size: 26px,
+      elevated-container-shape: var(--mat-sys-corner-large),
+      title-text-size: 24px,
     )
   );
 
   @include mat.button-overrides(
     (
-      filled-container-shape: 999px,
-      filled-container-height: 44px,
+      filled-container-shape: var(--mat-sys-corner-small),
+      filled-container-height: 40px,
       filled-horizontal-padding: 20px,
-      outlined-container-shape: 999px,
-      outlined-container-height: 44px,
-      outlined-outline-color: #23291e,
-      protected-container-shape: 999px,
-      text-container-shape: 999px,
-      text-container-height: 44px,
-      tonal-container-shape: 999px,
-      tonal-container-height: 44px,
+      outlined-container-shape: var(--mat-sys-corner-small),
+      outlined-container-height: 40px,
+      outlined-outline-color: var(--mat-sys-outline),
+      protected-container-shape: var(--mat-sys-corner-small),
+      text-container-shape: var(--mat-sys-corner-small),
+      text-container-height: 40px,
+      tonal-container-shape: var(--mat-sys-corner-small),
+      tonal-container-height: 40px,
       outlined-horizontal-padding: 18px,
       filled-label-text-weight: 700,
       outlined-label-text-weight: 700,
@@ -111,26 +112,26 @@ html {
   @include mat.form-field-overrides(
     (
       filled-container-color: #f7f8f1,
-      filled-container-shape: 14px,
-      outlined-container-shape: 14px,
+      filled-container-shape: var(--mat-sys-corner-small),
+      outlined-container-shape: var(--mat-sys-corner-small),
     )
   );
 
   @include mat.list-overrides(
     (
-      active-indicator-shape: 999px,
+      active-indicator-shape: var(--mat-sys-corner-small),
     )
   );
 
   @include mat.chips-overrides(
     (
-      container-shape-radius: 999px,
+      container-shape-radius: var(--mat-sys-corner-small),
     )
   );
 
   @include mat.button-toggle-overrides(
     (
-      shape: 999px,
+      shape: var(--mat-sys-corner-small),
       selected-state-background-color: #23291e,
       selected-state-text-color: #f7f8f1,
     )
@@ -219,7 +220,7 @@ h2 {
   background: #f6dcd2;
   color: #6b2410;
   padding: 12px 16px;
-  border-radius: 16px;
+  border-radius: var(--mat-sys-corner-medium);
   margin-bottom: 12px;
 }
 
@@ -227,7 +228,7 @@ h2 {
   background: var(--pl-card);
   color: var(--pl-ink);
   padding: 12px 16px;
-  border-radius: 16px;
+  border-radius: var(--mat-sys-corner-medium);
   margin-bottom: 12px;
 }
 
@@ -236,7 +237,7 @@ h2 {
 }
 
 .page {
-  padding: 24px 32px 120px;
+  padding: 24px 32px 48px;
   max-width: 1280px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -252,8 +253,8 @@ h2 {
 .pl-card-dark {
   background: var(--pl-ink);
   color: var(--pl-on-ink);
-  border-radius: var(--mat-sys-corner-extra-large);
-  padding: 28px;
+  border-radius: var(--pl-radius-card);
+  padding: 24px;
 }
 
 /* Button variants, scoped through Material's own override mixins. */
@@ -281,9 +282,9 @@ h2 {
 .large {
   @include mat.button-overrides(
     (
-      filled-container-height: 52px,
+      filled-container-height: 48px,
       filled-horizontal-padding: 26px,
-      outlined-container-height: 52px,
+      outlined-container-height: 48px,
     )
   );
 }
@@ -310,12 +311,13 @@ h2 {
 
 @media (max-width: 600px) {
   .page {
-    padding: 16px 16px 120px;
+    padding: 16px 16px 32px;
   }
 }
 
 @media print {
-  .pl-dock,
+  .pl-side,
+  .pl-bar,
   .pl-topbar,
   .no-print {
     display: none !important;
@@ -323,5 +325,48 @@ h2 {
 
   body {
     background: #ffffff;
+  }
+}
+
+/* Interaction: clickable surfaces lift on hover; rows get a state layer like Material lists. */
+.pl-hover {
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    background-color 150ms ease;
+
+  &:hover {
+    box-shadow: var(--mat-sys-level2);
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+.pl-row-hover {
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent);
+  }
+}
+
+a {
+  transition: color 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+
+  .pl-hover:hover {
+    transform: none;
   }
 }

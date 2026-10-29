@@ -131,7 +131,7 @@
   <div class="grid">
     @for (e of visible(); track e.id) {
       <a class="student" [routerLink]="['/app/students', e.id]">
-        <mat-card appearance="outlined">
+        <mat-card appearance="outlined" class="pl-hover">
           <mat-card-header>
             <div mat-card-avatar class="avatar">{{ e.student.displayName.charAt(0) }}</div>
             <mat-card-title>{{ e.student.displayName }}</mat-card-title>

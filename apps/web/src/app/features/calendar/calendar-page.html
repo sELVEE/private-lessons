@@ -1,432 +1,521 @@
-<div class="page">
-  <header class="head">
-    <div class="title">
-      <span class="muted"
-        >{{ weekStart() | date: 'd MMMM' }} – {{ days()[6].date | date: 'd MMMM yyyy' }}</span
-      >
-      <h1>
-        {{ isTutor() ? 'Ten tydzień' : 'Moje lekcje' }}:
-        <em
-          >{{ weekCount() }}
-          {{
-            weekCount() === 1 ? 'lekcja' : weekCount() > 1 && weekCount() < 5 ? 'lekcje' : 'lekcji'
-          }}</em
-        >
-      </h1>
-    </div>
-    <div class="switcher">
-      <button type="button" (click)="move(-1)" aria-label="Poprzedni tydzień">
-        <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
+<mat-drawer-container class="shell" [hasBackdrop]="true">
+  <mat-drawer
+    #drawer
+    mode="over"
+    position="end"
+    class="drawer"
+    [class.wide]="panel() === 'hours'"
+    [opened]="panel() !== null"
+    (closedStart)="closePanel()"
+  >
+    <div class="drawer-head">
+      <span class="eyebrow">
+        @switch (panel()) {
+          @case ('lesson') {
+            {{ selected() ? statusLabel[selected()!.status] : 'Lekcja' }}
+          }
+          @case ('create') {
+            Nowa lekcja
+          }
+          @case ('hours') {
+            Godziny pracy
+          }
+          @case ('rules') {
+            Zasady odwołań
+          }
+        }
+      </span>
+      <button matIconButton type="button" (click)="closePanel()" aria-label="Zamknij panel">
+        <mat-icon fontSet="material-symbols-outlined">close</mat-icon>
       </button>
-      <button type="button" class="today-btn" (click)="today()">Dziś</button>
-      <button type="button" (click)="move(1)" aria-label="Następny tydzień">
-        <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
-      </button>
     </div>
-    @if (isTutor()) {
-      <button type="button" matButton="outlined" (click)="showSettings.set(!showSettings())">
-        Zasady odwołań
-      </button>
-      <button
-        type="button"
-        matButton="filled"
-        class="large"
-        (click)="openCreate()"
-        [disabled]="!activeEnrollments().length"
-      >
-        + Zaplanuj lekcję
-      </button>
-    }
-  </header>
 
-  @if (error(); as e) {
-    <div class="error-banner" role="alert">{{ e }}</div>
-  }
-  @if (isTutor() && !activeEnrollments().length) {
-    <div class="info-banner">
-      Aby planować lekcje, najpierw
-      <a routerLink="/app/students" [queryParams]="{ invite: 1 }">zaproś ucznia</a>.
-    </div>
-  }
-
-  @if (showSettings()) {
-    <section class="pl-card panel">
-      <h2>Zasady odwołań</h2>
-      <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="form-stack">
-        <mat-form-field appearance="outline">
-          <mat-label>Odwołanie „późne”, gdy zostało mniej niż (godzin)</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="cancellationWindowHours"
-            min="1"
-            max="168"
-          />
-        </mat-form-field>
-        <mat-checkbox formControlName="autoChargeLateCancellation">
-          Nalicz opłatę automatycznie za późne odwołanie przez ucznia
-        </mat-checkbox>
-        <p class="muted">
-          Gdy wyłączone, późne odwołania czekają na Twoją decyzję w „Czeka na Ciebie”. Odwołanie
-          przez Ciebie nigdy nie jest płatne.
-        </p>
-        <mat-form-field appearance="outline">
-          <mat-label>Domyślna długość lekcji (min)</mat-label>
-          <input matInput type="number" formControlName="defaultLessonMinutes" min="15" max="240" />
-        </mat-form-field>
-        <div class="row-actions">
-          <button type="button" matButton="outlined" (click)="showSettings.set(false)">
-            Anuluj
-          </button>
-          <button type="submit" matButton="filled" [disabled]="busy()">Zapisz</button>
-        </div>
-      </form>
-    </section>
-  }
-
-  @if (showCreate()) {
-    <section class="pl-card panel">
-      <h2>Nowa lekcja</h2>
-      <form [formGroup]="createForm" (ngSubmit)="create()" class="grid-form">
-        <mat-form-field appearance="outline" class="span-2">
-          <mat-label>Uczeń</mat-label>
-          <mat-select formControlName="enrollmentId">
-            @for (e of activeEnrollments(); track e.id) {
-              <mat-option [value]="e.id"
-                >{{ e.student.displayName }} — {{ e.subject.name }}</mat-option
-              >
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Początek</mat-label>
-          <input matInput type="datetime-local" formControlName="startsAt" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Czas trwania (min)</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="durationMin"
-            min="15"
-            max="240"
-            step="15"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Powtarzaj co tydzień (razy)</mat-label>
-          <input matInput type="number" formControlName="repeatWeeks" min="1" max="26" />
-          <mat-hint>1 = pojedyncza lekcja</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Miejsce / link</mat-label>
-          <input matInput formControlName="location" placeholder="np. online, ul. Szkolna 5" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="span-2">
-          <mat-label>Temat (opcjonalnie)</mat-label>
-          <input matInput formControlName="topic" />
-        </mat-form-field>
-        <div class="row-actions span-2">
-          <span class="muted">Lekcje grupowe pojawią się później.</span>
-          <span class="buttons">
-            <button type="button" matButton="outlined" (click)="showCreate.set(false)">
-              Anuluj
-            </button>
-            <button type="submit" matButton="filled" [disabled]="busy()">Zaplanuj</button>
-          </span>
-        </div>
-      </form>
-    </section>
-  }
-
-  @if (students().length > 1) {
-    <div class="filters" role="group" aria-label="Pokaż uczniów">
-      <span class="muted">Pokaż:</span>
-      @for (s of students(); track s.id) {
-        <button
-          type="button"
-          class="chip"
-          [class.off]="hiddenStudents().has(s.id)"
-          [attr.aria-pressed]="!hiddenStudents().has(s.id)"
-          (click)="toggleStudent(s.id)"
-        >
-          <span class="avatar tiny" [style.background]="color(s.id)">{{ initial(s.name) }}</span
-          >{{ s.name }}
-        </button>
-      }
-      @if (isTutor()) {
-        <span class="legend muted"
-          ><span class="dash"></span>wolne okienko — kliknij, by zaplanować</span
-        >
-      }
-    </div>
-  }
-
-  <div class="layout">
-    <section class="board">
-      <!-- Wide screens: days as horizontal lanes on an hour axis. -->
-      <div class="lanes" aria-hidden="false">
-        <div class="axis">
-          <span></span>
-          <div
-            class="ticks"
-            [style.grid-template-columns]="'repeat(' + hours().list.length + ', minmax(0, 1fr))'"
-          >
-            @for (h of hours().list; track h) {
-              <span>{{ h }}</span>
-            }
+    @switch (panel()) {
+      @case ('lesson') {
+        @if (selected(); as l) {
+          <div class="lesson-head" [style.--c]="color(l.student.id)">
+            <h2>{{ l.startsAt | date: 'EEEE, d MMMM' }}</h2>
+            <p class="time">{{ l.startsAt | date: 'HH:mm' }}–{{ endTime(l) | date: 'HH:mm' }}</p>
+            <div class="who">
+              <span class="avatar" [style.background]="color(l.student.id)">{{
+                initial(who(l))
+              }}</span>
+              <div>
+                <strong>{{ who(l) }}</strong>
+                <span class="muted">{{ l.subject }} · {{ l.durationMin }} min</span>
+              </div>
+            </div>
           </div>
-        </div>
-        @for (d of days(); track d.date.getTime()) {
-          <div class="lane" [class.today]="d.today">
-            <span class="lane-day"
-              >{{ d.date | date: 'EEE' }} <span class="muted">{{ d.date | date: 'd' }}</span></span
-            >
-            <div class="track">
-              @if (d.today) {
-                <span class="now" [style.left.%]="nowLeft()" aria-hidden="true"></span>
-              }
+
+          <dl class="facts">
+            @if (l.location) {
+              <dt>Miejsce</dt>
+              <dd>{{ l.location }}</dd>
+            }
+            @if (l.topic) {
+              <dt>Temat</dt>
+              <dd>{{ l.topic }}</dd>
+            }
+            @if (l.attendance) {
+              <dt>Obecność</dt>
+              <dd>{{ attendanceLabel[l.attendance] }}</dd>
+            }
+            @if (l.cancelReason) {
+              <dt>Powód odwołania</dt>
+              <dd>„{{ l.cancelReason }}”</dd>
+            }
+            @if (l.seriesId) {
+              <dt>Seria</dt>
+              <dd>co tydzień</dd>
+            }
+          </dl>
+
+          <div class="drawer-actions">
+            <a matButton="filled" [routerLink]="['/app/lessons', l.id]">Otwórz lekcję</a>
+            @if (l.status === 'scheduled' && role() !== 'parent') {
               @if (isTutor()) {
-                @for (f of freeSlots(d.lessons); track f.left) {
-                  <button
-                    type="button"
-                    class="free"
-                    [style.left.%]="f.left"
-                    [style.width.%]="f.width"
-                    (click)="openCreate(d.date)"
-                  >
-                    {{ f.label }}
+                @if (isPast(l)) {
+                  <button type="button" matButton="outlined" [matMenuTriggerFor]="att">
+                    Obecność
+                  </button>
+                  <mat-menu #att="matMenu">
+                    <button mat-menu-item (click)="complete(l, 'present')">Obecny</button>
+                    <button mat-menu-item (click)="complete(l, 'late')">Spóźniony</button>
+                    <button mat-menu-item (click)="complete(l, 'absent')">Nieobecny</button>
+                  </mat-menu>
+                } @else {
+                  <button type="button" matButton="outlined" (click)="startReschedule(l)">
+                    Przełóż
                   </button>
                 }
               }
-              @for (l of d.lessons; track l.id) {
+              @if (!isPast(l)) {
+                <button type="button" matButton (click)="startCancel()">Odwołaj</button>
+              }
+            }
+          </div>
+
+          @if (editing()) {
+            <form [formGroup]="rescheduleForm" (ngSubmit)="reschedule(l)" class="form-stack inset">
+              <mat-form-field appearance="outline">
+                <mat-label>Nowy termin</mat-label>
+                <input matInput type="datetime-local" formControlName="startsAt" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Czas trwania (min)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="durationMin"
+                  min="15"
+                  max="240"
+                  step="15"
+                />
+              </mat-form-field>
+              <div class="row-actions">
+                <button type="button" matButton (click)="editing.set(false)">Anuluj</button>
+                <button type="submit" matButton="filled" [disabled]="busy()">Zapisz</button>
+              </div>
+            </form>
+          }
+          @if (cancelling()) {
+            <div class="form-stack inset">
+              <mat-form-field appearance="outline">
+                <mat-label>Powód (opcjonalnie)</mat-label>
+                <input matInput [formControl]="cancelReason" />
+              </mat-form-field>
+              <div class="row-actions">
+                <button type="button" matButton (click)="cancelling.set(false)">Nie</button>
                 <button
                   type="button"
-                  class="pill"
-                  [class.cancelled]="l.status === 'cancelled'"
-                  [class.done]="l.status === 'completed'"
-                  [class.selected]="selected()?.id === l.id"
-                  [style]="pillStyle(l)"
-                  (click)="select(l)"
-                  [attr.aria-label]="
-                    (l.startsAt | date: 'EEEE HH:mm') +
-                    ', ' +
-                    l.student.displayName +
-                    ', ' +
-                    statusLabel[l.status]
-                  "
+                  matButton="filled"
+                  class="pl-accent"
+                  (click)="cancel(l)"
+                  [disabled]="busy()"
                 >
-                  {{ l.startsAt | date: 'HH:mm' }}
-                  {{
-                    isTutor() || role() === 'parent' ? l.student.displayName : l.tutor.displayName
-                  }}
+                  Odwołaj lekcję
                 </button>
-              } @empty {
-                @if (!isTutor()) {
-                  <span class="muted empty-day">—</span>
-                }
-              }
+              </div>
             </div>
-          </div>
+          }
+          @if (isTutor() && l.status === 'cancelled' && l.chargeable === null) {
+            <div class="inset">
+              <p>Późne odwołanie przez ucznia — czy lekcja jest płatna?</p>
+              <div class="row-actions">
+                <button type="button" matButton="outlined" (click)="decide(l, false)">
+                  Bez opłaty
+                </button>
+                <button type="button" matButton="filled" (click)="decide(l, true)">Płatna</button>
+              </div>
+            </div>
+          }
         }
-      </div>
+      }
 
-      <!-- Phones: the same week as a simple agenda. -->
-      <div class="agenda">
-        @for (d of days(); track d.date.getTime()) {
-          <div class="agenda-day" [class.today]="d.today">
-            <span class="lane-day">{{ d.date | date: 'EEEE d.MM' }}</span>
-            @for (l of d.lessons; track l.id) {
-              <button
-                type="button"
-                class="agenda-item"
-                [class.cancelled]="l.status === 'cancelled'"
-                (click)="select(l)"
-              >
-                <span class="dotc" [style.background]="color(l.student.id)"></span>
-                <strong>{{ l.startsAt | date: 'HH:mm' }}</strong>
-                {{ isTutor() || role() === 'parent' ? l.student.displayName : l.tutor.displayName }}
-                · {{ l.subject }}
-              </button>
-            } @empty {
-              <span class="muted">wolne</span>
-            }
+      @case ('create') {
+        <form [formGroup]="createForm" (ngSubmit)="create()" class="form-stack">
+          <mat-form-field appearance="outline">
+            <mat-label>Uczeń</mat-label>
+            <mat-select formControlName="enrollmentId">
+              @for (e of activeEnrollments(); track e.id) {
+                <mat-option [value]="e.id"
+                  >{{ e.student.displayName }} — {{ e.subject.name }}</mat-option
+                >
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Początek</mat-label>
+            <input matInput type="datetime-local" formControlName="startsAt" />
+          </mat-form-field>
+          <div class="two">
+            <mat-form-field appearance="outline">
+              <mat-label>Czas (min)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="durationMin"
+                min="15"
+                max="240"
+                step="15"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Powtórz (tygodni)</mat-label>
+              <input matInput type="number" formControlName="repeatWeeks" min="1" max="26" />
+              <mat-hint>1 = jednorazowo</mat-hint>
+            </mat-form-field>
           </div>
-        }
-      </div>
-    </section>
+          <mat-form-field appearance="outline">
+            <mat-label>Miejsce / link</mat-label>
+            <input matInput formControlName="location" placeholder="np. online, ul. Szkolna 5" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Temat (opcjonalnie)</mat-label>
+            <input matInput formControlName="topic" />
+          </mat-form-field>
+          @if (error(); as e) {
+            <div class="error-banner" role="alert">{{ e }}</div>
+          }
+          <div class="row-actions">
+            <span class="muted">Lekcje grupowe — później.</span>
+            <button type="submit" matButton="filled" [disabled]="busy()">Zaplanuj</button>
+          </div>
+        </form>
+      }
 
-    <aside class="pl-card-dark side">
-      @if (selected(); as l) {
-        <span class="eyebrow light">{{
-          l.status === 'scheduled' ? 'Wybrana lekcja' : statusLabel[l.status]
-        }}</span>
-        <div>
-          <div class="display big">{{ l.startsAt | date: 'EEE HH:mm' }}</div>
-          <p class="sub">
-            {{ isTutor() || role() === 'parent' ? l.student.displayName : l.tutor.displayName }} ·
-            {{ l.subject }}
-            @if (l.location) {
-              · {{ l.location }}
-            }
-            · {{ l.durationMin }} min
+      @case ('hours') {
+        <pl-availability-editor
+          [value]="hours()"
+          [suggestedDate]="mode() === 'day' ? (days()[0]?.key ?? null) : null"
+          (changed)="hours.set($event)"
+        />
+      }
+
+      @case ('rules') {
+        <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="form-stack">
+          <mat-form-field appearance="outline">
+            <mat-label>„Późne” odwołanie: mniej niż (godzin)</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="cancellationWindowHours"
+              min="1"
+              max="168"
+            />
+          </mat-form-field>
+          <mat-checkbox formControlName="autoChargeLateCancellation">
+            Nalicz opłatę automatycznie za późne odwołanie przez ucznia
+          </mat-checkbox>
+          <p class="muted">
+            Gdy wyłączone, późne odwołania czekają na Twoją decyzję. Odwołanie przez Ciebie nigdy
+            nie jest płatne.
           </p>
-        </div>
-        <a matButton="filled" class="pl-accent large" [routerLink]="['/app/lessons', l.id]"
-          >Otwórz lekcję</a
-        >
+          <mat-form-field appearance="outline">
+            <mat-label>Domyślna długość lekcji (min)</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="defaultLessonMinutes"
+              min="15"
+              max="240"
+            />
+          </mat-form-field>
+          <div class="row-actions">
+            <span></span>
+            <button type="submit" matButton="filled" [disabled]="busy()">Zapisz</button>
+          </div>
+        </form>
+      }
+    }
+  </mat-drawer>
 
-        @if (l.status === 'scheduled' && role() !== 'parent') {
-          <div class="actions">
-            @if (isTutor()) {
-              @if (isPast(l)) {
+  <mat-drawer-content>
+    <div class="page">
+      <header class="head">
+        <div class="title">
+          <span class="muted"
+            >{{ count() }}
+            {{ count() === 1 ? 'lekcja' : count() > 1 && count() < 5 ? 'lekcje' : 'lekcji' }}</span
+          >
+          <h1>{{ title() }}</h1>
+        </div>
+        <div class="controls">
+          <div class="nav">
+            <button
+              matIconButton
+              type="button"
+              (click)="move(-1)"
+              matTooltip="Wstecz"
+              aria-label="Wstecz"
+            >
+              <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
+            </button>
+            <button matButton="outlined" type="button" (click)="today()">Dziś</button>
+            <button
+              matIconButton
+              type="button"
+              (click)="move(1)"
+              matTooltip="Dalej"
+              aria-label="Dalej"
+            >
+              <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
+            </button>
+            <input
+              class="picker-input"
+              [matDatepicker]="jump"
+              [value]="anchor()"
+              (dateChange)="goTo($event.value)"
+              tabindex="-1"
+              aria-hidden="true"
+            />
+            <mat-datepicker-toggle [for]="jump" matTooltip="Wybierz datę">
+              <mat-icon matDatepickerToggleIcon fontSet="material-symbols-outlined">event</mat-icon>
+            </mat-datepicker-toggle>
+            <mat-datepicker #jump />
+          </div>
+          <mat-button-toggle-group
+            [value]="mode()"
+            (change)="setMode($event.value)"
+            hideSingleSelectionIndicator
+            aria-label="Widok kalendarza"
+          >
+            <mat-button-toggle value="day">Dzień</mat-button-toggle>
+            <mat-button-toggle value="week">Tydzień</mat-button-toggle>
+            <mat-button-toggle value="month">Miesiąc</mat-button-toggle>
+          </mat-button-toggle-group>
+          @if (isTutor()) {
+            <button
+              matIconButton
+              type="button"
+              [matMenuTriggerFor]="opts"
+              matTooltip="Ustawienia"
+              aria-label="Ustawienia kalendarza"
+            >
+              <mat-icon fontSet="material-symbols-outlined">tune</mat-icon>
+            </button>
+            <mat-menu #opts="matMenu">
+              <button mat-menu-item (click)="panel.set('hours')">
+                <mat-icon fontSet="material-symbols-outlined">schedule</mat-icon>Godziny pracy
+              </button>
+              <button mat-menu-item (click)="panel.set('rules')">
+                <mat-icon fontSet="material-symbols-outlined">event_busy</mat-icon>Zasady odwołań
+              </button>
+            </mat-menu>
+            <button
+              type="button"
+              matButton="filled"
+              (click)="openCreate()"
+              [disabled]="!activeEnrollments().length"
+            >
+              <mat-icon fontSet="material-symbols-outlined">add</mat-icon>
+              Zaplanuj lekcję
+            </button>
+          }
+        </div>
+      </header>
+
+      @if (error() && panel() !== 'create') {
+        <div class="error-banner" role="alert">{{ error() }}</div>
+      }
+      @if (isTutor() && !activeEnrollments().length) {
+        <div class="info-banner">
+          Aby planować lekcje, najpierw
+          <a routerLink="/app/students" [queryParams]="{ invite: 1 }">zaproś ucznia</a>.
+        </div>
+      }
+      @if (isTutor() && hours() && !hours()!.weekly.length) {
+        <div class="info-banner hint">
+          <span
+            >Ustaw godziny pracy — kalendarz wyszarzy czas, w którym nie prowadzisz lekcji.</span
+          >
+          <button matButton type="button" (click)="panel.set('hours')">Ustaw godziny</button>
+        </div>
+      }
+
+      @if (students().length > 1) {
+        <mat-chip-listbox multiple class="filters" aria-label="Pokaż uczniów">
+          @for (s of students(); track s.id) {
+            <mat-chip-option
+              [selected]="!hiddenStudents().has(s.id)"
+              (selectionChange)="toggleStudent(s.id)"
+            >
+              <span class="dot" matChipAvatar [style.background]="color(s.id)"></span>
+              {{ s.name }}
+            </mat-chip-option>
+          }
+        </mat-chip-listbox>
+      }
+
+      @if (mode() === 'month') {
+        <section class="month pl-card" aria-label="Miesiąc">
+          @for (w of ['pon', 'wt', 'śr', 'czw', 'pt', 'sob', 'niedz']; track w) {
+            <span class="dow">{{ w }}</span>
+          }
+          @for (d of days(); track d.key) {
+            <div
+              class="cell"
+              [class.outside]="d.outside"
+              [class.today]="d.today"
+              [class.closed]="!isWorkingDay(d)"
+            >
+              <button
+                type="button"
+                class="cell-date"
+                (click)="openDay(d.date)"
+                [attr.aria-label]="'Pokaż dzień ' + (d.date | date: 'EEEE d MMMM')"
+              >
+                {{ d.date | date: 'd' }}
+              </button>
+              @for (l of d.lessons.slice(0, 3); track l.id) {
                 <button
                   type="button"
-                  matButton="outlined"
-                  class="pl-on-dark"
-                  [matMenuTriggerFor]="att"
+                  class="chip"
+                  [style.--c]="color(l.student.id)"
+                  [class.cancelled]="l.status === 'cancelled'"
+                  (click)="select(l)"
+                  [attr.aria-label]="lessonLabel(l)"
+                  [matTooltip]="lessonLabel(l)"
                 >
-                  Obecność
-                </button>
-                <mat-menu #att="matMenu">
-                  <button mat-menu-item (click)="complete(l, 'present')">Obecny</button>
-                  <button mat-menu-item (click)="complete(l, 'late')">Spóźniony</button>
-                  <button mat-menu-item (click)="complete(l, 'absent')">Nieobecny</button>
-                </mat-menu>
-              } @else {
-                <button
-                  type="button"
-                  matButton="outlined"
-                  class="pl-on-dark"
-                  (click)="startReschedule(l)"
-                >
-                  Przełóż
+                  <b>{{ l.startsAt | date: 'HH:mm' }}</b> {{ who(l) }}
                 </button>
               }
-            }
-            @if (!isPast(l)) {
-              <button
-                type="button"
-                matButton="outlined"
-                class="pl-on-dark"
-                (click)="startCancel(l)"
-              >
-                Odwołaj
-              </button>
-            }
-          </div>
-        }
-
-        @if (editing() === l.id) {
-          <form [formGroup]="rescheduleForm" (ngSubmit)="reschedule(l)" class="inline-edit">
-            <label>Nowy termin <input type="datetime-local" formControlName="startsAt" /></label>
-            <label
-              >Czas (min)
-              <input type="number" formControlName="durationMin" min="15" max="240" step="15"
-            /></label>
-            <div class="actions">
-              <button type="submit" matButton="filled" class="pl-accent" [disabled]="busy()">
-                Zapisz
-              </button>
-              <button
-                type="button"
-                matButton="outlined"
-                class="pl-on-dark"
-                (click)="editing.set(null)"
-              >
-                Anuluj
-              </button>
+              @if (d.lessons.length > 3) {
+                <button type="button" class="more" (click)="openDay(d.date)">
+                  +{{ d.lessons.length - 3 }} więcej
+                </button>
+              }
             </div>
-          </form>
-        }
-        @if (cancelling() === l.id) {
-          <div class="inline-edit">
-            <label>Powód (opcjonalnie) <input [formControl]="cancelReason" /></label>
-            <div class="actions">
-              <button
-                type="button"
-                matButton="filled"
-                class="pl-accent"
-                (click)="cancel(l)"
-                [disabled]="busy()"
-              >
-                Odwołaj lekcję
-              </button>
-              <button
-                type="button"
-                matButton="outlined"
-                class="pl-on-dark"
-                (click)="cancelling.set(null)"
-              >
-                Nie
-              </button>
-            </div>
-          </div>
-        }
-
-        @if (isTutor() && l.status === 'cancelled' && l.chargeable === null) {
-          <div class="inline-edit">
-            <span>Późne odwołanie przez ucznia — czy lekcja jest płatna?</span>
-            <div class="actions">
-              <button
-                type="button"
-                matButton="outlined"
-                class="pl-on-dark"
-                (click)="decide(l, false)"
-              >
-                Bez opłaty
-              </button>
-              <button type="button" matButton="filled" class="pl-accent" (click)="decide(l, true)">
-                Płatna
-              </button>
-            </div>
-          </div>
-        }
-
-        <dl class="facts">
-          @if (l.topic) {
-            <dt>Temat</dt>
-            <dd>{{ l.topic }}</dd>
           }
-          @if (l.attendance) {
-            <dt>Obecność</dt>
-            <dd>{{ attendanceLabel[l.attendance] }}</dd>
-          }
-          @if (l.cancelReason) {
-            <dt>Powód odwołania</dt>
-            <dd>„{{ l.cancelReason }}”</dd>
-          }
-          @if (l.seriesId) {
-            <dt>Seria</dt>
-            <dd>co tydzień</dd>
-          }
-        </dl>
+        </section>
       } @else {
-        <span class="eyebrow light">Wybrana lekcja</span>
-        <p class="sub">W tym tygodniu nie ma zaplanowanych lekcji.</p>
-      }
-    </aside>
-  </div>
-
-  @if (pending().length) {
-    <section class="pl-card pending">
-      <h2>Późne odwołania do decyzji</h2>
-      @for (l of pending(); track l.id) {
-        <div class="pending-row">
-          <span>
-            {{ l.student.displayName }} · {{ l.startsAt | date: 'EEE d.MM, HH:mm' }}
-            @if (l.cancelReason) {
-              <span class="muted">— „{{ l.cancelReason }}”</span>
+        <section
+          #grid
+          class="grid pl-card"
+          [class.single]="mode() === 'day'"
+          aria-label="Plan lekcji"
+        >
+          <div class="cols-head">
+            <span class="corner"></span>
+            @for (d of days(); track d.key) {
+              <button
+                type="button"
+                class="day-head"
+                [class.today]="d.today"
+                [class.closed]="!isWorkingDay(d)"
+                (click)="openDay(d.date)"
+                [disabled]="mode() === 'day'"
+                [attr.aria-label]="'Pokaż dzień ' + (d.date | date: 'EEEE d MMMM')"
+              >
+                <span class="dname">{{ d.date | date: (mode() === 'day' ? 'EEEE' : 'EEE') }}</span>
+                <span class="dnum">{{ d.date | date: 'd' }}</span>
+                @if (!isWorkingDay(d)) {
+                  <span class="free-note">wolne</span>
+                }
+              </button>
             }
-          </span>
-          <span class="buttons">
-            <button type="button" matButton="outlined" (click)="decide(l, false)">
-              Bez opłaty
-            </button>
-            <button type="button" matButton="filled" (click)="decide(l, true)">Płatna</button>
-          </span>
-        </div>
+          </div>
+          <div class="body" [style.height.px]="span().list.length * hourPx">
+            <div class="hours" aria-hidden="true">
+              @for (h of span().list; track h) {
+                <span [style.height.px]="hourPx">{{ h }}:00</span>
+              }
+            </div>
+            @for (d of days(); track d.key) {
+              <div
+                class="col"
+                [class.today]="d.today"
+                (click)="planAt($event, d.date)"
+                (mousemove)="trackHover($event, d)"
+                (mouseleave)="hoverSlot.set(null)"
+              >
+                @for (h of span().list; track h) {
+                  <span class="line" [style.top.px]="(h - span().from) * hourPx"></span>
+                }
+                @for (b of d.off; track b.top) {
+                  <span class="off" [style]="offStyle(b)" aria-hidden="true"></span>
+                }
+                @if (hoverSlot(); as s) {
+                  @if (s.key === d.key && activeEnrollments().length) {
+                    <span class="ghost" [style.top.px]="s.top" aria-hidden="true">
+                      + {{ s.label }}
+                    </span>
+                  }
+                }
+                @if (d.today) {
+                  <span class="now" [style.top.px]="nowTop()" aria-hidden="true"></span>
+                }
+                @for (l of d.lessons; track l.id) {
+                  <button
+                    type="button"
+                    class="lesson"
+                    [class.cancelled]="l.status === 'cancelled'"
+                    [class.done]="l.status === 'completed'"
+                    [class.selected]="panel() === 'lesson' && selectedId() === l.id"
+                    [class.short]="l.durationMin < 45"
+                    [style]="lessonBox(l)"
+                    (click)="$event.stopPropagation(); select(l)"
+                    [attr.aria-label]="lessonLabel(l)"
+                  >
+                    <span class="l-time"
+                      >{{ l.startsAt | date: 'HH:mm' }}–{{ endTime(l) | date: 'HH:mm' }}</span
+                    >
+                    <span class="l-who">{{ who(l) }}</span>
+                    <span class="l-meta"
+                      >{{ l.subject }}{{ l.location ? ' · ' + l.location : '' }}</span
+                    >
+                    @if (mode() === 'day' && l.topic) {
+                      <span class="l-meta">{{ l.topic }}</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </section>
       }
-    </section>
-  }
-</div>
+
+      @if (pending().length) {
+        <section class="pl-card pending">
+          <h2>Późne odwołania do decyzji</h2>
+          @for (l of pending(); track l.id) {
+            <div class="pending-row">
+              <span>
+                {{ l.student.displayName }} · {{ l.startsAt | date: 'EEE d.MM, HH:mm' }}
+                @if (l.cancelReason) {
+                  <span class="muted">— „{{ l.cancelReason }}”</span>
+                }
+              </span>
+              <span class="buttons">
+                <button type="button" matButton="outlined" (click)="decide(l, false)">
+                  Bez opłaty
+                </button>
+                <button type="button" matButton="filled" (click)="decide(l, true)">Płatna</button>
+              </span>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

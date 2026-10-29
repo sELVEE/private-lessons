@@ -6,6 +6,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import { ARGON_OPTS } from '../auth/password.service.js';
 import {
+  availability,
   enrollmentEvents,
   assessments,
   enrollmentRates,
@@ -202,6 +203,18 @@ async function seedTeaching() {
       description: 'Wpłata (przelew)',
       createdBy: tutor.id,
     });
+  }
+  // Godziny pracy Anny: pon–czw 15–20, pt 17–20, weekend wolny.
+  if (!(await db.$count(availability, eq(availability.tutorId, tutor.id)))) {
+    await db.insert(availability).values(
+      [0, 1, 2, 3, 4].map((weekday) => ({
+        organizationId: orgId,
+        tutorId: tutor.id,
+        weekday,
+        startMin: weekday === 4 ? 17 * 60 : 15 * 60,
+        endMin: 20 * 60,
+      })),
+    );
   }
   if (!(await db.$count(materials, eq(materials.tutorId, tutor.id)))) {
     const scope = {

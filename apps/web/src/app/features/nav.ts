@@ -7,9 +7,9 @@ export interface NavItem {
 }
 
 export interface RoleNav {
-  /** Up to five destinations in the floating dock. */
+  /** Up to five main destinations — the bottom navigation bar on phones. */
   dock: NavItem[];
-  /** Less frequent destinations behind „Więcej”. */
+  /** Less frequent destinations — in the side navigation, behind „Więcej” on phones. */
   more: NavItem[];
 }
 

@@ -78,7 +78,7 @@
   height: 36px;
   padding: 0 14px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-small);
   background: var(--pl-card-soft);
   color: var(--pl-ink);
   font: 600 13px var(--pl-font-ui);
@@ -100,7 +100,7 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  border-radius: 22px;
+  border-radius: var(--mat-sys-corner-large);
   border: 2px dashed var(--pl-sage-strong);
   padding: 16px 20px;
 
@@ -134,7 +134,7 @@
 .item {
   flex: 1;
   min-width: 0;
-  border-radius: 22px;
+  border-radius: var(--mat-sys-corner-large);
   background: var(--pl-card);
   padding: 16px 20px;
   display: flex;
@@ -247,7 +247,7 @@
 
 .topic {
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-small);
   font-size: 13px;
   font-weight: 600;
   border: 1.5px dashed var(--pl-sage-strong);
@@ -279,4 +279,13 @@
     padding: 6px 0;
     border-top: 1px solid var(--pl-line);
   }
+}
+
+.ring-track {
+  stroke: var(--mat-sys-outline-variant);
+}
+
+.ring-value {
+  stroke: var(--mat-sys-tertiary);
+  transition: stroke-dasharray 600ms ease;
 }

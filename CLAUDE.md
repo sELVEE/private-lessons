@@ -20,7 +20,7 @@ Hasło do wszystkich: `Demo-haslo-2026`
 | `rodzic`      | `rodzic@demo.local`      | rodzic (Marek)                            |
 
 Dane demo: Kasia uczy się matematyki u Anny (lekcje, notatki, rozliczenia ze stawką 120 zł/h, materiał ze wzorami,
-zadanie domowe, oceny i cele), Marek jest połączony z Kasią.
+zadanie domowe, oceny i cele), Marek jest połączony z Kasią. Godziny pracy Anny: pon–czw 15–20, pt 17–20.
 
 Nowe konta demo dopisywać tutaj i w `apps/api/src/cli/seed-dev.ts`.
 

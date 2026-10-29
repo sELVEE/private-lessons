@@ -2,6 +2,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type {
   AdminUserRow,
+  Availability,
+  TimeRange,
+  WeeklyHours,
   AssessmentInput,
   BalanceRow,
   BillingAccount,
@@ -108,6 +111,15 @@ export class TeachingApi {
     this.post<LessonDetail>(`/api/lessons/${id}/complete`, { attendance });
   decideCharge = (id: string, chargeable: boolean) =>
     this.post<LessonDetail>(`/api/lessons/${id}/charge`, { chargeable });
+  availability = () => this.get<Availability>('/api/availability');
+  saveWeeklyHours = (w: WeeklyHours) =>
+    firstValueFrom(this.http.put<Availability>('/api/availability/weekly', w));
+  saveException = (date: string, ranges: TimeRange[], note?: string) =>
+    firstValueFrom(
+      this.http.put<Availability>(`/api/availability/exceptions/${date}`, { ranges, note }),
+    );
+  removeException = (date: string) =>
+    firstValueFrom(this.http.delete<Availability>(`/api/availability/exceptions/${date}`));
   settings = () => this.get<OrgSettings>('/api/settings');
   saveSettings = (s: OrgSettings) => firstValueFrom(this.http.put<OrgSettings>('/api/settings', s));
 

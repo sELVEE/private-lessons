@@ -17,7 +17,7 @@
   gap: 12px;
   height: 60px;
   padding: 0 22px;
-  border-radius: 18px;
+  border-radius: var(--mat-sys-corner-large);
   background: var(--pl-card);
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--pl-ink) 8%, transparent),
@@ -41,7 +41,7 @@
   list-style: none;
   margin: -6px 0 0;
   padding: 6px;
-  border-radius: 18px;
+  border-radius: var(--mat-sys-corner-large);
   background: var(--pl-card);
 
   button {
@@ -52,7 +52,7 @@
     width: 100%;
     box-sizing: border-box;
     padding: 8px 10px;
-    border-radius: 12px;
+    border-radius: var(--mat-sys-corner-small);
     cursor: pointer;
     font-weight: 600;
 
@@ -142,7 +142,7 @@
 }
 
 .hint {
-  border-radius: 18px;
+  border-radius: var(--mat-sys-corner-large);
   background: color-mix(in srgb, var(--pl-on-ink) 8%, transparent);
   padding: 16px;
   display: flex;
@@ -177,7 +177,7 @@
 .count {
   min-width: 28px;
   height: 28px;
-  border-radius: 14px;
+  border-radius: var(--mat-sys-corner-small);
   background: var(--pl-accent-text);
   color: var(--pl-card);
   font-weight: 800;
@@ -241,22 +241,36 @@
 
 .day {
   min-height: 110px;
-  border-radius: 18px;
+  border-radius: var(--mat-sys-corner-large);
   background: var(--pl-card-soft);
+  border: 1px solid transparent;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   text-decoration: none;
   color: inherit;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    border-color 150ms ease;
+
+  &:hover {
+    background: var(--pl-card);
+    border-color: var(--pl-line);
+    box-shadow: var(--mat-sys-level2);
+    transform: translateY(-2px);
+  }
 
   &.today {
     background: var(--pl-card);
-    outline: 2px solid var(--pl-ink);
+    border-color: var(--pl-ink);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--pl-accent);
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
   }
 }
 
@@ -267,9 +281,16 @@
   text-transform: capitalize;
 }
 
-.bar {
-  height: 8px;
-  border-radius: 4px;
+.slot {
+  display: block;
+  padding: 2px 6px;
+  border-left: 3px solid var(--c);
+  border-radius: var(--mat-sys-corner-extra-small);
+  background: color-mix(in srgb, var(--c) 18%, transparent);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .free {

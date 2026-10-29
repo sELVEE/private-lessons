@@ -15,7 +15,10 @@ const ROLE_LABEL = {
   admin: 'Administrator',
 } as const;
 
-/** Top bar with the brand and account menu, floating dock for navigation (direction C). */
+/**
+ * Layout per Material 3 navigation guidance: side navigation (expanded) or rail (medium) on larger
+ * screens, a bottom navigation bar on phones.
+ */
 @Component({
   selector: 'pl-shell',
   imports: [
@@ -37,6 +40,8 @@ export default class Shell {
     const role = this.store.role();
     return role ? NAV[role] : { dock: [], more: [] };
   });
+  /** Every destination: the side navigation has room for all of them. */
+  readonly all = computed(() => [...this.nav().dock, ...this.nav().more]);
   readonly roleLabel = computed(() => {
     const role = this.store.role();
     return role ? ROLE_LABEL[role] : '';

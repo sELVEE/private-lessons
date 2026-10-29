@@ -97,7 +97,7 @@
             </a>
           </div>
           <div class="hints">
-            <div class="hint">
+            <div class="hint pl-hover">
               <span class="eyebrow light">Ostatnio ustaliliście</span>
               <span>{{
                 lastReport()?.nextSteps ||
@@ -105,7 +105,7 @@
                   'Brak raportu z poprzedniej lekcji.'
               }}</span>
             </div>
-            <div class="hint">
+            <div class="hint pl-hover">
               <span class="eyebrow light">Zadanie domowe</span>
               @if (nextHomework(); as h) {
                 <span>
@@ -124,7 +124,7 @@
                 <span>Nic nie jest zadane.</span>
               }
             </div>
-            <div class="hint">
+            <div class="hint pl-hover">
               <span class="eyebrow light">Do powtórki</span>
               <span>
                 @if (nextSummary()?.toReview?.length) {
@@ -166,7 +166,7 @@
               }
             </div>
             @for (item of inbox(); track item.id) {
-              <div class="inbox-row">
+              <div class="inbox-row pl-row-hover">
                 <div class="what">
                   <strong>{{ item.title }}</strong>
                   <span class="muted">{{ item.detail }}</span>
@@ -193,7 +193,7 @@
           <section class="pl-card inbox">
             <div class="inbox-head"><h2>Do zrobienia</h2></div>
             @for (h of studentTodo(); track h.id) {
-              <div class="inbox-row">
+              <div class="inbox-row pl-row-hover">
                 <div class="what">
                   <strong>{{ h.title }}</strong>
                   <span class="muted"
@@ -208,7 +208,7 @@
             } @empty {
               <p class="muted calm">Wszystkie zadania oddane.</p>
             }
-            <div class="inbox-row">
+            <div class="inbox-row pl-row-hover">
               <div class="what"><strong>Materiały od korepetytora</strong></div>
               <a matButton="outlined" routerLink="/app/materials">Otwórz</a>
             </div>
@@ -218,7 +218,7 @@
           <section class="pl-card inbox">
             <div class="inbox-head"><h2>Dzieci</h2></div>
             @for (c of children(); track c.id) {
-              <div class="inbox-row">
+              <div class="inbox-row pl-row-hover">
                 <span class="avatar" [style.background]="color(c.id)">{{
                   initial(c.displayName)
                 }}</span>
@@ -253,7 +253,13 @@
       </div>
       <div class="days">
         @for (d of week(); track d.label) {
-          <a class="day" [class.today]="d.today" routerLink="/app/calendar">
+          <a
+            class="day"
+            [class.today]="d.today"
+            routerLink="/app/calendar"
+            [queryParams]="{ date: d.key, view: 'day' }"
+            [attr.aria-label]="'Pokaż w kalendarzu: ' + d.label"
+          >
             <span class="day-label"
               >{{ d.label }}
               @if (d.today) {
@@ -261,11 +267,9 @@
               }
             </span>
             @for (l of d.lessons; track l.id) {
-              <span
-                class="bar"
-                [style.background]="color(l.student.id)"
-                [title]="time(l.startsAt) + ' ' + l.student.displayName"
-              ></span>
+              <span class="slot" [style.--c]="color(l.student.id)">
+                <b>{{ time(l.startsAt) }}</b> {{ l.student.displayName }}
+              </span>
             } @empty {
               <span class="muted free">wolne</span>
             }

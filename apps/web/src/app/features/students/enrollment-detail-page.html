@@ -15,7 +15,12 @@
 
   @if (e(); as e) {
     <section class="hero">
-      <div class="ring">
+      <div
+        class="ring"
+        [matTooltip]="
+          ring().avg === null ? 'Brak ocen punktowych' : 'Średni wynik z ocen: ' + ring().avg + '%'
+        "
+      >
         <svg
           width="120"
           height="120"
@@ -23,13 +28,13 @@
           role="img"
           [attr.aria-label]="ring().avg === null ? 'Brak ocen' : 'Średni wynik ' + ring().avg + '%'"
         >
-          <circle cx="60" cy="60" r="52" fill="none" stroke="#c9ceb4" stroke-width="10" />
+          <circle cx="60" cy="60" r="52" fill="none" class="ring-track" stroke-width="10" />
           <circle
             cx="60"
             cy="60"
             r="52"
             fill="none"
-            stroke="#a84f2c"
+            class="ring-value"
             stroke-width="10"
             stroke-linecap="round"
             [attr.stroke-dasharray]="ring().dash"
@@ -110,7 +115,7 @@
         @for (item of feed(); track item.id) {
           <div class="row">
             <span class="date">{{ item.at | date: 'd.MM' }}</span>
-            <article class="item" [class]="'k-' + item.kind">
+            <article class="item pl-row-hover" [class]="'k-' + item.kind">
               @if (item.big) {
                 <span class="display big">{{ item.big }}</span>
               }

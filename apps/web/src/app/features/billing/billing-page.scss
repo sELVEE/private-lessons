@@ -16,7 +16,7 @@
   align-items: center;
   gap: 4px;
   padding: 5px;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-small);
   background: var(--pl-card);
 
   button {
@@ -66,7 +66,7 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  border-radius: 22px;
+  border-radius: var(--mat-sys-corner-large);
   background: var(--pl-card);
   padding: 16px 20px;
   color: inherit;
@@ -122,7 +122,7 @@
 }
 
 .ledger {
-  border-radius: 22px;
+  border-radius: var(--mat-sys-corner-large);
   background: var(--pl-card);
   padding: 8px 20px;
 }
@@ -202,9 +202,28 @@
   color: var(--pl-on-ink-soft);
 }
 
+.col {
+  cursor: pointer;
+  outline: none;
+
+  &:hover .bar,
+  &:focus-visible .bar {
+    filter: brightness(1.25);
+    transform: scaleY(1.03);
+  }
+
+  &:focus-visible span {
+    text-decoration: underline;
+  }
+}
+
 .bar {
+  transform-origin: bottom;
+  transition:
+    filter 150ms ease,
+    transform 150ms ease;
   width: 100%;
-  border-radius: 8px 8px 3px 3px;
+  border-radius: var(--mat-sys-corner-extra-small) var(--mat-sys-corner-extra-small) 0 0;
   background: color-mix(in srgb, var(--pl-on-ink) 25%, transparent);
 
   &.current {

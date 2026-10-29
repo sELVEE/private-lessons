@@ -16,7 +16,7 @@ import { toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { initial, personColor } from '../../shared/person-color';
-import { addDays, dayLabel, relativeTime, startOfWeek, timeLabel } from '../../shared/time';
+import { addDays, dayLabel, relativeTime, startOfWeek, timeLabel, isoDay } from '../../shared/time';
 import { money } from '../billing/money';
 
 interface InboxItem {
@@ -124,6 +124,7 @@ export default class HomePage implements OnInit {
       );
       return {
         date,
+        key: isoDay(date),
         label: date.toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric' }),
         today: date.toDateString() === new Date().toDateString(),
         lessons,

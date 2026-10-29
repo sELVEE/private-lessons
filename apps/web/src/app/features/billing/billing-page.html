@@ -41,7 +41,7 @@
     <section class="main">
       <h2>{{ isTutor() ? 'Kto ile jest winien' : 'Salda' }}</h2>
       @for (r of owing(); track r.enrollmentId) {
-        <div class="debtor">
+        <div class="debtor pl-row-hover">
           <span class="avatar" [style.background]="color(r.enrollmentId)">{{
             initial(isTutor() ? r.student : r.tutor)
           }}</span>
@@ -71,7 +71,7 @@
         </div>
       }
       @for (r of settled(); track r.enrollmentId) {
-        <a class="debtor soft" [routerLink]="['/app/billing', r.enrollmentId]">
+        <a class="debtor soft pl-hover" [routerLink]="['/app/billing', r.enrollmentId]">
           <span class="avatar" [style.background]="color(r.enrollmentId)">{{
             initial(isTutor() ? r.student : r.tutor)
           }}</span>
@@ -92,7 +92,7 @@
         <h2 class="ledger-title">{{ monthLabel(month()) }}, operacja po operacji</h2>
         <div class="ledger">
           @for (e of visibleLedger(); track e.id) {
-            <div class="entry">
+            <div class="entry pl-row-hover">
               <span class="date">{{ e.occurredAt | date: 'd.MM' }}</span>
               <span class="what">{{ e.description }} · {{ e.student }}</span>
               <span class="sum" [class.in]="e.amount < 0" [class.zero]="e.amount === 0">
@@ -121,7 +121,13 @@
             [attr.aria-label]="'Wpłaty w ostatnich 6 miesiącach, w bieżącym: ' + money(s.received)"
           >
             @for (h of s.history; track h.month; let last = $last) {
-              <div class="col" [title]="monthLabel(h.month) + ': ' + money(h.received)">
+              <div
+                class="col"
+                [matTooltip]="monthLabel(h.month) + ': ' + money(h.received)"
+                matTooltipPosition="above"
+                tabindex="0"
+                [attr.aria-label]="monthLabel(h.month) + ': ' + money(h.received)"
+              >
                 <div
                   class="bar"
                   [class.current]="last"
