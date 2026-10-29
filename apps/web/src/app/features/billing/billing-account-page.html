@@ -1,0 +1,231 @@
+<div class="page">
+  <div class="head no-print">
+    <button mat-icon-button (click)="location.back()" aria-label="Wstecz">
+      <mat-icon fontSet="material-symbols-outlined">arrow_back</mat-icon>
+    </button>
+    @if (acc(); as a) {
+      <h1>{{ a.student }} · {{ a.subject }}</h1>
+    }
+  </div>
+  @if (error(); as e) {
+    <div class="error-banner no-print" role="alert">{{ e }}</div>
+  }
+
+  @if (acc(); as a) {
+    <div class="top no-print">
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <span class="label">Saldo</span>
+          <span class="value" [class.owes]="a.balance > 0">
+            {{
+              a.balance > 0
+                ? money(a.balance)
+                : a.balance < 0
+                  ? 'nadpłata ' + money(-a.balance)
+                  : 'rozliczone'
+            }}
+          </span>
+        </mat-card-content>
+      </mat-card>
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <span class="label">Stawka za godzinę</span>
+          <span class="value">{{
+            a.hourlyRate === null ? 'nie ustawiona' : money(a.hourlyRate)
+          }}</span>
+        </mat-card-content>
+      </mat-card>
+      @for (p of a.packages; track p.id) {
+        @if (p.lessonsUsed < p.lessonsTotal) {
+          <mat-card appearance="outlined">
+            <mat-card-content>
+              <span class="label">Pakiet</span>
+              <span class="value"
+                >{{ p.lessonsTotal - p.lessonsUsed }} / {{ p.lessonsTotal }} lekcji</span
+              >
+            </mat-card-content>
+          </mat-card>
+        }
+      }
+    </div>
+
+    @if (isTutor()) {
+      <div class="actions no-print">
+        <button mat-flat-button (click)="open('payment')">Zapisz wpłatę</button>
+        <button mat-stroked-button (click)="open('package')">Sprzedaj pakiet</button>
+        <button mat-stroked-button (click)="open('rate')">Stawka</button>
+        <button mat-button (click)="open('adjustment')">Korekta</button>
+      </div>
+
+      @switch (panel()) {
+        @case ('payment') {
+          <mat-card appearance="outlined" class="panel no-print">
+            <form [formGroup]="paymentForm" (ngSubmit)="savePayment()" class="row-form">
+              <mat-form-field
+                ><mat-label>Kwota (zł)</mat-label
+                ><input matInput formControlName="amount" inputmode="decimal"
+              /></mat-form-field>
+              <mat-form-field>
+                <mat-label>Metoda</mat-label>
+                <mat-select formControlName="method">
+                  @for (m of methods; track m.value) {
+                    <mat-option [value]="m.value">{{ m.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field
+                ><mat-label>Data</mat-label><input matInput type="date" formControlName="paidAt"
+              /></mat-form-field>
+              <mat-form-field
+                ><mat-label>Notatka</mat-label><input matInput formControlName="note"
+              /></mat-form-field>
+              <button mat-flat-button type="submit" [disabled]="busy()">Zapisz</button>
+            </form>
+          </mat-card>
+        }
+        @case ('package') {
+          <mat-card appearance="outlined" class="panel no-print">
+            <form [formGroup]="packageForm" (ngSubmit)="savePackage()" class="row-form">
+              <mat-form-field
+                ><mat-label>Liczba lekcji</mat-label
+                ><input matInput type="number" formControlName="lessons"
+              /></mat-form-field>
+              <mat-form-field
+                ><mat-label>Cena pakietu (zł)</mat-label
+                ><input matInput formControlName="price" inputmode="decimal"
+              /></mat-form-field>
+              <mat-form-field
+                ><mat-label>Notatka</mat-label><input matInput formControlName="note"
+              /></mat-form-field>
+              <button mat-flat-button type="submit" [disabled]="busy()">Dodaj</button>
+            </form>
+            <p class="muted">
+              Odbyte lekcje najpierw zużywają pakiet, potem liczone są wg stawki. Cena pakietu
+              trafia do salda.
+            </p>
+          </mat-card>
+        }
+        @case ('rate') {
+          <mat-card appearance="outlined" class="panel no-print">
+            <form [formGroup]="rateForm" (ngSubmit)="saveRate()" class="row-form">
+              <mat-form-field
+                ><mat-label>Stawka za 60 min (zł)</mat-label
+                ><input matInput formControlName="rate" inputmode="decimal"
+              /></mat-form-field>
+              <button mat-flat-button type="submit" [disabled]="busy()">Zapisz</button>
+            </form>
+            <p class="muted">
+              Lekcje innej długości liczone proporcjonalnie. Zmiana nie przelicza lekcji już
+              naliczonych.
+            </p>
+          </mat-card>
+        }
+        @case ('adjustment') {
+          <mat-card appearance="outlined" class="panel no-print">
+            <form [formGroup]="adjustmentForm" (ngSubmit)="saveAdjustment()" class="row-form">
+              <mat-button-toggle-group formControlName="direction">
+                <mat-button-toggle value="down">Zmniejsz dług</mat-button-toggle>
+                <mat-button-toggle value="up">Zwiększ dług</mat-button-toggle>
+              </mat-button-toggle-group>
+              <mat-form-field
+                ><mat-label>Kwota (zł)</mat-label
+                ><input matInput formControlName="amount" inputmode="decimal"
+              /></mat-form-field>
+              <mat-form-field
+                ><mat-label>Powód</mat-label><input matInput formControlName="note"
+              /></mat-form-field>
+              <button mat-flat-button type="submit" [disabled]="busy()">Zapisz</button>
+            </form>
+          </mat-card>
+        }
+      }
+    }
+
+    @if (statement(); as st) {
+      <mat-card appearance="outlined" class="statement">
+        <mat-card-header>
+          <mat-card-title>Rozliczenie: {{ monthLabel(st.month) }}</mat-card-title>
+          <mat-card-subtitle
+            >{{ st.student }} · {{ st.subject }} · {{ st.tutor }}</mat-card-subtitle
+          >
+        </mat-card-header>
+        <mat-card-content>
+          <div class="month no-print">
+            <button mat-icon-button (click)="moveMonth(-1)" aria-label="Poprzedni miesiąc">
+              <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
+            </button>
+            <button mat-icon-button (click)="moveMonth(1)" aria-label="Następny miesiąc">
+              <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
+            </button>
+            <button mat-button (click)="print()">
+              <mat-icon fontSet="material-symbols-outlined">print</mat-icon> Drukuj / PDF
+            </button>
+          </div>
+          <table class="ledger">
+            <tbody>
+              <tr class="sum">
+                <td>Saldo na początek miesiąca</td>
+                <td></td>
+                <td class="amt">{{ money(st.opening) }}</td>
+                <td></td>
+              </tr>
+              @for (e of st.entries; track e.id) {
+                <tr>
+                  <td>{{ e.description }}</td>
+                  <td class="muted">{{ e.occurredAt | date: 'd.MM' }}</td>
+                  <td class="amt" [class.neg]="e.amount < 0">{{ money(e.amount) }}</td>
+                  <td class="no-print">
+                    @if (isTutor() && !e.lessonId && e.kind !== 'charge') {
+                      <button mat-icon-button (click)="voidEntry(e.id)" aria-label="Anuluj wpis">
+                        <mat-icon fontSet="material-symbols-outlined">undo</mat-icon>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="muted">Brak operacji w tym miesiącu.</td>
+                </tr>
+              }
+              <tr class="sum">
+                <td>
+                  Saldo na koniec miesiąca
+                  {{ st.closing > 0 ? '(do zapłaty)' : st.closing < 0 ? '(nadpłata)' : '' }}
+                </td>
+                <td></td>
+                <td class="amt">{{ money(st.closing) }}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <mat-card appearance="outlined" class="no-print history">
+      <mat-card-header><mat-card-title>Wszystkie operacje</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <table class="ledger">
+          <tbody>
+            @for (e of a.entries; track e.id) {
+              <tr [class.voided]="e.voided">
+                <td>
+                  {{ e.description }}
+                  @if (e.voided) {
+                    (anulowany)
+                  }
+                </td>
+                <td class="muted">{{ e.occurredAt | date: 'd.MM.yyyy' }}</td>
+                <td class="amt" [class.neg]="e.amount < 0">{{ money(e.amount) }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="muted">Brak operacji.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

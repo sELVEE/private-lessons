@@ -9,6 +9,7 @@ import { AdminModule } from './admin/admin.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthGuard } from './auth/auth.guard.js';
 import { AuthModule } from './auth/auth.module.js';
+import { BillingModule } from './billing/billing.module.js';
 import { CommonModule } from './common/common.module.js';
 import { CsrfMiddleware } from './common/csrf.middleware.js';
 import { AllExceptionsFilter } from './common/http-exception.filter.js';
@@ -54,6 +55,7 @@ export class AppModule implements NestModule {
         TeachingModule,
         LessonsModule,
         NotesModule,
+        BillingModule,
         AdminModule,
       ],
       controllers: [HealthController],

@@ -56,8 +56,20 @@
           >
         </mat-card>
         <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Zarobki w tym miesiącu</mat-card-title></mat-card-header>
-          <mat-card-content class="muted">Rozliczenia pojawią się w etapie 5.</mat-card-content>
+          <mat-card-header><mat-card-title>Ten miesiąc</mat-card-title></mat-card-header>
+          <mat-card-content>
+            @if (earnings(); as e) {
+              <p class="big">{{ money(e.received) }}</p>
+              <p class="muted">
+                wpłaty · naliczone {{ money(e.charged) }} · zaległości {{ money(e.outstanding) }} ·
+                lekcje
+                {{ e.lessonsCompleted }}
+              </p>
+            }
+          </mat-card-content>
+          <mat-card-actions
+            ><a mat-button routerLink="/app/billing">Rozliczenia</a></mat-card-actions
+          >
         </mat-card>
       }
       @case ('student') {

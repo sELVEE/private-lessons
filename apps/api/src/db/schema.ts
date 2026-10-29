@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   type AnyPgColumn,
   bigint,
+  integer,
   boolean,
   customType,
   index,
@@ -19,8 +20,10 @@ import {
   ACCOUNT_TYPES,
   ATTENDANCE,
   ENROLLMENT_STATUSES,
+  LEDGER_KINDS,
   LESSON_STATUSES,
   ORG_ROLES,
+  PAYMENT_METHODS,
   SCHOOL_LEVELS,
 } from '@pl/shared';
 
@@ -453,4 +456,59 @@ export const lessonReports = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('lesson_reports_enrollment_idx').on(t.enrollmentId)],
+);
+
+// ---------------------------------------------------------------- stage 5: billing (amounts in grosze)
+
+export const ledgerKind = pgEnum('ledger_kind', LEDGER_KINDS);
+export const paymentMethod = pgEnum('payment_method', PAYMENT_METHODS);
+
+export const enrollmentRates = pgTable(
+  'enrollment_rates',
+  {
+    id: id(),
+    ...scoped(),
+    hourlyRate: integer('hourly_rate').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('enrollment_rates_enrollment_uq').on(t.enrollmentId)],
+);
+
+/** Prepaid package of lessons; completed lessons consume it before the hourly rate applies. */
+export const lessonPackages = pgTable(
+  'lesson_packages',
+  {
+    id: id(),
+    ...scoped(),
+    lessonsTotal: smallint('lessons_total').notNull(),
+    lessonsUsed: smallint('lessons_used').notNull().default(0),
+    price: integer('price').notNull(),
+    note: text('note'),
+    purchasedAt: timestamp('purchased_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('lesson_packages_enrollment_idx').on(t.enrollmentId)],
+);
+
+/** Append-mostly ledger. Corrections void an entry instead of deleting it. */
+export const ledgerEntries = pgTable(
+  'ledger_entries',
+  {
+    id: id(),
+    ...scoped(),
+    kind: ledgerKind('kind').notNull(),
+    amount: integer('amount').notNull(),
+    description: text('description').notNull(),
+    method: paymentMethod('method'),
+    lessonId: uuid('lesson_id').references(() => lessons.id, { onDelete: 'set null' }),
+    packageId: uuid('package_id').references(() => lessonPackages.id, { onDelete: 'set null' }),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('ledger_enrollment_time_idx').on(t.enrollmentId, t.occurredAt),
+    index('ledger_tutor_time_idx').on(t.tutorId, t.occurredAt),
+    index('ledger_lesson_idx').on(t.lessonId),
+  ],
 );

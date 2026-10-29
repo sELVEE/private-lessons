@@ -63,12 +63,14 @@ Legenda: ✅ zrobione · 🔜 następne · ⏳ później (świadomie odłożone)
 - Raport po lekcji (podsumowanie, omówione zagadnienia, dalsze kroki, zaangażowanie 1–5): pisze korepetytor, widzą uczeń i połączeni rodzice; przy pierwszym zapisie e-mail do ucznia i rodziców.
 - Strona lekcji: szczegóły, historia zmian, notatka, raport.
 
-### Etap 5 — rozliczenia
+### Etap 5 — rozliczenia ✅
 
-- Cena za godzinę lub pakiet lekcji, per uczeń/przedmiot.
-- Księga (`ledger_entries`): naliczenia z odbytych lekcji, wpłaty, zaległości.
-- Rozliczenie miesięczne dla każdego ucznia, podsumowanie zarobków.
-- ⏳ Rachunki/faktury (PDF, ewentualnie KSeF). Danych kart nie przechowujemy — ewentualne płatności online przez operatora.
+- Stawka za godzinę dla każdej współpracy (lekcje innej długości proporcjonalnie) i pakiety lekcji (przedpłata; odbyte lekcje najpierw zużywają pakiet).
+- Księga operacji (`ledger_entries`, kwoty w groszach): naliczenia za odbyte lekcje i płatne odwołania (automatycznie, jednokrotnie), wpłaty (gotówka / przelew / BLIK / inna), korekty. Pomyłki się anuluje, nie usuwa.
+- Saldo i zaległości dla każdego ucznia; rozliczenie miesięczne (saldo początkowe, operacje, saldo końcowe) z wydrukiem / PDF z przeglądarki.
+- Podsumowanie zarobków: wpłaty, naliczenia, zaległości, liczba lekcji w miesiącu + wykres 6 miesięcy.
+- Uczeń i rodzic widzą salda i rozliczenia (tylko odczyt), inni korepetytorzy nic (RLS).
+- ⏳ Rachunki / faktury (PDF, KSeF), płatności online przez operatora.
 
 ### Etap 6 — materiały i zadania domowe
 

@@ -5,7 +5,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { RouterLink } from '@angular/router';
-import type { ChildInfo, EnrollmentInfo, LessonInfo } from '@pl/shared';
+import type { ChildInfo, EarningsSummary, EnrollmentInfo, LessonInfo } from '@pl/shared';
+import { currentMonth, money } from '../billing/money';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { studentLevel } from '../labels';
@@ -39,6 +40,8 @@ export default class HomePage implements OnInit {
   readonly enrollments = signal<EnrollmentInfo[]>([]);
   readonly children = signal<ChildInfo[]>([]);
   readonly upcoming = signal<LessonInfo[]>([]);
+  readonly earnings = signal<EarningsSummary | null>(null);
+  readonly money = money;
   readonly active = computed(() => this.enrollments().filter((e) => e.status === 'active'));
   readonly schoolLabel = computed(() => {
     const s = this.me()?.student;
@@ -51,6 +54,7 @@ export default class HomePage implements OnInit {
       if (role === 'tutor' || role === 'student')
         this.enrollments.set(await this.api.enrollments());
       if (role === 'parent') this.children.set(await this.api.children());
+      if (role === 'tutor') this.earnings.set(await this.api.earnings(currentMonth()));
       if (role !== 'admin') {
         const now = new Date();
         const lessons = await this.api.lessons(now, new Date(now.getTime() + 14 * 24 * 3600_000));

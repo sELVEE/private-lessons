@@ -2,6 +2,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type {
   AdminUserRow,
+  BalanceRow,
+  BillingAccount,
+  EarningsSummary,
+  PaymentMethod,
+  Statement,
   ChildInfo,
   CreateInviteInput,
   EnrollmentDetail,
@@ -106,6 +111,44 @@ export class TeachingApi {
     firstValueFrom(this.http.put<ReportInfo>(`/api/lessons/${lessonId}/report`, input));
   reports = (enrollmentId: string) =>
     this.get<ReportInfo[]>(`/api/enrollments/${enrollmentId}/reports`);
+
+  balances = () => this.get<BalanceRow[]>('/api/billing/balances');
+  earnings = (month: string) => this.get<EarningsSummary>(`/api/billing/earnings?month=${month}`);
+  billingAccount = (enrollmentId: string) =>
+    this.get<BillingAccount>(`/api/billing/enrollments/${enrollmentId}`);
+  statement = (enrollmentId: string, month: string) =>
+    this.get<Statement>(`/api/billing/enrollments/${enrollmentId}/statement?month=${month}`);
+  setRate = (enrollmentId: string, hourlyRate: number) =>
+    firstValueFrom(
+      this.http.put<BillingAccount>(`/api/billing/enrollments/${enrollmentId}/rate`, {
+        hourlyRate,
+      }),
+    );
+  addPackage = (enrollmentId: string, lessons: number, price: number, note?: string) =>
+    this.post<BillingAccount>(`/api/billing/enrollments/${enrollmentId}/packages`, {
+      lessons,
+      price,
+      note,
+    });
+  addPayment = (
+    enrollmentId: string,
+    amount: number,
+    method: PaymentMethod,
+    paidAt?: string,
+    note?: string,
+  ) =>
+    this.post<BillingAccount>(`/api/billing/enrollments/${enrollmentId}/payments`, {
+      amount,
+      method,
+      paidAt,
+      note,
+    });
+  addAdjustment = (enrollmentId: string, amount: number, note: string) =>
+    this.post<BillingAccount>(`/api/billing/enrollments/${enrollmentId}/adjustments`, {
+      amount,
+      note,
+    });
+  voidEntry = (id: string) => firstValueFrom(this.http.delete(`/api/billing/entries/${id}`));
 
   private get<T>(url: string) {
     return firstValueFrom(this.http.get<T>(url));

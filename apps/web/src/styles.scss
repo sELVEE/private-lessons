@@ -97,3 +97,14 @@ body {
     padding: 16px;
   }
 }
+
+@media print {
+  mat-sidenav,
+  mat-toolbar {
+    display: none !important;
+  }
+
+  .mat-drawer-content {
+    margin-left: 0 !important;
+  }
+}

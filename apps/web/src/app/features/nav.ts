@@ -28,6 +28,7 @@ export const NAV: Record<AccountType | 'admin', NavItem[]> = {
     { path: '/app/homework', label: 'Zadania domowe', icon: 'assignment' },
     { path: '/app/materials', label: 'Materiały', icon: 'library_books' },
     { path: '/app/progress', label: 'Moje postępy', icon: 'trending_up' },
+    { path: '/app/billing', label: 'Płatności', icon: 'payments' },
     ...COMMON_END,
   ],
   parent: [

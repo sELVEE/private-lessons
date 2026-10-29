@@ -1,0 +1,106 @@
+<div class="page">
+  <h1>{{ isTutor() ? 'Rozliczenia' : 'Płatności' }}</h1>
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+
+  @if (isTutor()) {
+    <div class="month">
+      <button mat-icon-button (click)="move(-1)" aria-label="Poprzedni miesiąc">
+        <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
+      </button>
+      <span>{{ monthLabel(month()) }}</span>
+      <button mat-icon-button (click)="move(1)" aria-label="Następny miesiąc">
+        <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
+      </button>
+    </div>
+
+    @if (summary(); as s) {
+      <div class="stats">
+        <mat-card appearance="outlined">
+          <mat-card-content
+            ><span class="label">Wpłaty</span
+            ><span class="value">{{ money(s.received) }}</span></mat-card-content
+          >
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-content
+            ><span class="label">Naliczone</span
+            ><span class="value">{{ money(s.charged) }}</span></mat-card-content
+          >
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-content
+            ><span class="label">Zaległości (łącznie)</span
+            ><span class="value">{{ money(s.outstanding) }}</span></mat-card-content
+          >
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-content
+            ><span class="label">Odbyte lekcje</span
+            ><span class="value">{{ s.lessonsCompleted }}</span></mat-card-content
+          >
+        </mat-card>
+      </div>
+
+      <mat-card appearance="outlined" class="chart-card">
+        <mat-card-header><mat-card-title>Ostatnie 6 miesięcy</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <div class="chart" role="img" aria-label="Wpłaty i naliczenia w ostatnich 6 miesiącach">
+            @for (h of s.history; track h.month) {
+              <div
+                class="col"
+                [title]="
+                  monthLabel(h.month) +
+                  ': wpłaty ' +
+                  money(h.received) +
+                  ', naliczone ' +
+                  money(h.charged)
+                "
+              >
+                <div class="bars">
+                  <div class="bar charged" [style.height]="barHeight(h.charged)"></div>
+                  <div class="bar received" [style.height]="barHeight(h.received)"></div>
+                </div>
+                <span class="muted">{{ h.month.slice(5) }}</span>
+              </div>
+            }
+          </div>
+          <div class="legend muted">
+            <span class="dot charged"></span> naliczone <span class="dot received"></span> wpłaty
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+
+  <h2 class="section">{{ isTutor() ? 'Salda uczniów' : 'Salda' }}</h2>
+  <mat-card appearance="outlined">
+    <mat-list>
+      @for (r of rows(); track r.enrollmentId) {
+        <a mat-list-item [routerLink]="['/app/billing', r.enrollmentId]">
+          <span matListItemTitle
+            >{{ isTutor() ? r.student : r.tutor }} · {{ r.subject }}
+            @if (!isTutor() && store.role() === 'parent') {
+              · {{ r.student }}
+            }
+          </span>
+          <span matListItemLine class="muted"
+            >naliczone {{ money(r.charged) }} · wpłacone {{ money(r.paid) }}</span
+          >
+          <span matListItemMeta [class.owes]="r.balance > 0" [class.over]="r.balance < 0">
+            {{
+              r.balance > 0
+                ? 'do zapłaty ' + money(r.balance)
+                : r.balance < 0
+                  ? 'nadpłata ' + money(-r.balance)
+                  : 'rozliczone'
+            }}
+          </span>
+        </a>
+      } @empty {
+        <p class="muted empty">Brak rozliczeń.</p>
+      }
+    </mat-list>
+  </mat-card>
+</div>

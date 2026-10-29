@@ -7,7 +7,9 @@ import pg from 'pg';
 import { ARGON_OPTS } from '../auth/password.service.js';
 import {
   enrollmentEvents,
+  enrollmentRates,
   enrollments,
+  ledgerEntries,
   lessons,
   memberships,
   organizations,
@@ -164,6 +166,37 @@ async function seedTeaching() {
         };
       }),
     );
+  }
+  if (!(await db.$count(enrollmentRates, eq(enrollmentRates.enrollmentId, enrollment!.id)))) {
+    const scope = {
+      organizationId: orgId,
+      enrollmentId: enrollment!.id,
+      tutorId: tutor.id,
+      studentId: student.id,
+    };
+    await db.insert(enrollmentRates).values({ ...scope, hourlyRate: 12000 });
+    const done = await db
+      .select()
+      .from(lessons)
+      .where(and(eq(lessons.enrollmentId, enrollment!.id), eq(lessons.status, 'completed')));
+    for (const l of done) {
+      await db.insert(ledgerEntries).values({
+        ...scope,
+        kind: 'charge',
+        amount: 12000,
+        description: `Lekcja ${l.startsAt.toLocaleDateString('pl-PL')} (60 min)`,
+        lessonId: l.id,
+        occurredAt: l.startsAt,
+      });
+    }
+    await db.insert(ledgerEntries).values({
+      ...scope,
+      kind: 'payment',
+      amount: -24000,
+      method: 'transfer',
+      description: 'Wpłata (przelew)',
+      createdBy: tutor.id,
+    });
   }
   console.log('  Kasia uczy się matematyki u Anny, Marek jest połączony z Kasią');
 }

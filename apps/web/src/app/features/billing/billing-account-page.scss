@@ -1,0 +1,95 @@
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+}
+
+.value {
+  font: var(--mat-sys-headline-small);
+}
+
+.owes {
+  color: var(--mat-sys-error);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+
+.panel {
+  padding: 16px 16px 0;
+  margin-bottom: 16px;
+}
+
+.row-form {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.statement,
+.history {
+  margin-top: 16px;
+}
+
+.month {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+
+  td {
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .amt {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .neg {
+    color: var(--mat-sys-primary);
+  }
+
+  .sum td {
+    font-weight: 500;
+  }
+
+  .voided td {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
