@@ -1,4 +1,4 @@
-import { DatePipe, Location } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import {
   FormControl,
@@ -23,6 +23,7 @@ import {
 import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
+import { PageHeader } from '../../shared/ui';
 
 const CHANGE_LABELS: Record<string, string> = {
   scheduled: 'Zaplanowano',
@@ -37,6 +38,7 @@ const CHANGE_LABELS: Record<string, string> = {
 @Component({
   selector: 'pl-lesson-page',
   imports: [
+    PageHeader,
     DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
@@ -52,12 +54,12 @@ const CHANGE_LABELS: Record<string, string> = {
     .head {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--pl-space-sm);
     }
     .cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 16px;
+      gap: var(--pl-space-lg);
       align-items: start;
     }
     .pre {
@@ -69,8 +71,8 @@ const CHANGE_LABELS: Record<string, string> = {
     dl {
       display: grid;
       grid-template-columns: max-content 1fr;
-      gap: 6px 16px;
-      margin: 0 0 12px;
+      gap: var(--pl-space-sm) var(--pl-space-lg);
+      margin: 0 0 var(--pl-space-md);
     }
     dt {
       color: var(--mat-sys-on-surface-variant);
@@ -80,7 +82,7 @@ const CHANGE_LABELS: Record<string, string> = {
     }
     .rev {
       border-top: 1px solid var(--mat-sys-outline-variant);
-      padding: 8px 0;
+      padding: var(--pl-space-sm) 0;
     }
   `,
 })
@@ -88,7 +90,6 @@ export default class LessonPage implements OnInit {
   private readonly api = inject(TeachingApi);
   private readonly store = inject(AuthStore);
   private readonly fb = inject(NonNullableFormBuilder);
-  readonly location = inject(Location);
 
   readonly id = input.required<string>();
   readonly lesson = signal<LessonDetail | null>(null);

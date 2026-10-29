@@ -39,6 +39,15 @@ html {
   --pl-control-h: #{$control};
   --pl-tag-h: #{$tag};
 
+  /* Skala odstępów (padding, margin, gap) — tylko te wartości. */
+  --pl-space-xs: 4px;
+  --pl-space-sm: 8px;
+  --pl-space-md: 12px;
+  --pl-space-lg: 16px;
+  --pl-space-xl: 24px;
+  --pl-space-2xl: 32px;
+  --pl-space-3xl: 48px;
+
   @include mat.theme(
     (
       color: (
@@ -96,6 +105,17 @@ html {
       elevated-container-color: #f7f8f1,
       elevated-container-shape: var(--mat-sys-corner-large),
       title-text-size: 26px,
+      subtitle-text-color: var(--mat-sys-on-surface-variant),
+      subtitle-text-weight: 450,
+      subtitle-text-size: 14px,
+    )
+  );
+
+  @include mat.expansion-overrides(
+    (
+      container-shape: var(--mat-sys-corner-medium),
+      container-background-color: var(--mat-sys-surface-container),
+      container-elevation-shadow: none,
     )
   );
 
@@ -195,45 +215,7 @@ h1 {
   font-size: clamp(32px, 4vw, 44px);
   line-height: 1.1;
   letter-spacing: -0.01em;
-  margin: 0 0 24px;
-}
-
-/* Page header: title on the left, actions (controls) on the right — the same on every screen. */
-.page-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-  margin-bottom: 24px;
-
-  h1 {
-    margin: 0;
-
-    &::first-letter {
-      text-transform: uppercase;
-    }
-  }
-
-  .title {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-  }
-
-  .actions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-  }
-
-  /* Back button + title. */
-  &.start {
-    justify-content: flex-start;
-    gap: 8px;
-  }
+  margin: 0;
 }
 
 h1 em,
@@ -256,8 +238,45 @@ h3 {
 }
 
 /* Material cards: the same breathing room between the header and the content everywhere. */
-.mat-mdc-card-header + .mat-mdc-card-content {
-  padding-top: 16px;
+/* Material cards: the same padding as pl-section (24 px) and 16 px between header and content. */
+.mat-mdc-card .mat-mdc-card-header {
+  padding: var(--pl-space-xl) var(--pl-space-xl) 0;
+}
+
+.mat-mdc-card .mat-mdc-card-content {
+  padding: 0 var(--pl-space-xl);
+
+  &:first-child {
+    padding-top: var(--pl-space-xl);
+  }
+
+  &:last-child {
+    padding-bottom: var(--pl-space-xl);
+  }
+}
+
+.mat-mdc-card .mat-mdc-card-header + .mat-mdc-card-content {
+  padding-top: var(--pl-space-lg);
+}
+
+.mat-mdc-card .mat-mdc-card-actions {
+  padding: var(--pl-space-sm) var(--pl-space-lg) var(--pl-space-lg);
+}
+
+/* pl-section and pl-section-like cards on ink: Material card tokens, scoped. */
+.pl-dark {
+  @include mat.card-overrides(
+    (
+      outlined-container-color: var(--mat-sys-primary),
+    )
+  );
+
+  color: var(--mat-sys-on-primary);
+
+  .muted,
+  .eyebrow {
+    color: var(--pl-on-ink-soft);
+  }
 }
 
 .display {
@@ -276,73 +295,106 @@ h3 {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: var(--pl-space-lg);
   box-sizing: border-box;
 }
 
 .auth-card {
   width: 100%;
   max-width: 440px;
-  padding: 8px;
+  padding: var(--pl-space-sm);
 }
 
 .form-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--pl-space-lg);
 }
 
 .full-width {
   width: 100%;
 }
 
+/* Form buttons: right-aligned, primary action last — the same in every form and panel. */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pl-space-sm);
+}
+
+/* A note or secondary link on the left, actions on the right. */
 .row-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: var(--pl-space-sm);
   flex-wrap: wrap;
 }
 
 .error-banner {
   background: #f6dcd2;
   color: #6b2410;
-  padding: 12px 16px;
+  padding: var(--pl-space-md) var(--pl-space-lg);
   border-radius: var(--mat-sys-corner-medium);
-  margin-bottom: 12px;
 }
 
 .info-banner {
   background: var(--pl-card);
   color: var(--pl-ink);
-  padding: 12px 16px;
+  padding: var(--pl-space-md) var(--pl-space-lg);
   border-radius: var(--mat-sys-corner-medium);
-  margin-bottom: 12px;
 }
 
 .muted {
   color: var(--pl-ink-soft);
 }
 
+/* Every page is a vertical stack with one rhythm: 24 px between blocks. */
 .page {
-  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pl-space-xl);
+  padding: var(--pl-space-xl) var(--pl-space-2xl) var(--pl-space-3xl);
   max-width: 1280px;
   margin: 0 auto;
   box-sizing: border-box;
+}
+
+/* Two-column page body: main content and a narrower side column; stacks on narrow screens. */
+.pl-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+  gap: var(--pl-space-xl);
+  align-items: start;
+}
+
+.pl-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pl-space-xl);
+  min-width: 0;
+}
+
+/* Responsive grid of equal tiles (cards, stats). */
+.pl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--pl-space-lg);
+}
+
+@media (max-width: 960px) {
+  .pl-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Cards and pills used by the redesigned screens */
 .pl-card {
   background: var(--pl-card);
   border-radius: var(--pl-radius-card);
-  padding: 20px;
-}
-
-.pl-card-dark {
-  background: var(--pl-ink);
-  color: var(--pl-on-ink);
-  border-radius: var(--pl-radius-card);
-  padding: 24px;
+  padding: var(--pl-space-xl);
 }
 
 /* Button variants, scoped through Material's own override mixins. */
@@ -396,7 +448,8 @@ h3 {
 
 @media (max-width: 600px) {
   .page {
-    padding: 16px 16px 32px;
+    gap: var(--pl-space-lg);
+    padding: var(--pl-space-lg) var(--pl-space-lg) var(--pl-space-2xl);
   }
 }
 
@@ -472,11 +525,11 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--pl-space-sm);
   box-sizing: border-box;
   height: var(--pl-tag-h);
   min-width: var(--pl-tag-h);
-  padding: 0 10px;
+  padding: 0 var(--pl-space-md);
   border-radius: var(--mat-sys-corner-small);
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);

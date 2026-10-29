@@ -54,13 +54,32 @@ export const lessonRangeSchema = z.object({
   enrollmentId: uuid.optional(),
 });
 
+/** Booking step: lessons start on multiples of this many minutes (10:00, 10:15… or 10:00, 10:30…). */
+export const SLOT_MINUTES = [5, 10, 15, 20, 30, 60] as const;
+export type SlotMinutes = (typeof SLOT_MINUTES)[number];
+
 export const orgSettingsSchema = z.object({
   /** Late cancellations by the student are charged automatically instead of waiting for the tutor. */
   autoChargeLateCancellation: z.boolean(),
   /** "Late" means less than this many hours before the lesson. */
   cancellationWindowHours: z.number().int().min(1).max(168),
   defaultLessonMinutes: z.number().int().min(15).max(240),
+  slotMinutes: z
+    .number()
+    .int()
+    .refine((v) => (SLOT_MINUTES as readonly number[]).includes(v), {
+      message: 'Dozwolony krok: 5, 10, 15, 20, 30 lub 60 minut',
+    }),
 });
+
+/** Whether a start time falls on the booking grid (every slot divides an hour, so UTC minutes suffice). */
+export function isOnSlot(at: Date, slotMinutes: number): boolean {
+  return (
+    at.getUTCSeconds() === 0 &&
+    at.getUTCMilliseconds() === 0 &&
+    at.getUTCMinutes() % slotMinutes === 0
+  );
+}
 export type OrgSettings = z.infer<typeof orgSettingsSchema>;
 
 export interface LessonChangeInfo {

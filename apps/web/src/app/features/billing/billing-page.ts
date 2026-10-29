@@ -1,7 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, type OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
@@ -15,13 +14,25 @@ import {
 import { toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
-import { initial, personColor } from '../../shared/person-color';
+import { Avatar, EmptyState, PageHeader, PeriodNav, Section, Stat } from '../../shared/ui';
 import { currentMonth, money, monthLabel, shiftMonth } from './money';
 
-/** „Pieniądze”: the month in one sentence, who owes what with one-click actions, then the ledger. */
+/** Rozliczenia: month totals, outstanding balances with one-click actions, then the ledger. */
 @Component({
   selector: 'pl-billing-page',
-  imports: [DatePipe, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule, RouterLink],
+  imports: [
+    Avatar,
+    EmptyState,
+    PageHeader,
+    PeriodNav,
+    Section,
+    Stat,
+    DatePipe,
+    MatButtonModule,
+    MatMenuModule,
+    MatTooltipModule,
+    RouterLink,
+  ],
   templateUrl: './billing-page.html',
   styleUrl: './billing-page.scss',
 })
@@ -31,8 +42,6 @@ export default class BillingPage implements OnInit {
   readonly isTutor = computed(() => this.store.role() === 'tutor');
   readonly money = money;
   readonly monthLabel = monthLabel;
-  readonly color = personColor;
-  readonly initial = initial;
   readonly methods = (Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map((m) => ({
     value: m,
     label: PAYMENT_METHOD_LABELS[m],
@@ -61,7 +70,6 @@ export default class BillingPage implements OnInit {
     const cur = h.at(-1);
     return !!cur && cur.received > 0 && h.every((x) => x.received <= cur.received);
   });
-  readonly isCurrentMonth = computed(() => this.month() === currentMonth());
 
   ngOnInit() {
     return this.load();
@@ -92,7 +100,7 @@ export default class BillingPage implements OnInit {
   async paid(r: BalanceRow, method: PaymentMethod) {
     await this.act(async () => {
       await this.api.addPayment(r.enrollmentId, r.balance, method);
-      this.info.set(`Zapisano wpłatę ${money(r.balance)} — ${r.student}.`);
+      this.info.set(`Zapisano wpłatę ${money(r.balance)}: ${r.student}.`);
       await this.load();
     });
   }

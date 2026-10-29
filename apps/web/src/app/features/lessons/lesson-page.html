@@ -1,12 +1,13 @@
 <div class="page">
-  <div class="page-head start">
-    <button matIconButton (click)="location.back()" aria-label="Wstecz">
-      <mat-icon fontSet="material-symbols-outlined">arrow_back</mat-icon>
-    </button>
-    @if (lesson(); as l) {
-      <h1>{{ l.subject }} · {{ l.startsAt | date: 'EEEE d MMMM, HH:mm' }}</h1>
-    }
-  </div>
+  <pl-page-header
+    [back]="true"
+    eyebrow="Lekcja"
+    [title]="
+      lesson()
+        ? lesson()!.subject + ' · ' + (lesson()!.startsAt | date: 'EEEE d MMMM, HH:mm')
+        : 'Lekcja'
+    "
+  />
 
   @if (error(); as e) {
     <div class="error-banner" role="alert">{{ e }}</div>
@@ -84,13 +85,12 @@
               ></textarea>
               @if (note()?.updatedAt) {
                 <mat-hint
-                  >Ostatnio: {{ note()?.updatedBy }},
+                  >Ostatnia zmiana: {{ note()?.updatedBy }},
                   {{ note()?.updatedAt | date: 'd.MM HH:mm' }}</mat-hint
                 >
               }
             </mat-form-field>
-            <div class="row-actions">
-              <span></span>
+            <div class="form-actions">
               <button matButton="filled" (click)="saveNote()">Zapisz notatkę</button>
             </div>
             @if (note()?.revisions?.length) {

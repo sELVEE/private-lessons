@@ -14,7 +14,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,12 +32,14 @@ import {
   type LessonInfo,
   type OrgSettings,
   rangesForDate,
+  SLOT_MINUTES,
 } from '@pl/shared';
 import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { initial, personColor } from '../../shared/person-color';
 import { addDays, isoDay, parseIsoDay, startOfWeek, weekdayIndex } from '../../shared/time';
+import { Avatar, DateTimeField, PageHeader, PeriodNav, Section } from '../../shared/ui';
 import { AvailabilityEditor } from './availability-editor';
 
 export type CalendarView = 'day' | 'week' | 'month';
@@ -47,18 +48,17 @@ type Panel = 'lesson' | 'create' | 'hours' | 'rules';
 /** Pixel height of one hour in the day and week grids — taller when the working day is short. */
 const hourHeight = (hours: number) => (hours <= 6 ? 96 : hours <= 9 ? 80 : 64);
 
-/** `<input type="datetime-local">` value for a Date, in local time. */
-export function toLocalInput(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${isoDay(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 const minutesOf = (d: Date) => d.getHours() * 60 + d.getMinutes();
 
 @Component({
   selector: 'pl-calendar-page',
   imports: [
     AvailabilityEditor,
+    Avatar,
+    DateTimeField,
+    PageHeader,
+    PeriodNav,
+    Section,
     DatePipe,
     ReactiveFormsModule,
     RouterLink,
@@ -75,7 +75,6 @@ const minutesOf = (d: Date) => d.getHours() * 60 + d.getMinutes();
     MatSidenavModule,
     MatTooltipModule,
   ],
-  providers: [provideNativeDateAdapter()],
   templateUrl: './calendar-page.html',
   styleUrl: './calendar-page.scss',
 })
@@ -85,9 +84,9 @@ export default class CalendarPage implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(NonNullableFormBuilder);
 
-  /** `?new=1` opens the „new lesson” form (quick action from „Teraz”). */
+  /** `?new=1` opens the „new lesson” form (quick action from „Pulpit”). */
   readonly new = input<string>();
-  /** `?date=YYYY-MM-DD&view=day` — e.g. a day picked on „Teraz”. */
+  /** `?date=YYYY-MM-DD&view=day` — e.g. a day picked on „Pulpit”. */
   readonly date = input<string>();
   readonly view = input<string>();
 
@@ -199,6 +198,10 @@ export default class CalendarPage implements OnInit {
       seen.set(l.student.id, { id: l.student.id, name: l.student.displayName });
     return [...seen.values()];
   });
+  readonly countLabel = computed(() => {
+    const n = this.count();
+    return `${n} ${n === 1 ? 'lekcja' : n > 1 && n < 5 ? 'lekcje' : 'lekcji'}`;
+  });
   readonly count = computed(
     () => this.visibleLessons().filter((l) => l.status !== 'cancelled').length,
   );
@@ -211,14 +214,14 @@ export default class CalendarPage implements OnInit {
 
   readonly createForm = this.fb.group({
     enrollmentId: ['', Validators.required],
-    startsAt: ['', Validators.required],
+    startsAt: this.fb.control<Date | null>(null, Validators.required),
     durationMin: [60, [Validators.required, Validators.min(15), Validators.max(240)]],
     repeatWeeks: [1, [Validators.min(1), Validators.max(26)]],
     location: [''],
     topic: [''],
   });
   readonly rescheduleForm = this.fb.group({
-    startsAt: ['', Validators.required],
+    startsAt: this.fb.control<Date | null>(null, Validators.required),
     durationMin: [60, [Validators.min(15), Validators.max(240)]],
   });
   readonly cancelReason = this.fb.control('');
@@ -226,7 +229,17 @@ export default class CalendarPage implements OnInit {
     autoChargeLateCancellation: [false],
     cancellationWindowHours: [24, [Validators.min(1), Validators.max(168)]],
     defaultLessonMinutes: [60, [Validators.min(15), Validators.max(240)]],
+    slotMinutes: [30],
   });
+  readonly slotOptions = SLOT_MINUTES;
+  /** „10:00, 10:15, 10:30…” — what a booking step means, as a hint. */
+  slotExamples(step: number) {
+    const at = (m: number) => `${10 + Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+    return `${[0, step, step * 2].map(at).join(', ')}…`;
+  }
+
+  /** Booking step: lessons start every this many minutes. */
+  readonly step = computed(() => this.settings()?.slotMinutes ?? 30);
 
   async ngOnInit() {
     const v = this.view();
@@ -367,11 +380,11 @@ export default class CalendarPage implements OnInit {
     const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
     const minutes = this.span().from * 60 + ((ev.clientY - rect.top) / this.hourPx()) * 60;
     const at = new Date(day);
-    at.setHours(0, Math.floor(minutes / 30) * 30, 0, 0);
+    at.setHours(0, Math.floor(minutes / this.step()) * this.step(), 0, 0);
     return at;
   }
 
-  /** Click on an empty part of a day column plans a lesson at that half hour. */
+  /** Click on an empty part of a day column plans a lesson at that slot (booking step). */
   planAt(ev: MouseEvent, day: Date) {
     if (!this.isTutor() || !this.activeEnrollments().length) return;
     this.openCreate(this.slotAt(ev, day));
@@ -409,13 +422,24 @@ export default class CalendarPage implements OnInit {
   }
 
   openCreate(at?: Date) {
-    const start = at ?? addDays(new Date(), 1);
-    if (!at) start.setHours(16, 0, 0, 0);
-    this.createForm.patchValue({ startsAt: toLocalInput(start) });
+    this.createForm.patchValue({ startsAt: at ?? this.defaultStart() });
     if (!this.createForm.value.enrollmentId && this.activeEnrollments()[0]) {
       this.createForm.patchValue({ enrollmentId: this.activeEnrollments()[0]!.id });
     }
     this.panel.set('create');
+  }
+
+  /**
+   * Without a clicked slot: the first day on screen that is still ahead (or tomorrow), at the start
+   * of that day's working hours (16:00 when none are set).
+   */
+  private defaultStart(): Date {
+    const tomorrow = addDays(new Date(new Date().toDateString()), 1);
+    const shown = this.range().from;
+    const day = shown > tomorrow ? new Date(shown) : tomorrow;
+    const first = this.workingRanges(day)[0]?.start ?? 16 * 60;
+    day.setHours(0, Math.ceil(first / this.step()) * this.step(), 0, 0);
+    return day;
   }
 
   create() {
@@ -424,14 +448,14 @@ export default class CalendarPage implements OnInit {
     return this.run(async () => {
       const created = await this.api.createLesson({
         enrollmentId: v.enrollmentId,
-        startsAt: new Date(v.startsAt).toISOString(),
+        startsAt: v.startsAt!.toISOString(),
         durationMin: Number(v.durationMin),
         repeatWeeks: Number(v.repeatWeeks),
         location: v.location || undefined,
         topic: v.topic || undefined,
       });
       this.createForm.patchValue({ location: '', topic: '', repeatWeeks: 1 });
-      this.anchor.set(new Date(v.startsAt));
+      this.anchor.set(v.startsAt!);
       this.panel.set(null);
       if (created[0]) this.selectedId.set(created[0].id);
     }, this.createForm);
@@ -440,20 +464,17 @@ export default class CalendarPage implements OnInit {
   startReschedule(l: LessonInfo) {
     this.cancelling.set(false);
     this.rescheduleForm.setValue({
-      startsAt: toLocalInput(new Date(l.startsAt)),
+      startsAt: new Date(l.startsAt),
       durationMin: l.durationMin,
     });
     this.editing.set(true);
   }
 
   reschedule(l: LessonInfo) {
+    if (this.rescheduleForm.invalid) return this.rescheduleForm.markAllAsTouched();
     const v = this.rescheduleForm.getRawValue();
     return this.run(async () => {
-      await this.api.rescheduleLesson(
-        l.id,
-        new Date(v.startsAt).toISOString(),
-        Number(v.durationMin),
-      );
+      await this.api.rescheduleLesson(l.id, v.startsAt!.toISOString(), Number(v.durationMin));
       this.editing.set(false);
     });
   }
@@ -488,6 +509,7 @@ export default class CalendarPage implements OnInit {
           autoChargeLateCancellation: v.autoChargeLateCancellation,
           cancellationWindowHours: Number(v.cancellationWindowHours),
           defaultLessonMinutes: Number(v.defaultLessonMinutes),
+          slotMinutes: v.slotMinutes,
         }),
       );
       this.panel.set(null);

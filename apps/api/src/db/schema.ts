@@ -369,6 +369,8 @@ export const orgSettings = pgTable('org_settings', {
   autoChargeLateCancellation: boolean('auto_charge_late_cancellation').notNull().default(false),
   cancellationWindowHours: smallint('cancellation_window_hours').notNull().default(24),
   defaultLessonMinutes: smallint('default_lesson_minutes').notNull().default(60),
+  /** Booking step in minutes: lessons start at multiples of it. */
+  slotMinutes: smallint('slot_minutes').notNull().default(30),
 });
 
 /** Individual lessons. Group lessons (several students) are planned for later. */

@@ -16,10 +16,12 @@ import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { DeviceSettings } from './device-settings';
 import { StudentSettings } from './student-settings';
+import { PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'pl-security-page',
   imports: [
+    PageHeader,
     DatePipe,
     ReactiveFormsModule,
     MatButtonModule,

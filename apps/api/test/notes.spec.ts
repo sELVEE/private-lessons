@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { lessonNotes } from '../src/db/schema.js';
-import { type Account, account, enrol } from './fixtures.js';
+import { type Account, account, enrol, onSlot } from './fixtures.js';
 import { createHarness, type Harness } from './harness.js';
 
 let h: Harness;
@@ -25,7 +25,7 @@ async function setup() {
   const lesson = (
     await t.c.post('/api/lessons', {
       enrollmentId: e.id,
-      startsAt: new Date(Date.now() - 2 * 3600_000).toISOString(),
+      startsAt: onSlot(-2),
       durationMin: 60,
     })
   ).body[0] as { id: string };

@@ -7,13 +7,14 @@ import { toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { studentLevel } from '../labels';
+import { PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'pl-progress-list-page',
-  imports: [MatCardModule, MatListModule, RouterLink],
+  imports: [PageHeader, MatCardModule, MatListModule, RouterLink],
   template: `
     <div class="page">
-      <h1>Postępy</h1>
+      <pl-page-header title="Postępy" />
       @if (error(); as e) {
         <div class="error-banner" role="alert">{{ e }}</div>
       }

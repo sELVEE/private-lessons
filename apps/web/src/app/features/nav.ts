@@ -13,7 +13,7 @@ export interface RoleNav {
   more: NavItem[];
 }
 
-const NOW: NavItem = { path: '/app', label: 'Teraz', icon: 'radio_button_checked' };
+const NOW: NavItem = { path: '/app', label: 'Pulpit', icon: 'dashboard' };
 
 /** Role-specific navigation. Hiding items is cosmetic — the API checks permissions on every request. */
 export const NAV: Record<AccountType | 'admin', RoleNav> = {
@@ -23,7 +23,7 @@ export const NAV: Record<AccountType | 'admin', RoleNav> = {
       { path: '/app/calendar', label: 'Kalendarz', icon: 'calendar_month' },
       { path: '/app/students', label: 'Uczniowie', icon: 'groups' },
       { path: '/app/homework', label: 'Zadania', icon: 'assignment' },
-      { path: '/app/billing', label: 'Pieniądze', icon: 'payments' },
+      { path: '/app/billing', label: 'Rozliczenia', icon: 'payments' },
     ],
     more: [
       { path: '/app/materials', label: 'Materiały', icon: 'library_books' },

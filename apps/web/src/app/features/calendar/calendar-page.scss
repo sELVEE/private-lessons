@@ -9,18 +9,9 @@
 
 /* ── Header ─────────────────────────────────────────────────────────────── */
 
-.controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
+.picker {
   position: relative;
+  display: inline-flex;
 }
 
 .picker-input {
@@ -38,13 +29,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--pl-space-md);
   flex-wrap: wrap;
 }
 
 .filters {
   display: block;
-  margin-bottom: 12px;
 
   .dot {
     border-radius: 50%;
@@ -86,8 +76,8 @@
   box-sizing: border-box;
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: var(--pl-space-sm);
+  padding: var(--pl-space-md) var(--pl-space-md);
   cursor: pointer;
   border-left: 1px solid var(--pl-line);
   transition: background-color 150ms ease;
@@ -127,7 +117,7 @@
     color: var(--mat-sys-on-tertiary);
     background: var(--mat-sys-tertiary);
     border-radius: var(--mat-sys-corner-small);
-    padding: 0 6px;
+    padding: 0 var(--pl-space-sm);
   }
 
   &.closed {
@@ -142,7 +132,7 @@
 .hours span {
   display: block;
   box-sizing: border-box;
-  padding: 0 8px 0 0;
+  padding: 0 var(--pl-space-sm) 0 0;
   text-align: right;
   font-size: 12px;
   color: var(--pl-ink-soft);
@@ -191,7 +181,7 @@
   right: 4px;
   height: 30px;
   box-sizing: border-box;
-  padding: 4px 8px;
+  padding: var(--pl-space-xs) var(--pl-space-sm);
   border: 1px dashed var(--mat-sys-primary);
   border-radius: var(--mat-sys-corner-small);
   font-size: 12px;
@@ -233,7 +223,7 @@
   flex-direction: column;
   gap: 1px;
   overflow: hidden;
-  padding: 6px 8px 6px 10px;
+  padding: var(--pl-space-sm) var(--pl-space-sm) var(--pl-space-sm) var(--pl-space-md);
   cursor: pointer;
   border-radius: var(--mat-sys-corner-small);
   background: color-mix(in srgb, var(--c) 18%, var(--mat-sys-surface-container-lowest));
@@ -300,7 +290,7 @@
 
   &.short {
     flex-direction: row;
-    gap: 6px;
+    gap: var(--pl-space-sm);
     align-items: center;
     padding-top: 2px;
     padding-bottom: 2px;
@@ -321,7 +311,7 @@
 }
 
 .dow {
-  padding: 8px 10px;
+  padding: var(--pl-space-sm) var(--pl-space-md);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -335,7 +325,7 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 6px;
+  padding: var(--pl-space-sm);
   border-right: 1px solid var(--pl-line);
   border-bottom: 1px solid var(--pl-line);
   transition: background-color 150ms ease;
@@ -394,7 +384,7 @@
 .chip {
   all: unset;
   display: block;
-  padding: 2px 6px;
+  padding: 2px var(--pl-space-sm);
   border-radius: var(--mat-sys-corner-extra-small);
   font-size: 12px;
   white-space: nowrap;
@@ -435,7 +425,7 @@
 
 .drawer {
   max-width: 100vw;
-  padding: 8px 24px 24px;
+  padding: var(--pl-space-sm) var(--pl-space-xl) var(--pl-space-xl);
   box-sizing: border-box;
   overflow-x: hidden;
 
@@ -445,17 +435,17 @@
 }
 
 .drawer-head {
-  padding-right: 4px;
+  padding-right: var(--pl-space-xs);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--pl-space-sm);
 }
 
 .lesson-head {
   border-left: 4px solid var(--c);
-  padding-left: 14px;
-  margin-bottom: 16px;
+  padding-left: var(--pl-space-md);
+  margin-bottom: var(--pl-space-lg);
 
   h2 {
     margin: 0;
@@ -466,7 +456,7 @@
   }
 
   .time {
-    margin: 2px 0 12px;
+    margin: 2px 0 var(--pl-space-md);
     font-size: 20px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
@@ -476,7 +466,7 @@
 .who {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--pl-space-md);
 
   div {
     display: flex;
@@ -487,8 +477,8 @@
 .facts {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 6px 16px;
-  margin: 0 0 16px;
+  gap: var(--pl-space-sm) var(--pl-space-lg);
+  margin: 0 0 var(--pl-space-lg);
 
   dt {
     color: var(--pl-ink-soft);
@@ -503,14 +493,14 @@
 .drawer-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 0;
+  gap: var(--pl-space-sm);
+  padding: var(--pl-space-md) 0;
   border-top: 1px solid var(--pl-line);
 }
 
 .inset {
-  margin-top: 12px;
-  padding: 16px;
+  margin-top: var(--pl-space-md);
+  padding: var(--pl-space-lg);
   background: var(--mat-sys-surface-container);
   border-radius: var(--mat-sys-corner-medium);
 }
@@ -518,32 +508,30 @@
 .two {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  align-items: start;
+  gap: var(--pl-space-md);
 }
 
 /* ── Pending decisions ──────────────────────────────────────────────────── */
-
-.pending {
-  margin-top: 20px;
-
-  h2 {
-    margin-top: 0;
-  }
-}
 
 .pending-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--pl-space-md);
   flex-wrap: wrap;
-  padding: 10px 0;
+  padding: var(--pl-space-md) 0;
   border-top: 1px solid var(--pl-line);
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
 }
 
 .buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--pl-space-sm);
 }
 
 @media (max-width: 700px) {
@@ -554,7 +542,7 @@
 
   .cell {
     min-height: 72px;
-    padding: 4px;
+    padding: var(--pl-space-xs);
   }
 
   .chip {

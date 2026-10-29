@@ -24,9 +24,14 @@ import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { Markdown } from '../../shared/markdown';
 
+import { DateField } from '../../shared/ui/date-field';
+import { PageHeader } from '../../shared/ui';
+
 @Component({
   selector: 'pl-homework-page',
   imports: [
+    PageHeader,
+    DateField,
     DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
@@ -44,16 +49,15 @@ import { Markdown } from '../../shared/markdown';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: var(--pl-space-md);
       flex-wrap: wrap;
     }
     .list {
       display: grid;
-      gap: 12px;
-      margin-top: 16px;
+      gap: var(--pl-space-md);
     }
     .panel {
-      margin: 16px 0;
+      margin: var(--pl-space-lg) 0;
       max-width: 720px;
     }
     .overdue {
@@ -61,13 +65,13 @@ import { Markdown } from '../../shared/markdown';
     }
     .answer {
       border-left: 3px solid var(--mat-sys-primary);
-      padding-left: 12px;
-      margin: 12px 0;
+      padding-left: var(--pl-space-md);
+      margin: var(--pl-space-md) 0;
     }
     .feedback {
       border-left: 3px solid var(--mat-sys-tertiary);
-      padding-left: 12px;
-      margin: 12px 0;
+      padding-left: var(--pl-space-md);
+      margin: var(--pl-space-md) 0;
     }
     .grade {
       font: var(--mat-sys-title-medium);
@@ -79,7 +83,7 @@ export default class HomeworkPage implements OnInit {
   private readonly store = inject(AuthStore);
   private readonly fb = inject(NonNullableFormBuilder);
 
-  /** `?new=1` (szybka akcja z ekranu „Teraz”) otwiera formularz zadania. */
+  /** `?new=1` (szybka akcja z ekranu „Pulpit”) otwiera formularz zadania. */
   readonly new = input<string>();
 
   readonly role = this.store.role;

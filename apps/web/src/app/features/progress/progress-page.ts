@@ -27,9 +27,15 @@ const W = 600;
 const H = 180;
 const PAD = 24;
 
+import { DateField } from '../../shared/ui/date-field';
+import { PageHeader, Stat } from '../../shared/ui';
+
 @Component({
   selector: 'pl-progress-page',
   imports: [
+    PageHeader,
+    Stat,
+    DateField,
     MatTooltipModule,
     DatePipe,
     ReactiveFormsModule,

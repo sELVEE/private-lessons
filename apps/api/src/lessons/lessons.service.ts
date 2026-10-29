@@ -1,6 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { CreateLessonInput, LessonDetail, LessonInfo, OrgSettings } from '@pl/shared';
+import {
+  type CreateLessonInput,
+  isOnSlot,
+  type LessonDetail,
+  type LessonInfo,
+  type OrgSettings,
+} from '@pl/shared';
 import { and, desc, eq, gt, gte, lt, ne, sql } from 'drizzle-orm';
 import { AppError } from '../common/errors.js';
 import { DB, type Db } from '../db/db.module.js';
@@ -16,9 +22,14 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   autoChargeLateCancellation: false,
   cancellationWindowHours: 24,
   defaultLessonMinutes: 60,
+  slotMinutes: 30,
 };
 
 const WEEK_MS = 7 * 24 * 3600_000;
+
+/** The slot after 10:00, e.g. „10:15” or „11:00”. */
+const slotExample = (step: number) =>
+  `${10 + Math.floor(step / 60)}:${String(step % 60).padStart(2, '0')}`;
 
 @Injectable()
 export class LessonsService {
@@ -63,6 +74,7 @@ export class LessonsService {
         );
       }
       const seriesId = input.repeatWeeks > 1 ? randomUUID() : null;
+      await this.assertOnSlot(tx, e.organizationId, new Date(input.startsAt));
       const first = new Date(input.startsAt).getTime();
       const values = Array.from({ length: input.repeatWeeks }, (_, i) => ({
         organizationId: e.organizationId,
@@ -97,6 +109,7 @@ export class LessonsService {
       const l = await this.ownLesson(tx, user, id);
       if (l.status !== 'scheduled') throw notScheduled();
       const to = new Date(startsAt);
+      await this.assertOnSlot(tx, l.organizationId, to);
       const duration = durationMin ?? l.durationMin;
       await this.assertFree(tx, user.id, to, duration, l.id);
       await tx
@@ -220,8 +233,21 @@ export class LessonsService {
           autoChargeLateCancellation: row.autoChargeLateCancellation,
           cancellationWindowHours: row.cancellationWindowHours,
           defaultLessonMinutes: row.defaultLessonMinutes,
+          slotMinutes: row.slotMinutes,
         }
       : DEFAULT_SETTINGS;
+  }
+
+  /** Lessons start only on the organization's booking grid (e.g. every 15 or 30 minutes). */
+  private async assertOnSlot(tx: Tx, orgId: string, at: Date) {
+    const { slotMinutes } = await this.settingsFor(tx, orgId);
+    if (!isOnSlot(at, slotMinutes)) {
+      throw new AppError(
+        HttpStatus.BAD_REQUEST,
+        'off_slot',
+        `Lekcje można planować co ${slotMinutes} min (np. 10:00, ${slotExample(slotMinutes)})`,
+      );
+    }
   }
 
   private async ownLesson(tx: Tx, user: User, id: string) {

@@ -53,7 +53,7 @@ const CURRENT_YEAR = new Date().getFullYear();
   styles: `
     .type-toggle {
       width: 100%;
-      margin-bottom: 16px;
+      margin-bottom: var(--pl-space-lg);
     }
     .type-toggle mat-button-toggle {
       flex: 1;
@@ -61,26 +61,26 @@ const CURRENT_YEAR = new Date().getFullYear();
     .two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0 12px;
+      gap: 0 var(--pl-space-md);
     }
     fieldset {
       border: 1px solid var(--mat-sys-outline-variant);
       border-radius: 8px;
-      padding: 12px 12px 0;
-      margin: 0 0 16px;
+      padding: var(--pl-space-md) var(--pl-space-md) 0;
+      margin: 0 0 var(--pl-space-lg);
     }
     legend {
-      padding: 0 4px;
+      padding: 0 var(--pl-space-xs);
       color: var(--mat-sys-on-surface-variant);
     }
     mat-checkbox {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: var(--pl-space-sm);
     }
     .check-error {
       color: var(--mat-sys-error);
       font: var(--mat-sys-body-small);
-      margin: -4px 0 8px 12px;
+      margin: -4px 0 var(--pl-space-sm) var(--pl-space-md);
     }
   `,
 })

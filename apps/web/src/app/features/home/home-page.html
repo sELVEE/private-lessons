@@ -1,25 +1,18 @@
 <div class="page">
-  <section class="intro">
-    <h1>
-      {{ greeting() }}
-      @if (role() === 'tutor') {
-        <em>Co robimy?</em>
-      } @else if (next()) {
-        <em>Lekcja {{ nextIn() }}.</em>
-      }
-    </h1>
+  <pl-page-header [title]="greeting()" [subtitle]="subtitle()" />
 
-    @if (joined()) {
-      <div class="info-banner" role="status">Dołączono do korepetytora. Powodzenia w nauce!</div>
-    }
-    @if (error(); as e) {
-      <div class="error-banner" role="alert">{{ e }}</div>
-    }
-    @if (info(); as i) {
-      <div class="info-banner" role="status">{{ i }}</div>
-    }
+  @if (joined()) {
+    <div class="info-banner" role="status">Dołączono do korepetytora.</div>
+  }
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+  @if (info(); as i) {
+    <div class="info-banner" role="status">{{ i }}</div>
+  }
 
-    @if (role() !== 'admin') {
+  @if (role() !== 'admin') {
+    <div class="toolbar">
       <form class="search" (ngSubmit)="submitQuery()" role="search">
         <mat-form-field class="full-width">
           <mat-icon matPrefix fontSet="material-symbols-outlined" aria-hidden="true"
@@ -34,59 +27,63 @@
               role() === 'tutor' ? 'Szukaj ucznia' : 'Szukaj korepetytora lub przedmiotu'
             "
             [placeholder]="
-              role() === 'tutor' ? 'Wpisz imię ucznia…' : 'Wpisz przedmiot lub korepetytora…'
+              role() === 'tutor' ? 'Szukaj ucznia' : 'Szukaj przedmiotu lub korepetytora'
             "
             autocomplete="off"
           />
         </mat-form-field>
+        @if (matches().length) {
+          <ul class="matches" role="listbox" aria-label="Wyniki">
+            @for (e of matches(); track e.id) {
+              <li>
+                <button type="button" (click)="openEnrollment(e)">
+                  <pl-avatar
+                    size="sm"
+                    [name]="role() === 'tutor' ? e.student.displayName : e.tutor.displayName"
+                    [colorKey]="e.student.id"
+                  />
+                  {{ role() === 'tutor' ? e.student.displayName : e.tutor.displayName }} ·
+                  {{ e.subject.name }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
       </form>
-      @if (matches().length) {
-        <ul class="matches" role="listbox" aria-label="Wyniki">
-          @for (e of matches(); track e.id) {
-            <li>
-              <button type="button" (click)="openEnrollment(e)">
-                <span class="avatar small" [style.background]="color(e.student.id)">{{
-                  initial(e.student.displayName)
-                }}</span>
-                {{ role() === 'tutor' ? e.student.displayName : e.tutor.displayName }} ·
-                {{ e.subject.name }}
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    }
-    <div class="quick">
-      @for (q of quick(); track q.label; let first = $first) {
-        <a
-          [matButton]="first ? 'filled' : 'outlined'"
-          [routerLink]="q.link"
-          [queryParams]="q.params"
-          >{{ q.label }}</a
-        >
-      }
+      <div class="quick">
+        @for (q of quick(); track q.label; let first = $first) {
+          <a
+            [matButton]="first ? 'filled' : 'outlined'"
+            [routerLink]="q.link"
+            [queryParams]="q.params"
+            >{{ q.label }}</a
+          >
+        }
+      </div>
     </div>
-  </section>
+  }
 
   @if (!me()?.mfaEnabled) {
     <div class="info-banner nudge">
-      <span>Zabezpiecz konto weryfikacją dwuetapową.</span>
+      <span>Zalecamy włączenie weryfikacji dwuetapowej.</span>
       <a matButton="outlined" routerLink="/app/account">Włącz</a>
     </div>
   }
 
   @if (role() !== 'admin') {
-    <div class="main">
-      <section class="pl-card-dark next" [class.empty]="!next()">
+    <div class="pl-columns">
+      <pl-section
+        tone="dark"
+        [eyebrow]="next() ? 'Najbliższa lekcja · ' + nextIn() : 'Najbliższa lekcja'"
+      >
         @if (next(); as n) {
-          <div class="eyebrow light"><span class="dot"></span>Następna lekcja · {{ nextIn() }}</div>
           <div class="next-head">
             <div>
               <div class="display big">
                 {{ day(n.startsAt) }} {{ time(n.startsAt) }} ·
                 {{ role() === 'tutor' ? n.student.displayName : n.tutor.displayName }}
               </div>
-              <div class="sub">
+              <div class="muted">
                 {{ n.subject }}
                 @if (role() === 'parent') {
                   · {{ n.student.displayName }}
@@ -103,7 +100,7 @@
           </div>
           <div class="hints">
             <div class="hint pl-hover">
-              <span class="eyebrow light">Ostatnio ustaliliście</span>
+              <span class="eyebrow">Zalecenia z ostatniej lekcji</span>
               <span>{{
                 lastReport()?.nextSteps ||
                   lastReport()?.summary ||
@@ -111,151 +108,144 @@
               }}</span>
             </div>
             <div class="hint pl-hover">
-              <span class="eyebrow light">Zadanie domowe</span>
+              <span class="eyebrow">Zadanie domowe</span>
               @if (nextHomework(); as h) {
                 <span>
                   {{ h.title }} —
                   @if (h.status === 'submitted') {
-                    <a routerLink="/app/homework"
-                      >oddane, {{ role() === 'tutor' ? 'sprawdź' : 'czeka na ocenę' }}</a
-                    >
+                    <a routerLink="/app/homework">{{
+                      role() === 'tutor' ? 'oddane, do sprawdzenia' : 'oddane, czeka na ocenę'
+                    }}</a>
                   } @else {
                     <a routerLink="/app/homework">{{
-                      role() === 'student' ? 'do zrobienia' : 'jeszcze nieoddane'
+                      role() === 'student' ? 'do wykonania' : 'nieoddane'
                     }}</a>
                   }
                 </span>
               } @else {
-                <span>Nic nie jest zadane.</span>
+                <span>Brak zadanego zadania.</span>
               }
             </div>
             <div class="hint pl-hover">
-              <span class="eyebrow light">Do powtórki</span>
+              <span class="eyebrow">Tematy do powtórzenia</span>
               <span>
                 @if (nextSummary()?.toReview?.length) {
                   {{ nextSummary()?.toReview?.join(', ') }}
                 } @else {
-                  Nic nie czeka na powtórkę.
+                  Brak tematów do powtórzenia
                 }
                 @if (
                   nextSummary()?.averagePercent !== null &&
                   nextSummary()?.averagePercent !== undefined
                 ) {
-                  · średnio {{ nextSummary()?.averagePercent }}%
+                  · średni wynik {{ nextSummary()?.averagePercent }}%
                 }
               </span>
             </div>
           </div>
         } @else {
-          <div class="eyebrow light">Następna lekcja</div>
           <div class="display big">Brak zaplanowanych lekcji</div>
           @if (role() === 'tutor') {
-            <a
-              matButton="filled"
-              class="pl-accent"
-              routerLink="/app/calendar"
-              [queryParams]="{ new: 1 }"
-              >Zaplanuj lekcję</a
-            >
+            <div>
+              <a
+                matButton="filled"
+                class="pl-accent"
+                routerLink="/app/calendar"
+                [queryParams]="{ new: 1 }"
+                >Zaplanuj lekcję</a
+              >
+            </div>
           }
         }
-      </section>
+      </pl-section>
 
       @switch (role()) {
         @case ('tutor') {
-          <section class="pl-card inbox">
-            <div class="inbox-head">
-              <h2>Czeka na Ciebie</h2>
-              @if (inbox().length) {
-                <span class="pl-tag accent">{{ inbox().length }}</span>
+          <pl-section title="Wymaga uwagi" [count]="inbox().length || null">
+            <div class="rows">
+              @for (item of inbox(); track item.id) {
+                <div class="row pl-row-hover">
+                  <div class="what">
+                    <strong>{{ item.title }}</strong>
+                    <span class="muted">{{ item.detail }}</span>
+                  </div>
+                  @switch (item.kind) {
+                    @case ('charge') {
+                      <button matButton="outlined" (click)="decide(item, false)">Bez opłaty</button>
+                      <button matButton="filled" (click)="decide(item, true)">Nalicz</button>
+                    }
+                    @case ('homework') {
+                      <a matButton="filled" routerLink="/app/homework">Sprawdź</a>
+                    }
+                    @case ('debt') {
+                      <button matButton="outlined" (click)="remind(item)">Przypomnij</button>
+                    }
+                  }
+                </div>
+              } @empty {
+                <pl-empty icon="task_alt" text="Brak spraw do załatwienia." />
               }
             </div>
-            @for (item of inbox(); track item.id) {
-              <div class="inbox-row pl-row-hover">
-                <div class="what">
-                  <strong>{{ item.title }}</strong>
-                  <span class="muted">{{ item.detail }}</span>
-                </div>
-                @switch (item.kind) {
-                  @case ('charge') {
-                    <button matButton="outlined" (click)="decide(item, false)">Nie</button>
-                    <button matButton="filled" (click)="decide(item, true)">Tak</button>
-                  }
-                  @case ('homework') {
-                    <a matButton="filled" routerLink="/app/homework">Sprawdź</a>
-                  }
-                  @case ('debt') {
-                    <button matButton="outlined" (click)="remind(item)">Przypomnij</button>
-                  }
-                }
-              </div>
-            } @empty {
-              <p class="muted calm">Nic nie czeka. Wszystko załatwione.</p>
-            }
-          </section>
+          </pl-section>
         }
         @case ('student') {
-          <section class="pl-card inbox">
-            <div class="inbox-head"><h2>Do zrobienia</h2></div>
-            @for (h of studentTodo(); track h.id) {
-              <div class="inbox-row pl-row-hover">
-                <div class="what">
-                  <strong>{{ h.title }}</strong>
-                  <span class="muted"
-                    >{{ h.subject }}
-                    @if (h.dueAt) {
-                      · termin {{ day(h.dueAt) }}
-                    }
-                  </span>
+          <pl-section title="Zadania do wykonania" [count]="studentTodo().length || null">
+            <div class="rows">
+              @for (h of studentTodo(); track h.id) {
+                <div class="row pl-row-hover">
+                  <div class="what">
+                    <strong>{{ h.title }}</strong>
+                    <span class="muted"
+                      >{{ h.subject }}
+                      @if (h.dueAt) {
+                        · termin {{ day(h.dueAt) }}
+                      }
+                    </span>
+                  </div>
+                  <a matButton="filled" routerLink="/app/homework">Rozwiąż</a>
                 </div>
-                <a matButton="filled" routerLink="/app/homework">Rozwiąż</a>
-              </div>
-            } @empty {
-              <p class="muted calm">Wszystkie zadania oddane.</p>
-            }
-            <div class="inbox-row pl-row-hover">
-              <div class="what"><strong>Materiały od korepetytora</strong></div>
-              <a matButton="outlined" routerLink="/app/materials">Otwórz</a>
+              } @empty {
+                <pl-empty icon="task_alt" text="Wszystkie zadania zostały oddane." />
+              }
             </div>
-          </section>
+          </pl-section>
         }
         @case ('parent') {
-          <section class="pl-card inbox">
-            <div class="inbox-head"><h2>Dzieci</h2></div>
-            @for (c of children(); track c.id) {
-              <div class="inbox-row pl-row-hover">
-                <span class="avatar" [style.background]="color(c.id)">{{
-                  initial(c.displayName)
-                }}</span>
-                <div class="what">
-                  <strong>{{ c.displayName }}</strong>
-                  <span class="muted"
-                    >{{ c.enrollments.length }}
-                    {{ c.enrollments.length === 1 ? 'przedmiot' : 'przedmioty' }}</span
-                  >
+          <pl-section title="Dzieci">
+            <div class="rows">
+              @for (c of children(); track c.id) {
+                <div class="row pl-row-hover">
+                  <pl-avatar [name]="c.displayName" [colorKey]="c.id" />
+                  <div class="what">
+                    <strong>{{ c.displayName }}</strong>
+                    <span class="muted"
+                      >{{ c.enrollments.length }}
+                      {{ c.enrollments.length === 1 ? 'przedmiot' : 'przedmioty' }}</span
+                    >
+                  </div>
+                  <a matButton="outlined" routerLink="/app/progress">Postępy</a>
                 </div>
-                <a matButton="outlined" routerLink="/app/progress">Postępy</a>
-              </div>
-            } @empty {
-              <p class="muted calm">Połącz konto dziecka kodem, który wygeneruje w swoim koncie.</p>
-            }
-          </section>
+              } @empty {
+                <pl-empty
+                  icon="family_restroom"
+                  text="Połącz konto dziecka kodem wygenerowanym na jego koncie."
+                />
+              }
+            </div>
+          </pl-section>
         }
       }
     </div>
 
-    <section class="week">
-      <div class="week-head">
-        <h2>Ten tydzień</h2>
-        <span class="muted">
-          {{ weekCount() }}
-          {{
-            weekCount() === 1 ? 'lekcja' : weekCount() < 5 && weekCount() > 1 ? 'lekcje' : 'lekcji'
-          }}
-          · wolne dni: {{ freeDays() }}
-        </span>
-        <a class="link" routerLink="/app/calendar">Kalendarz →</a>
-      </div>
+    <pl-section title="Plan tygodnia">
+      <a sectionActions matButton routerLink="/app/calendar">Otwórz kalendarz</a>
+      <span class="muted">
+        {{ weekCount() }}
+        {{
+          weekCount() === 1 ? 'lekcja' : weekCount() < 5 && weekCount() > 1 ? 'lekcje' : 'lekcji'
+        }}
+        · dni bez lekcji: {{ freeDays() }}
+      </span>
       <div class="days">
         @for (d of week(); track d.label) {
           <a
@@ -276,17 +266,16 @@
                 <b>{{ time(l.startsAt) }}</b> {{ l.student.displayName }}
               </span>
             } @empty {
-              <span class="muted free">wolne</span>
+              <span class="muted free">brak lekcji</span>
             }
           </a>
         }
       </div>
-    </section>
+    </pl-section>
   } @else {
-    <section class="pl-card">
-      <h2>Administracja</h2>
+    <pl-section title="Administracja">
       <p class="muted">Wyszukiwanie i blokowanie kont, z audytem każdej operacji.</p>
-      <a matButton="filled" routerLink="/app/admin">Otwórz</a>
-    </section>
+      <div><a matButton="filled" routerLink="/app/admin">Otwórz</a></div>
+    </pl-section>
   }
 </div>

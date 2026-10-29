@@ -13,13 +13,15 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import type { EnrollmentInfo, EnrollmentStatus, InviteInfo, SubjectInfo } from '@pl/shared';
 import { applyServerErrors, toApiError } from '../../core/api-error';
-import { personColor } from '../../shared/person-color';
 import { TeachingApi } from '../../core/teaching-api';
 import { statusLabel, studentLevel } from '../labels';
+import { Avatar, PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'pl-students-page',
   imports: [
+    Avatar,
+    PageHeader,
     DatePipe,
     ReactiveFormsModule,
     RouterLink,
@@ -41,10 +43,9 @@ export default class StudentsPage implements OnInit {
   private readonly snack = inject(MatSnackBar);
   private readonly fb = inject(NonNullableFormBuilder);
 
-  /** `?invite=1` (szybka akcja z ekranu „Teraz”) otwiera panel zaproszenia. */
+  /** `?invite=1` (szybka akcja z ekranu „Pulpit”) otwiera panel zaproszenia. */
   readonly invite = input<string>();
 
-  readonly color = personColor;
   readonly level = studentLevel;
   readonly statusLabel = statusLabel;
 

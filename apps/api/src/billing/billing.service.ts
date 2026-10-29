@@ -477,6 +477,7 @@ export class BillingService implements ChargeHandler, OnModuleInit {
     return tx
       .select({
         enrollmentId: enrollments.id,
+        studentId: enrollments.studentId,
         student: studentU.displayName,
         tutor: tutorU.displayName,
         subject: subjects.name,

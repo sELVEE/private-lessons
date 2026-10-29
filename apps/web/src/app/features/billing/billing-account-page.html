@@ -1,50 +1,43 @@
 <div class="page">
-  <div class="page-head start no-print">
-    <button matIconButton (click)="location.back()" aria-label="Wstecz">
-      <mat-icon fontSet="material-symbols-outlined">arrow_back</mat-icon>
-    </button>
-    @if (acc(); as a) {
-      <h1>{{ a.student }} · {{ a.subject }}</h1>
-    }
-  </div>
+  <pl-page-header
+    class="no-print"
+    [back]="true"
+    eyebrow="Rozliczenie ucznia"
+    [title]="acc() ? acc()!.student + ' · ' + acc()!.subject : 'Rozliczenie'"
+  />
   @if (error(); as e) {
     <div class="error-banner no-print" role="alert">{{ e }}</div>
   }
 
   @if (acc(); as a) {
-    <div class="top no-print">
-      <mat-card appearance="outlined">
-        <mat-card-content>
-          <span class="label">Saldo</span>
-          <span class="value" [class.owes]="a.balance > 0">
-            {{
-              a.balance > 0
-                ? money(a.balance)
-                : a.balance < 0
-                  ? 'nadpłata ' + money(-a.balance)
-                  : 'rozliczone'
-            }}
-          </span>
-        </mat-card-content>
-      </mat-card>
-      <mat-card appearance="outlined">
-        <mat-card-content>
-          <span class="label">Stawka za godzinę</span>
-          <span class="value">{{
-            a.hourlyRate === null ? 'nie ustawiona' : money(a.hourlyRate)
-          }}</span>
-        </mat-card-content>
-      </mat-card>
+    <div class="pl-grid stats no-print">
+      <pl-section>
+        <pl-stat
+          label="Saldo"
+          [tone]="a.balance > 0 ? 'accent' : 'good'"
+          [value]="
+            a.balance > 0
+              ? money(a.balance)
+              : a.balance < 0
+                ? 'nadpłata ' + money(-a.balance)
+                : 'rozliczone'
+          "
+        />
+      </pl-section>
+      <pl-section>
+        <pl-stat
+          label="Stawka za godzinę"
+          [value]="a.hourlyRate === null ? 'nie ustawiona' : money(a.hourlyRate)"
+        />
+      </pl-section>
       @for (p of a.packages; track p.id) {
         @if (p.lessonsUsed < p.lessonsTotal) {
-          <mat-card appearance="outlined">
-            <mat-card-content>
-              <span class="label">Pakiet</span>
-              <span class="value"
-                >{{ p.lessonsTotal - p.lessonsUsed }} / {{ p.lessonsTotal }} lekcji</span
-              >
-            </mat-card-content>
-          </mat-card>
+          <pl-section>
+            <pl-stat
+              label="Pakiet"
+              [value]="p.lessonsTotal - p.lessonsUsed + ' / ' + p.lessonsTotal + ' lekcji'"
+            />
+          </pl-section>
         }
       }
     </div>
@@ -73,9 +66,7 @@
                   }
                 </mat-select>
               </mat-form-field>
-              <mat-form-field
-                ><mat-label>Data</mat-label><input matInput type="date" formControlName="paidAt"
-              /></mat-form-field>
+              <pl-date-field formControlName="paidAt" label="Data" />
               <mat-form-field
                 ><mat-label>Notatka</mat-label><input matInput formControlName="note"
               /></mat-form-field>
@@ -203,7 +194,7 @@
     }
 
     <mat-card appearance="outlined" class="no-print history">
-      <mat-card-header><mat-card-title>Wszystkie operacje</mat-card-title></mat-card-header>
+      <mat-card-header><mat-card-title>Historia operacji</mat-card-title></mat-card-header>
       <mat-card-content>
         <table class="ledger">
           <tbody>

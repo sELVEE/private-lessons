@@ -1,46 +1,18 @@
 <div class="page">
-  @if (isTutor()) {
-    <header class="page-head">
-      <div class="title">
-        <div class="month-nav">
-          <button
-            matIconButton
-            type="button"
-            (click)="move(-1)"
-            aria-label="Poprzedni miesiąc"
-            matTooltip="Poprzedni miesiąc"
-          >
-            <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
-          </button>
-          <span class="month">{{ monthLabel(month()) }}</span>
-          <button
-            matIconButton
-            type="button"
-            (click)="move(1)"
-            aria-label="Następny miesiąc"
-            matTooltip="Następny miesiąc"
-          >
-            <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
-          </button>
-        </div>
-        @if (summary(); as s) {
-          <h1>
-            {{ isCurrentMonth() ? 'W tym miesiącu' : 'W tamtym miesiącu' }} wpłynęło
-            <span class="nowrap">{{ money(s.received) }}</span
-            >.
-            @if (s.outstanding > 0) {
-              Do odebrania zostało <em class="nowrap">{{ money(s.outstanding) }}</em
-              >.
-            } @else {
-              <em>Wszyscy rozliczeni.</em>
-            }
-          </h1>
-        }
-      </div>
-    </header>
-  } @else {
-    <h1>Płatności</h1>
-  }
+  <pl-page-header
+    [title]="isTutor() ? 'Rozliczenia' : 'Płatności'"
+    [subtitle]="isTutor() ? 'Wpłaty, należności i operacje w wybranym miesiącu' : ''"
+  >
+    @if (isTutor()) {
+      <pl-period-nav
+        [label]="monthLabel(month())"
+        prevLabel="Poprzedni miesiąc"
+        nextLabel="Następny miesiąc"
+        (prev)="move(-1)"
+        (next)="move(1)"
+      />
+    }
+  </pl-page-header>
 
   @if (error(); as e) {
     <div class="error-banner" role="alert">{{ e }}</div>
@@ -49,84 +21,106 @@
     <div class="info-banner" role="status">{{ i }}</div>
   }
 
-  <div class="layout">
-    <section class="main">
-      <h2>{{ isTutor() ? 'Kto ile jest winien' : 'Salda' }}</h2>
-      @for (r of owing(); track r.enrollmentId) {
-        <div class="debtor pl-row-hover">
-          <span class="avatar" [style.background]="color(r.enrollmentId)">{{
-            initial(isTutor() ? r.student : r.tutor)
-          }}</span>
-          <div class="who">
-            <a [routerLink]="['/app/billing', r.enrollmentId]">
-              <strong>{{ isTutor() ? r.student : r.tutor }} · {{ r.subject }}</strong>
-            </a>
-            <span class="muted"
-              >naliczone {{ money(r.charged) }} · wpłacone {{ money(r.paid) }}
-              @if (!isTutor() && store.role() === 'parent') {
-                · {{ r.student }}
+  @if (summary(); as s) {
+    <div class="pl-grid stats">
+      <pl-section>
+        <pl-stat label="Wpłaty w miesiącu" [value]="money(s.received)" />
+      </pl-section>
+      <pl-section>
+        <pl-stat
+          label="Należności (łącznie)"
+          [value]="money(s.outstanding)"
+          [tone]="s.outstanding > 0 ? 'accent' : 'good'"
+        />
+      </pl-section>
+      <pl-section>
+        <pl-stat label="Naliczone w miesiącu" [value]="money(s.charged)" />
+      </pl-section>
+      <pl-section>
+        <pl-stat label="Przeprowadzone lekcje" [value]="s.lessonsCompleted" />
+      </pl-section>
+    </div>
+  }
+
+  <div class="pl-columns">
+    <div class="pl-stack">
+      <pl-section [title]="isTutor() ? 'Należności' : 'Saldo'" [count]="owing().length || null">
+        <div class="rows">
+          @for (r of owing(); track r.enrollmentId) {
+            <div class="row pl-row-hover">
+              <pl-avatar [name]="isTutor() ? r.student : r.tutor" [colorKey]="r.studentId" />
+              <div class="who">
+                <a [routerLink]="['/app/billing', r.enrollmentId]">
+                  <strong>{{ isTutor() ? r.student : r.tutor }} · {{ r.subject }}</strong>
+                </a>
+                <span class="muted"
+                  >naliczone {{ money(r.charged) }} · wpłacone {{ money(r.paid) }}
+                  @if (!isTutor() && store.role() === 'parent') {
+                    · {{ r.student }}
+                  }
+                </span>
+              </div>
+              <span class="amount">{{ money(r.balance) }}</span>
+              @if (isTutor()) {
+                <div class="buttons">
+                  <button matButton="outlined" (click)="remind(r)">Przypomnij</button>
+                  <button matButton="filled" [matMenuTriggerFor]="how">Zapisz wpłatę</button>
+                  <mat-menu #how="matMenu">
+                    @for (m of methods; track m.value) {
+                      <button mat-menu-item (click)="paid(r, m.value)">{{ m.label }}</button>
+                    }
+                  </mat-menu>
+                </div>
               }
-            </span>
-          </div>
-          <span class="display amount">{{ money(r.balance) }}</span>
-          @if (isTutor()) {
-            <div class="buttons">
-              <button matButton="outlined" (click)="remind(r)">Przypomnij</button>
-              <button matButton="filled" [matMenuTriggerFor]="how">Zapłacone</button>
-              <mat-menu #how="matMenu">
-                @for (m of methods; track m.value) {
-                  <button mat-menu-item (click)="paid(r, m.value)">{{ m.label }}</button>
-                }
-              </mat-menu>
             </div>
           }
+          @for (r of settled(); track r.enrollmentId) {
+            <a class="row pl-row-hover" [routerLink]="['/app/billing', r.enrollmentId]">
+              <pl-avatar [name]="isTutor() ? r.student : r.tutor" [colorKey]="r.studentId" />
+              <div class="who">
+                <strong>{{ isTutor() ? r.student : r.tutor }} · {{ r.subject }}</strong>
+                <span class="muted">wpłacone {{ money(r.paid) }}</span>
+              </div>
+              <span class="pl-tag" [class.good]="r.balance === 0">{{
+                r.balance < 0 ? 'nadpłata ' + money(-r.balance) : 'rozliczone'
+              }}</span>
+            </a>
+          }
+          @if (!rows().length) {
+            <pl-empty icon="receipt_long" text="Brak rozliczeń." />
+          }
         </div>
-      }
-      @for (r of settled(); track r.enrollmentId) {
-        <a class="debtor soft pl-hover" [routerLink]="['/app/billing', r.enrollmentId]">
-          <span class="avatar" [style.background]="color(r.enrollmentId)">{{
-            initial(isTutor() ? r.student : r.tutor)
-          }}</span>
-          <div class="who">
-            <strong>{{ isTutor() ? r.student : r.tutor }} · {{ r.subject }}</strong>
-            <span class="muted">wpłacone {{ money(r.paid) }}</span>
-          </div>
-          <span class="pl-tag" [class.good]="r.balance === 0">{{
-            r.balance < 0 ? 'nadpłata ' + money(-r.balance) : 'rozliczone'
-          }}</span>
-        </a>
-      }
-      @if (!rows().length) {
-        <p class="muted">Brak rozliczeń.</p>
-      }
+      </pl-section>
 
       @if (isTutor()) {
-        <h2 class="ledger-title">{{ monthLabel(month()) }}, operacja po operacji</h2>
-        <div class="ledger">
-          @for (e of visibleLedger(); track e.id) {
-            <div class="entry pl-row-hover">
-              <span class="date">{{ e.occurredAt | date: 'd.MM' }}</span>
-              <span class="what">{{ e.description }} · {{ e.student }}</span>
-              <span class="sum" [class.in]="e.amount < 0" [class.zero]="e.amount === 0">
-                {{ e.amount < 0 ? '+' + money(-e.amount) : money(e.amount) }}
-              </span>
-            </div>
-          } @empty {
-            <p class="muted">Brak operacji w tym miesiącu.</p>
-          }
+        <pl-section title="Operacje" [eyebrow]="monthLabel(month())">
+          <div class="rows">
+            @for (e of visibleLedger(); track e.id) {
+              <div class="row entry pl-row-hover">
+                <span class="date">{{ e.occurredAt | date: 'd.MM' }}</span>
+                <span class="what">{{ e.description }} · {{ e.student }}</span>
+                <span class="sum" [class.in]="e.amount < 0" [class.zero]="e.amount === 0">
+                  {{ e.amount < 0 ? '+' + money(-e.amount) : money(e.amount) }}
+                </span>
+              </div>
+            } @empty {
+              <pl-empty icon="receipt_long" text="Brak operacji w tym miesiącu." />
+            }
+          </div>
           @if (ledger().length > 8 && !showAll()) {
-            <button matButton class="all" (click)="showAll.set(true)">
-              Pokaż wszystkie ({{ ledger().length }}) →
-            </button>
+            <div>
+              <button matButton (click)="showAll.set(true)">
+                Pokaż wszystkie ({{ ledger().length }})
+              </button>
+            </div>
           }
-        </div>
+        </pl-section>
       }
-    </section>
+    </div>
 
     @if (summary(); as s) {
-      <aside class="side">
-        <section class="pl-card-dark chart-card">
-          <h2>Ostatnie 6 miesięcy</h2>
+      <div class="pl-stack">
+        <pl-section tone="dark" title="Wpłaty w ostatnich 6 miesiącach">
           <div
             class="chart"
             role="img"
@@ -149,19 +143,14 @@
               </div>
             }
           </div>
-          <span class="on-ink-soft">
-            {{
-              bestMonth() ? 'Najlepszy miesiąc w ostatnim półroczu' : 'Wpłaty miesiąc po miesiącu'
-            }}
-            · {{ s.lessonsCompleted }}
-            {{ s.lessonsCompleted === 1 ? 'lekcja' : 'lekcji' }}
-          </span>
-        </section>
-        <section class="pl-card">
-          <h2>Rozliczenie dla rodzica</h2>
+          @if (bestMonth()) {
+            <span class="muted">Najwyższe wpłaty w ostatnim półroczu.</span>
+          }
+        </pl-section>
+        <pl-section title="Zestawienia miesięczne">
           <p class="muted">
-            Miesięczne zestawienie dla ucznia — saldo, lekcje i wpłaty na jednej stronie, do wydruku
-            lub PDF.
+            Saldo, lekcje i wpłaty ucznia za miesiąc na jednej stronie — do wydruku lub zapisu w
+            PDF.
           </p>
           <div class="links">
             @for (r of rows(); track r.enrollmentId) {
@@ -170,8 +159,8 @@
               }}</a>
             }
           </div>
-        </section>
-      </aside>
+        </pl-section>
+      </div>
     }
   </div>
 </div>

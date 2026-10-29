@@ -1,4 +1,4 @@
-import { DatePipe, Location } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,9 +20,16 @@ import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { currentMonth, money, monthLabel, shiftMonth, toGrosze } from './money';
 
+import { DateField } from '../../shared/ui/date-field';
+import { PageHeader, Section, Stat } from '../../shared/ui';
+
 @Component({
   selector: 'pl-billing-account-page',
   imports: [
+    PageHeader,
+    Section,
+    Stat,
+    DateField,
     DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
@@ -40,7 +47,6 @@ export default class BillingAccountPage implements OnInit {
   private readonly api = inject(TeachingApi);
   private readonly store = inject(AuthStore);
   private readonly fb = inject(NonNullableFormBuilder);
-  readonly location = inject(Location);
 
   readonly id = input.required<string>();
   readonly acc = signal<BillingAccount | null>(null);

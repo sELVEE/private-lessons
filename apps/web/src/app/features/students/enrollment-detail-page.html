@@ -1,6 +1,6 @@
 <div class="page">
   <nav class="crumbs" aria-label="Okruszki">
-    <a [routerLink]="backLink()">← {{ isTutor() ? 'Uczniowie' : 'Teraz' }}</a>
+    <a [routerLink]="backLink()">← {{ isTutor() ? 'Uczniowie' : 'Pulpit' }}</a>
     @if (e(); as e) {
       <span>/</span
       ><span
@@ -76,7 +76,7 @@
       }
     </section>
 
-    <div class="layout">
+    <div class="pl-columns">
       <section class="timeline">
         <mat-chip-listbox
           class="filters"
@@ -94,7 +94,7 @@
           <div class="upcoming">
             <span class="display when">{{ u.startsAt | date: 'EEE HH:mm' }}</span>
             <span class="grow"
-              >Następna lekcja{{ u.location ? ' · ' + u.location : ''
+              >Najbliższa lekcja{{ u.location ? ' · ' + u.location : ''
               }}{{ u.topic ? ' · ' + u.topic : '' }}</span
             >
             <a matButton="filled" class="pl-accent" [routerLink]="['/app/lessons', u.id]">Otwórz</a>
@@ -125,13 +125,12 @@
             </article>
           </div>
         } @empty {
-          <p class="muted">Nic tu jeszcze nie ma — oś wypełni się po pierwszej lekcji.</p>
+          <pl-empty icon="history" text="Brak wpisów. Historia pojawi się po pierwszej lekcji." />
         }
       </section>
 
-      <aside class="side">
-        <section class="pl-card-dark facts-card">
-          <h2>W skrócie</h2>
+      <aside class="pl-stack">
+        <pl-section tone="dark" title="Podsumowanie">
           <dl class="facts">
             @if (billing(); as b) {
               <dt>Saldo</dt>
@@ -170,10 +169,9 @@
               >Rozliczenie</a
             >
           }
-        </section>
+        </pl-section>
 
-        <section class="pl-card">
-          <h2>Cele</h2>
+        <pl-section title="Cele nauki">
           @if (editing()) {
             <mat-form-field class="full-width">
               <mat-label>Cele</mat-label>
@@ -184,7 +182,7 @@
                 placeholder="np. matura rozszerzona, cel 80%"
               ></textarea>
             </mat-form-field>
-            <div class="row-actions">
+            <div class="form-actions">
               <button type="button" matButton="outlined" (click)="editing.set(false)">
                 Anuluj
               </button>
@@ -203,25 +201,27 @@
               <button type="button" matButton="outlined" (click)="startEdit()">Edytuj cele</button>
             }
           }
-        </section>
+        </pl-section>
 
         @if (progress()?.topics?.length) {
-          <section class="pl-card">
-            <h2>Tematy</h2>
+          <pl-section title="Tematy">
             <div class="topics">
               @for (t of progress()?.topics ?? []; track t.topicId) {
-                <span class="topic" [class]="'t-' + (t.status ?? 'none')">
+                <span
+                  class="pl-tag"
+                  [class.good]="t.status === 'mastered'"
+                  [class.warn]="t.status === 'review'"
+                >
                   {{ t.status === 'mastered' ? '✓ ' : t.status === 'review' ? '↺ ' : ''
                   }}{{ t.name }}
                 </span>
               }
             </div>
-          </section>
+          </pl-section>
         }
 
         @if (isTutor()) {
-          <section class="pl-card">
-            <h2>Współpraca</h2>
+          <pl-section title="Status współpracy">
             <p class="muted">Status: {{ statusLabel(e.status) }}</p>
             <div class="row-actions">
               @if (e.status === 'active') {
@@ -270,7 +270,7 @@
                 }
               </ul>
             }
-          </section>
+          </pl-section>
         }
       </aside>
     </div>

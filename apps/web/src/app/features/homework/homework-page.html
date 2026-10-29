@@ -1,12 +1,11 @@
 <div class="page">
-  <div class="page-head">
-    <h1>Zadania domowe</h1>
+  <pl-page-header title="Zadania domowe">
     @if (isTutor()) {
       <button matButton="filled" (click)="openAssign()" [disabled]="!activeEnrollments().length">
         <mat-icon fontSet="material-symbols-outlined">add_task</mat-icon> Zadaj zadanie
       </button>
     }
-  </div>
+  </pl-page-header>
   @if (error(); as e) {
     <div class="error-banner" role="alert">{{ e }}</div>
   }
@@ -34,11 +33,8 @@
             <textarea matInput formControlName="instructions" rows="5"></textarea>
           </mat-form-field>
           <pl-markdown [text]="assignForm.controls.instructions.value" />
-          <mat-form-field>
-            <mat-label>Termin</mat-label>
-            <input matInput type="date" formControlName="dueAt" />
-          </mat-form-field>
-          <div class="row-actions">
+          <pl-date-field formControlName="dueAt" label="Termin" />
+          <div class="form-actions">
             <button matButton type="button" (click)="showAssign.set(false)">Anuluj</button>
             <button matButton="filled" type="submit">Zadaj</button>
           </div>

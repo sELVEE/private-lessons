@@ -66,11 +66,11 @@ export function renderMarkdown(text: string): string {
     .markdown code {
       background: var(--mat-sys-surface-container);
       border-radius: 4px;
-      padding: 0 4px;
+      padding: 0 var(--pl-space-xs);
     }
     .markdown .math-block {
       overflow-x: auto;
-      padding: 4px 0;
+      padding: var(--pl-space-xs) 0;
     }
   `,
 })

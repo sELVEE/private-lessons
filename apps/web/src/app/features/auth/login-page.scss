@@ -8,11 +8,11 @@
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
   border-radius: 0 var(--mat-sys-corner-extra-large) var(--mat-sys-corner-extra-large) 0;
-  padding: 48px;
+  padding: var(--pl-space-3xl);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 16px;
+  gap: var(--pl-space-lg);
 
   h1 {
     font-size: clamp(40px, 5vw, 64px);
@@ -29,7 +29,7 @@
     padding: 0;
     margin: 0;
     display: grid;
-    gap: 12px;
+    gap: var(--pl-space-md);
     font: var(--mat-sys-title-medium);
   }
 
@@ -37,14 +37,14 @@
     color: var(--mat-sys-primary-container);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--pl-space-md);
   }
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--pl-space-sm);
   font-family: var(--mat-sys-display-large-font);
   font-size: 28px;
 }
@@ -52,15 +52,15 @@
 .panel {
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: var(--pl-space-lg);
 }
 
 .footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 16px 16px;
+  gap: var(--pl-space-xs);
+  padding: var(--pl-space-sm) var(--pl-space-lg) var(--pl-space-lg);
 }
 
 @media (max-width: 840px) {
@@ -70,7 +70,7 @@
   }
 
   .hero {
-    padding: 24px;
+    padding: var(--pl-space-xl);
     border-radius: 0 0 var(--mat-sys-corner-extra-large) var(--mat-sys-corner-extra-large);
 
     h1 {

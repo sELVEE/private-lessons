@@ -1,8 +1,10 @@
 <div class="page">
-  @if (p(); as p) {
-    <h1>{{ isTutor() ? p.student : p.subject }} · postępy</h1>
-    <p class="muted">{{ p.subject }} · {{ p.tutor }} · {{ p.student }}</p>
-  }
+  <pl-page-header
+    [back]="true"
+    eyebrow="Postępy"
+    [title]="p() ? (isTutor() ? p()!.student : p()!.subject) : 'Postępy'"
+    [subtitle]="p() ? p()!.subject + ' · ' + p()!.tutor + ' · ' + p()!.student : ''"
+  />
   @if (error(); as e) {
     <div class="error-banner" role="alert">{{ e }}</div>
   }
@@ -27,52 +29,37 @@
       </mat-card-header>
       <mat-card-content>
         <div class="kpis">
-          <div>
-            <span class="v">{{ p.summary.lessonsCompleted }}</span
-            ><span class="l">lekcji</span>
-          </div>
-          <div>
-            <span class="v"
-              >{{ p.summary.attendanceRate ?? '—'
-              }}{{ p.summary.attendanceRate !== null ? '%' : '' }}</span
-            ><span class="l">frekwencja</span>
-          </div>
-          <div>
-            <span class="v">{{ p.summary.homeworkDone }}/{{ p.summary.homeworkAssigned }}</span
-            ><span class="l">zadania</span>
-          </div>
-          <div>
-            <span class="v"
-              >{{ p.summary.averagePercent ?? '—'
-              }}{{ p.summary.averagePercent !== null ? '%' : '' }}</span
-            >
-            <span class="l">
-              średni wynik
-              @if (p.summary.trend !== null) {
-                <span [class.up]="p.summary.trend >= 0" [class.down]="p.summary.trend < 0">
-                  {{ p.summary.trend >= 0 ? '▲' : '▼' }} {{ p.summary.trend >= 0 ? '+' : ''
-                  }}{{ p.summary.trend }} pp.
-                </span>
-              }
-            </span>
-          </div>
-          <div>
-            <span class="v">{{ p.summary.mastered }}</span
-            ><span class="l">opanowane tematy</span>
-          </div>
-          <div>
-            <span class="v"
-              >{{ p.summary.goalsAchieved }}/{{
-                p.summary.goalsAchieved + p.summary.goalsOpen
-              }}</span
-            ><span class="l">cele</span>
-          </div>
+          <pl-stat label="Lekcje" [value]="p.summary.lessonsCompleted" />
+          <pl-stat
+            label="Frekwencja"
+            [value]="p.summary.attendanceRate === null ? '—' : p.summary.attendanceRate + '%'"
+          />
+          <pl-stat
+            label="Zadania oddane"
+            [value]="p.summary.homeworkDone + '/' + p.summary.homeworkAssigned"
+          />
+          <pl-stat
+            label="Średni wynik"
+            [value]="p.summary.averagePercent === null ? '—' : p.summary.averagePercent + '%'"
+            [hint]="
+              p.summary.trend === null
+                ? ''
+                : (p.summary.trend >= 0 ? '▲ +' : '▼ ') + p.summary.trend + ' pp.'
+            "
+          />
+          <pl-stat label="Opanowane tematy" [value]="p.summary.mastered" />
+          <pl-stat
+            label="Cele osiągnięte"
+            [value]="
+              p.summary.goalsAchieved + '/' + (p.summary.goalsAchieved + p.summary.goalsOpen)
+            "
+          />
         </div>
         @if (p.summary.toReview.length) {
-          <p><strong>Do powtórki:</strong> {{ p.summary.toReview.join(', ') }}</p>
+          <p><strong>Tematy do powtórzenia:</strong> {{ p.summary.toReview.join(', ') }}</p>
         }
         @if (p.summary.lastNextSteps) {
-          <p><strong>Dalsze kroki:</strong> {{ p.summary.lastNextSteps }}</p>
+          <p><strong>Zalecenia:</strong> {{ p.summary.lastNextSteps }}</p>
         }
         @if (isTutor()) {
           <button matButton="outlined" (click)="send()">
@@ -142,9 +129,7 @@
                     }
                   </mat-select>
                 </mat-form-field>
-                <mat-form-field
-                  ><mat-label>Data</mat-label><input matInput type="date" formControlName="takenAt"
-                /></mat-form-field>
+                <pl-date-field formControlName="takenAt" label="Data" />
                 <mat-form-field>
                   <mat-label>Punkty</mat-label
                   ><input matInput formControlName="score" inputmode="decimal" />
@@ -285,10 +270,7 @@
                 <mat-form-field subscriptSizing="dynamic"
                   ><mat-label>Nowy cel</mat-label><input matInput formControlName="title"
                 /></mat-form-field>
-                <mat-form-field subscriptSizing="dynamic"
-                  ><mat-label>Termin</mat-label
-                  ><input matInput type="date" formControlName="targetDate"
-                /></mat-form-field>
+                <pl-date-field formControlName="targetDate" label="Termin" />
                 <button matButton="outlined" type="submit">Dodaj</button>
               </form>
             }

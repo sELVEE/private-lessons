@@ -44,8 +44,8 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
     MatTooltipModule,
   ],
   template: `
-    <h3>Zwykły tydzień</h3>
-    <p class="muted">Poza tymi godzinami kalendarz jest wyszarzony.</p>
+    <h3>Harmonogram tygodniowy</h3>
+    <p class="muted">Czas poza godzinami pracy jest w kalendarzu wyszarzony.</p>
     <div class="week">
       @for (d of rows(); track d.weekday) {
         <div class="day" [class.off]="!d.on">
@@ -64,7 +64,7 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
                       (ngModelChange)="setTime(d.weekday, i, 'start', $event)"
                       [attr.aria-label]="labels[d.weekday] + ', od'"
                     />
-                    <mat-timepicker #from interval="30m" />
+                    <mat-timepicker #from [interval]="step() + 'm'" />
                   </mat-form-field>
                   –
                   <mat-form-field subscriptSizing="dynamic" class="time pl-compact-field">
@@ -75,7 +75,7 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
                       (ngModelChange)="setTime(d.weekday, i, 'end', $event)"
                       [attr.aria-label]="labels[d.weekday] + ', do'"
                     />
-                    <mat-timepicker #to interval="30m" />
+                    <mat-timepicker #to [interval]="step() + 'm'" />
                   </mat-form-field>
                   @if (d.ranges.length > 1) {
                     <button
@@ -105,8 +105,10 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       }
     </div>
     <div class="quick">
-      <button matButton type="button" (click)="copyMonday(5)">Poniedziałek → pn–pt</button>
-      <button matButton type="button" (click)="copyMonday(7)">Poniedziałek → cały tydzień</button>
+      <button matButton type="button" (click)="copyMonday(5)">Kopiuj poniedziałek na pn–pt</button>
+      <button matButton type="button" (click)="copyMonday(7)">
+        Kopiuj poniedziałek na cały tydzień
+      </button>
     </div>
     <div class="row-actions">
       <span class="muted">{{ savedNote() }}</span>
@@ -115,9 +117,10 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       </button>
     </div>
 
-    <h3>Wyjątki</h3>
+    <h3>Wyjątki w harmonogramie</h3>
     <p class="muted">
-      Inne godziny albo wolne w wybrany dzień — mają pierwszeństwo przed tygodniem.
+      Inne godziny lub dzień wolny w wybranym terminie. Wyjątek ma pierwszeństwo przed
+      harmonogramem.
     </p>
     @for (e of value()?.exceptions ?? []; track e.date) {
       <div class="exception">
@@ -153,13 +156,13 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
           <mat-form-field subscriptSizing="dynamic" class="time pl-compact-field">
             <mat-label>Od</mat-label>
             <input matInput [matTimepicker]="exFrom" [(ngModel)]="exStart" />
-            <mat-timepicker #exFrom interval="30m" />
+            <mat-timepicker #exFrom [interval]="step() + 'm'" />
           </mat-form-field>
           –
           <mat-form-field subscriptSizing="dynamic" class="time pl-compact-field">
             <mat-label>Do</mat-label>
             <input matInput [matTimepicker]="exTo" [(ngModel)]="exEnd" />
-            <mat-timepicker #exTo interval="30m" />
+            <mat-timepicker #exTo [interval]="step() + 'm'" />
           </mat-form-field>
         </span>
       }
@@ -185,22 +188,22 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       display: block;
     }
     h3 {
-      margin: 20px 0 2px;
+      margin: var(--pl-space-xl) 0 2px;
       font-size: 18px;
     }
     .week {
       display: flex;
       flex-direction: column;
-      margin: 8px 0;
+      margin: var(--pl-space-sm) 0;
     }
     .day {
       display: grid;
       grid-template-columns: 136px minmax(0, 1fr);
       align-items: center;
-      gap: 8px;
+      gap: var(--pl-space-sm);
       min-height: 48px;
       border-bottom: 1px solid var(--pl-line);
-      padding: 6px 0;
+      padding: var(--pl-space-sm) 0;
       mat-checkbox {
         min-width: 0;
       }
@@ -209,12 +212,12 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 4px;
+      gap: var(--pl-space-xs);
     }
     .range {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: var(--pl-space-xs);
     }
     .time {
       width: 84px;
@@ -222,23 +225,23 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
     .quick {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 8px;
+      gap: var(--pl-space-xs);
+      margin-bottom: var(--pl-space-sm);
     }
     .exception {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      padding: 4px 0;
+      gap: var(--pl-space-sm);
+      padding: var(--pl-space-xs) 0;
       border-bottom: 1px solid var(--pl-line);
     }
     .add {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 8px 12px;
-      margin-top: 12px;
+      gap: var(--pl-space-sm) var(--pl-space-md);
+      margin-top: var(--pl-space-md);
       mat-form-field {
         flex: 1 1 180px;
       }
@@ -251,6 +254,8 @@ export class AvailabilityEditor {
   readonly value = input<Availability | null>(null);
   /** Day suggested for a new exception (the one shown in the calendar). */
   readonly suggestedDate = input<string | null>(null);
+  /** Booking step (minutes) — the time lists offer the same grid as lessons. */
+  readonly step = input(30);
   readonly changed = output<Availability>();
 
   readonly labels = WEEKDAY_LABELS;

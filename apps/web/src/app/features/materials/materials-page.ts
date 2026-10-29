@@ -15,11 +15,13 @@ import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { Markdown } from '../../shared/markdown';
+import { PageHeader } from '../../shared/ui';
 
 /** Tutor: library by subject and topic, editor with live preview, sharing. Student/parent: shared items. */
 @Component({
   selector: 'pl-materials-page',
   imports: [
+    PageHeader,
     DatePipe,
     ReactiveFormsModule,
     MatButtonModule,

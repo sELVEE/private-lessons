@@ -102,11 +102,11 @@ import { TeachingApi } from '../../core/teaching-api';
   styles: `
     :host {
       display: grid;
-      gap: 16px;
+      gap: var(--pl-space-lg);
     }
     .inline {
       display: flex;
-      gap: 12px;
+      gap: var(--pl-space-md);
       align-items: center;
       flex-wrap: wrap;
     }

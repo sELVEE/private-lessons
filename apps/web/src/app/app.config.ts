@@ -19,6 +19,7 @@ import {
 } from '@angular/material/form-field';
 import { MAT_BUTTON_TOGGLE_DEFAULT_OPTIONS } from '@angular/material/button-toggle';
 import { MAT_CHIPS_DEFAULT_OPTIONS } from '@angular/material/chips';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
@@ -37,6 +38,8 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([sessionExpiredInterceptor]),
     ),
     { provide: LOCALE_ID, useValue: 'pl' },
+    // Daty w datepickerach i timepickerach Material (format i pierwszy dzień tygodnia z LOCALE_ID).
+    provideNativeDateAdapter(),
     // Jeden wygląd pól w całej aplikacji; podpowiedzi i błędy zajmują miejsce tylko gdy są.
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,

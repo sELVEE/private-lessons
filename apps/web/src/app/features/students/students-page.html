@@ -1,11 +1,10 @@
 <div class="page">
-  <div class="page-head">
-    <h1>Uczniowie</h1>
+  <pl-page-header title="Uczniowie">
     <button matButton="filled" (click)="openInvite()">
       <mat-icon fontSet="material-symbols-outlined">person_add</mat-icon>
       Zaproś ucznia
     </button>
-  </div>
+  </pl-page-header>
 
   @if (error(); as e) {
     <div class="error-banner" role="alert">{{ e }}</div>
@@ -70,8 +69,7 @@
               <mat-label>Ważność (dni)</mat-label>
               <input matInput type="number" formControlName="expiresInDays" min="1" max="30" />
             </mat-form-field>
-            <div class="row-actions">
-              <span></span>
+            <div class="form-actions">
               <button matButton="filled" type="submit" [disabled]="busy()">
                 {{
                   inviteForm.controls.mode.value === 'email' ? 'Wyślij zaproszenie' : 'Utwórz kod'
@@ -133,9 +131,7 @@
       <a class="student" [routerLink]="['/app/students', e.id]">
         <mat-card appearance="outlined" class="pl-hover">
           <mat-card-header>
-            <div mat-card-avatar class="avatar" [style.background]="color(e.student.id)">
-              {{ e.student.displayName.charAt(0) }}
-            </div>
+            <pl-avatar mat-card-avatar [name]="e.student.displayName" [colorKey]="e.student.id" />
             <mat-card-title>{{ e.student.displayName }}</mat-card-title>
             <mat-card-subtitle>{{ e.subject.name }} · {{ level(e.student) }}</mat-card-subtitle>
           </mat-card-header>

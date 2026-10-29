@@ -3,16 +3,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--pl-space-md);
   flex-wrap: wrap;
 }
 
 .section {
-  margin: 24px 0 12px;
+  margin: 0;
 }
 
 .invite-card {
-  margin-bottom: 16px;
   max-width: 560px;
 
   .close {
@@ -21,16 +20,16 @@
 }
 
 .mode {
-  margin-bottom: 12px;
+  margin-bottom: var(--pl-space-md);
   align-self: flex-start;
 }
 
 .code-box {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--pl-space-md);
   flex-wrap: wrap;
-  margin: 12px 0;
+  margin: var(--pl-space-md) 0;
 }
 
 .code {
@@ -41,14 +40,14 @@
 
 .invites {
   display: grid;
-  gap: 4px;
+  gap: var(--pl-space-xs);
 }
 
 .invite-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 8px;
+  gap: var(--pl-space-md);
+  padding: var(--pl-space-xs) var(--pl-space-sm);
   border-radius: var(--mat-sys-corner-small);
   background: var(--mat-sys-surface-container-low);
 
@@ -60,8 +59,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+  gap: var(--pl-space-lg);
 }
 
 .student {
@@ -89,11 +87,11 @@
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--pl-space-sm);
 }
 
 .empty {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--pl-space-md);
 }

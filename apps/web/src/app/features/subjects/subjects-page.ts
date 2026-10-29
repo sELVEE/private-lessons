@@ -9,10 +9,12 @@ import { MatInputModule } from '@angular/material/input';
 import type { SubjectInfo } from '@pl/shared';
 import { toApiError } from '../../core/api-error';
 import { TeachingApi } from '../../core/teaching-api';
+import { PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'pl-subjects-page',
   imports: [
+    PageHeader,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
@@ -23,10 +25,10 @@ import { TeachingApi } from '../../core/teaching-api';
   ],
   template: `
     <div class="page">
-      <h1>Przedmioty i tematy</h1>
-      <p class="muted">
-        Tematy posłużą później do planowania lekcji, materiałów i śledzenia postępów.
-      </p>
+      <pl-page-header
+        title="Przedmioty i tematy"
+        subtitle="Tematy porządkują materiały, oceny i postępy uczniów."
+      />
       @if (error(); as e) {
         <div class="error-banner" role="alert">{{ e }}</div>
       }
@@ -88,16 +90,16 @@ import { TeachingApi } from '../../core/teaching-api';
   styles: `
     .add {
       display: flex;
-      gap: 12px;
+      gap: var(--pl-space-md);
       align-items: center;
       flex-wrap: wrap;
     }
     .topic {
-      margin-top: 16px;
+      margin-top: var(--pl-space-lg);
     }
     .list {
       display: grid;
-      gap: 16px;
+      gap: var(--pl-space-lg);
     }
     .end {
       margin-left: auto;

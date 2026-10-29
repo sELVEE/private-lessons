@@ -18,6 +18,7 @@ import { toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { initial, personColor } from '../../shared/person-color';
+import { Avatar, EmptyState, PageHeader, Section } from '../../shared/ui';
 import { addDays, dayLabel, relativeTime, startOfWeek, timeLabel, isoDay } from '../../shared/time';
 import { money } from '../billing/money';
 
@@ -57,12 +58,16 @@ const QUICK: Record<string, QuickAction[]> = {
 };
 
 /**
- * „Teraz”: what do I want to do, what is happening next, what is waiting for me.
+ * „Pulpit”: what do I want to do, what is happening next, what is waiting for me.
  * One screen for every role; the data and actions differ.
  */
 @Component({
   selector: 'pl-home-page',
   imports: [
+    Avatar,
+    EmptyState,
+    PageHeader,
+    Section,
     MatButtonModule,
     FormsModule,
     MatFormFieldModule,
@@ -102,8 +107,11 @@ export default class HomePage implements OnInit {
   readonly greeting = computed(() => {
     const h = new Date().getHours();
     const name = this.me()?.displayName ?? '';
-    return `${h < 12 ? 'Dzień dobry' : h < 18 ? 'Cześć' : 'Dobry wieczór'}, ${name}.`;
+    return `${h < 18 ? 'Dzień dobry' : 'Dobry wieczór'}, ${name}`;
   });
+  readonly subtitle = computed(() =>
+    new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' }),
+  );
 
   /** The next lesson that has not finished yet. */
   readonly next = computed(() =>
@@ -221,8 +229,8 @@ export default class HomePage implements OnInit {
         .map((l) => ({
           id: `c-${l.id}`,
           kind: 'charge' as const,
-          title: `Późne odwołanie — ${l.student.displayName}`,
-          detail: `${dayLabel(l.startsAt)} ${timeLabel(l.startsAt)}${l.cancelReason ? ` · „${l.cancelReason}”` : ''} · płatna?`,
+          title: `Późne odwołanie: ${l.student.displayName}`,
+          detail: `${dayLabel(l.startsAt)} ${timeLabel(l.startsAt)}${l.cancelReason ? ` · „${l.cancelReason}”` : ''} · naliczyć opłatę?`,
           lesson: l,
         })),
       ...homework
@@ -230,7 +238,7 @@ export default class HomePage implements OnInit {
         .map((h) => ({
           id: `h-${h.id}`,
           kind: 'homework' as const,
-          title: `Zadanie do sprawdzenia — ${h.student}`,
+          title: `Zadanie do sprawdzenia: ${h.student}`,
           detail: h.title,
           homework: h,
         })),
@@ -239,7 +247,7 @@ export default class HomePage implements OnInit {
         .map((b) => ({
           id: `d-${b.enrollmentId}`,
           kind: 'debt' as const,
-          title: `Zaległość — ${b.student}`,
+          title: `Należność: ${b.student}`,
           detail: `${money(b.balance)} · ${b.subject}`,
           balance: b,
         })),

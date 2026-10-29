@@ -1,15 +1,15 @@
 .layout {
   display: grid;
   grid-template-columns: 300px 1fr;
-  gap: 16px;
+  gap: var(--pl-space-lg);
   align-items: start;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 12px;
+  gap: var(--pl-space-xs);
+  margin-top: var(--pl-space-md);
 }
 
 .item {
@@ -17,7 +17,7 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
+  padding: var(--pl-space-md) var(--pl-space-md);
   border-radius: var(--mat-sys-corner-small);
   transition: background-color 150ms ease;
 
@@ -42,13 +42,13 @@
 .two {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--pl-space-md);
 }
 
 .editor {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: var(--pl-space-lg);
 
   textarea {
     font-family: ui-monospace, monospace;
@@ -58,29 +58,29 @@
 .preview {
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-small);
-  padding: 12px;
+  padding: var(--pl-space-md);
   max-height: 480px;
   overflow: auto;
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--pl-space-sm);
   flex-wrap: wrap;
 }
 
 .share {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 16px;
-  padding: 12px;
+  gap: var(--pl-space-xs);
+  margin-bottom: var(--pl-space-lg);
+  padding: var(--pl-space-md);
   border-radius: var(--mat-sys-corner-small);
   background: var(--mat-sys-surface-container-low);
 }
 
 .placeholder {
-  padding: 32px;
+  padding: var(--pl-space-2xl);
   text-align: center;
 }
 

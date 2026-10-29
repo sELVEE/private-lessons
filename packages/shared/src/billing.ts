@@ -87,6 +87,8 @@ export interface BillingAccount {
 
 export interface BalanceRow {
   enrollmentId: string;
+  /** For the student's colour and links. */
+  studentId: string;
   student: string;
   tutor: string;
   subject: string;

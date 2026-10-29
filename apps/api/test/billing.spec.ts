@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { type Account, account, enrol } from './fixtures.js';
+import { type Account, account, enrol, onSlot } from './fixtures.js';
 import { createHarness, type Harness } from './harness.js';
 
 let h: Harness;
@@ -13,7 +13,7 @@ beforeEach(async () => {
   await h.redis.flushdb();
 });
 
-const hoursAgo = (n: number) => new Date(Date.now() - n * 3600_000).toISOString();
+const hoursAgo = (n: number) => onSlot(-n);
 const month = () =>
   new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Warsaw' }).slice(0, 7);
 
@@ -80,7 +80,7 @@ describe('billing', () => {
     const lesson = (
       await t.c.post('/api/lessons', {
         enrollmentId: e.id,
-        startsAt: new Date(Date.now() + 3 * 3600_000).toISOString(),
+        startsAt: onSlot(3),
         durationMin: 60,
       })
     ).body[0].id;
@@ -99,11 +99,12 @@ describe('billing', () => {
       autoChargeLateCancellation: true,
       cancellationWindowHours: 24,
       defaultLessonMinutes: 60,
+      slotMinutes: 30,
     });
     const lesson = (
       await t.c.post('/api/lessons', {
         enrollmentId: e.id,
-        startsAt: new Date(Date.now() + 2 * 3600_000).toISOString(),
+        startsAt: onSlot(2),
         durationMin: 60,
       })
     ).body[0].id;

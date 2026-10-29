@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { NAV } from './nav';
 
 describe('NAV', () => {
-  it('starts every dock with „Teraz” and keeps it short', () => {
+  it('starts every dock with „Pulpit” and keeps it short', () => {
     for (const nav of Object.values(NAV)) {
       expect(nav.dock[0]?.path).toBe('/app');
       expect(nav.dock.length).toBeLessThanOrEqual(5);

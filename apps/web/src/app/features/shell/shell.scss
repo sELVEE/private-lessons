@@ -25,8 +25,8 @@
   width: var(--side-w);
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 20px 12px 16px;
+  gap: var(--pl-space-xs);
+  padding: var(--pl-space-xl) var(--pl-space-md) var(--pl-space-lg);
   box-sizing: border-box;
   background: var(--mat-sys-surface-container-low);
   border-right: 1px solid var(--pl-line);
@@ -35,8 +35,8 @@
   .brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0 12px 20px;
+    gap: var(--pl-space-md);
+    padding: 0 var(--pl-space-md) var(--pl-space-xl);
     text-decoration: none;
     color: var(--pl-ink);
   }
@@ -72,9 +72,9 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--pl-space-md);
   min-height: 48px;
-  padding: 0 12px;
+  padding: 0 var(--pl-space-md);
   border-radius: var(--mat-sys-corner-small);
   color: var(--mat-sys-on-surface-variant);
   font-weight: 600;
@@ -119,8 +119,8 @@
 .account {
   border-top: 1px solid var(--pl-line);
   border-radius: 0 0 var(--mat-sys-corner-small) var(--mat-sys-corner-small);
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: var(--pl-space-sm);
+  padding-bottom: var(--pl-space-sm);
 
   .label {
     overflow: hidden;
@@ -134,8 +134,8 @@
 .pl-topbar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 32px 0;
+  gap: var(--pl-space-lg);
+  padding: var(--pl-space-lg) var(--pl-space-2xl) 0;
   max-width: 1280px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -185,18 +185,18 @@
 }
 
 .menu-header {
-  padding: 10px 16px 12px;
+  padding: var(--pl-space-md) var(--pl-space-lg) var(--pl-space-md);
   border-bottom: 1px solid var(--pl-line);
-  margin-bottom: 4px;
+  margin-bottom: var(--pl-space-xs);
 }
 
 .offline {
-  margin: 8px auto 0;
+  margin: var(--pl-space-sm) auto 0;
   max-width: 1216px;
   border-radius: var(--mat-sys-corner-medium);
   background: var(--pl-ink);
   color: var(--pl-card);
-  padding: 10px 16px;
+  padding: var(--pl-space-md) var(--pl-space-lg);
   text-align: center;
 }
 
@@ -221,7 +221,7 @@ main:focus {
     flex: 1;
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
+    gap: var(--pl-space-xs);
     padding: 0;
     border-radius: 0;
     font-size: 12px;
@@ -261,7 +261,7 @@ main:focus {
   left: 8px;
   top: -48px;
   z-index: 30;
-  padding: 8px 12px;
+  padding: var(--pl-space-sm) var(--pl-space-md);
   border-radius: var(--mat-sys-corner-small);
   background: var(--pl-ink);
   color: var(--pl-card);
@@ -279,10 +279,10 @@ main:focus {
 
   .pl-side {
     align-items: center;
-    padding: 16px 4px;
+    padding: var(--pl-space-lg) var(--pl-space-xs);
 
     .brand {
-      padding: 0 0 16px;
+      padding: 0 0 var(--pl-space-lg);
     }
 
     .word {
@@ -297,9 +297,9 @@ main:focus {
   .pl-side .item {
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
+    gap: var(--pl-space-xs);
     min-height: 64px;
-    padding: 4px 2px;
+    padding: var(--pl-space-xs) 2px;
     font-size: 11px;
     text-align: center;
     border-radius: var(--mat-sys-corner-small);
@@ -351,7 +351,7 @@ main:focus {
   }
 
   .pl-topbar {
-    padding: 12px 16px 0;
+    padding: var(--pl-space-md) var(--pl-space-lg) 0;
 
     .brand {
       display: block;

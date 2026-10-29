@@ -1,58 +1,34 @@
-.top {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+.stats {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 
-  mat-card-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--pl-space-sm);
   }
-}
-
-.label {
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-label-large);
-}
-
-.value {
-  font-family: var(--mat-sys-display-large-font);
-  font-size: 34px;
-  line-height: 1.1;
-}
-
-.owes {
-  color: var(--mat-sys-tertiary);
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--pl-space-sm);
   flex-wrap: wrap;
-  margin: 16px 0;
-}
-
-.panel {
-  padding: 16px 16px 0;
-  margin-bottom: 16px;
 }
 
 .row-form {
   display: flex;
-  gap: 12px;
+  gap: var(--pl-space-md);
   align-items: center;
   flex-wrap: wrap;
 }
 
 .statement,
 .history {
-  margin-top: 16px;
+  margin-top: var(--pl-space-lg);
 }
 
 .month {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--pl-space-xs);
 }
 
 .ledger {
@@ -60,7 +36,7 @@
   border-collapse: collapse;
 
   td {
-    padding: 6px 4px;
+    padding: var(--pl-space-sm) var(--pl-space-xs);
     border-bottom: 1px solid var(--mat-sys-outline-variant);
   }
 
@@ -88,4 +64,8 @@
   .no-print {
     display: none !important;
   }
+}
+
+.panel {
+  padding: var(--pl-space-xl);
 }

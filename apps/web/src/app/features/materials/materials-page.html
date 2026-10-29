@@ -1,12 +1,11 @@
 <div class="page">
-  <div class="page-head">
-    <h1>{{ isTutor() ? 'Biblioteka materiałów' : 'Materiały' }}</h1>
+  <pl-page-header [title]="isTutor() ? 'Biblioteka materiałów' : 'Materiały'">
     @if (isTutor()) {
       <button matButton="filled" (click)="startNew()" [disabled]="!subjects().length">
         <mat-icon fontSet="material-symbols-outlined">add</mat-icon> Nowy materiał
       </button>
     }
-  </div>
+  </pl-page-header>
   @if (error(); as e) {
     <div class="error-banner" role="alert">{{ e }}</div>
   }

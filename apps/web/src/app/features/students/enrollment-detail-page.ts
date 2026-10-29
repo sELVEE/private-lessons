@@ -25,6 +25,7 @@ import { TeachingApi } from '../../core/teaching-api';
 import { initial, personColor } from '../../shared/person-color';
 import { money } from '../billing/money';
 import { EVENT_LABELS, statusLabel, studentLevel } from '../labels';
+import { EmptyState, Section } from '../../shared/ui';
 
 type Kind = 'lesson' | 'homework' | 'assessment' | 'payment';
 
@@ -54,6 +55,8 @@ const KIND_LABEL: Record<Kind, string> = {
 @Component({
   selector: 'pl-enrollment-detail-page',
   imports: [
+    EmptyState,
+    Section,
     MatChipsModule,
     MatTooltipModule,
     MatButtonModule,

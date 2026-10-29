@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { lessons } from '../src/db/schema.js';
 import { ReminderService } from '../src/lessons/reminder.service.js';
-import { type Account, account, enrol } from './fixtures.js';
+import { type Account, account, enrol, onSlot } from './fixtures.js';
 import { createHarness, type Harness } from './harness.js';
 
 let h: Harness;
@@ -16,7 +16,7 @@ beforeEach(async () => {
   await h.redis.flushdb();
 });
 
-const inHours = (hours: number) => new Date(Date.now() + hours * 3600_000).toISOString();
+const inHours = onSlot;
 
 async function setup() {
   const t = await account(h, 'tutor', 'Anna');
@@ -116,6 +116,7 @@ describe('cancellation policy', () => {
       autoChargeLateCancellation: true,
       cancellationWindowHours: 12,
       defaultLessonMinutes: 60,
+      slotMinutes: 30,
     });
     const [late] = await schedule(t, e.id, inHours(6));
     const [early] = await schedule(t, e.id, inHours(20));
@@ -161,5 +162,32 @@ describe('reminders', () => {
     expect(
       h.mail.outbox.some((m) => m.to === t.email && m.subject.startsWith('Przypomnienie')),
     ).toBe(true);
+  });
+
+  it('keeps lesson starts on the configured booking step', async () => {
+    const { t, e } = await setup();
+    const base = Date.parse(inHours(72));
+    const at = (min: number) => new Date(base + min * 60_000).toISOString();
+    const settings = (await t.c.get('/api/settings')).body;
+    expect(settings.slotMinutes).toBe(30);
+
+    const off = await t.c.post('/api/lessons', {
+      enrollmentId: e.id,
+      startsAt: at(15),
+      durationMin: 60,
+    });
+    expect(off.status).toBe(400);
+    expect(off.body.code).toBe('off_slot');
+
+    expect((await t.c.put('/api/settings', { ...settings, slotMinutes: 7 })).status).toBe(400);
+    expect(
+      (await t.c.put('/api/settings', { ...settings, slotMinutes: 15 })).body.slotMinutes,
+    ).toBe(15);
+    const [l] = await schedule(t, e.id, at(15));
+    const moved = await t.c.post(`/api/lessons/${l!.id}/reschedule`, { startsAt: at(130) });
+    expect(moved.body.code).toBe('off_slot');
+    expect((await t.c.post(`/api/lessons/${l!.id}/reschedule`, { startsAt: at(135) })).status).toBe(
+      200,
+    );
   });
 });

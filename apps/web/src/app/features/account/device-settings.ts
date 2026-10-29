@@ -113,7 +113,7 @@ import { AuthStore } from '../../core/auth.store';
   styles: `
     :host {
       display: grid;
-      gap: 16px;
+      gap: var(--pl-space-lg);
     }
     .narrow {
       max-width: 400px;

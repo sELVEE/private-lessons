@@ -52,3 +52,9 @@ export async function enrol(t: Account, s: Account) {
   expect(res.status).toBe(201);
   return res.body as { id: string };
 }
+
+/** ISO time `hours` from now, rounded down to the 30-minute booking grid (the default step). */
+export function onSlot(hours: number): string {
+  const step = 30 * 60_000;
+  return new Date(Math.floor((Date.now() + hours * 3600_000) / step) * step).toISOString();
+}

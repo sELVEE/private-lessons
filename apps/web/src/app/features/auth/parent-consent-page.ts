@@ -16,7 +16,7 @@ import { TokenAction } from './token-action';
             <div class="error-banner" role="alert">{{ message }}</div>
           }
           @if (confirm.state() === 'done') {
-            <div class="info-banner" role="status">Dziękujemy! Konto dziecka jest aktywne.</div>
+            <div class="info-banner" role="status">Dziękujemy. Konto dziecka jest aktywne.</div>
           } @else if (inspect.result(); as info) {
             <p>
               <strong>{{ info.studentName }}</strong> założył(a) konto na platformie korepetycji i

@@ -12,10 +12,13 @@ import type { ChildInfo } from '@pl/shared';
 import { toApiError } from '../../core/api-error';
 import { TeachingApi } from '../../core/teaching-api';
 import { statusLabel, studentLevel } from '../labels';
+import { Avatar, PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'pl-children-page',
   imports: [
+    Avatar,
+    PageHeader,
     DatePipe,
     ReactiveFormsModule,
     RouterLink,
@@ -28,7 +31,7 @@ import { statusLabel, studentLevel } from '../labels';
   ],
   template: `
     <div class="page">
-      <h1>Dzieci</h1>
+      <pl-page-header title="Dzieci" />
       @if (error(); as e) {
         <div class="error-banner" role="alert">{{ e }}</div>
       }
@@ -63,7 +66,7 @@ import { statusLabel, studentLevel } from '../labels';
       @for (child of children(); track child.id) {
         <mat-card appearance="outlined" class="child">
           <mat-card-header>
-            <div mat-card-avatar class="avatar">{{ child.displayName.charAt(0) }}</div>
+            <pl-avatar mat-card-avatar [name]="child.displayName" [colorKey]="child.id" />
             <mat-card-title>{{ child.displayName }}</mat-card-title>
             <mat-card-subtitle>{{ level(child) }}</mat-card-subtitle>
           </mat-card-header>
@@ -95,12 +98,11 @@ import { statusLabel, studentLevel } from '../labels';
   styles: `
     .add,
     .child {
-      margin-bottom: 16px;
       max-width: 640px;
     }
     .inline {
       display: flex;
-      gap: 12px;
+      gap: var(--pl-space-md);
       align-items: center;
       flex-wrap: wrap;
     }

@@ -21,7 +21,7 @@
             Godziny pracy
           }
           @case ('rules') {
-            Zasady odwołań
+            Ustawienia lekcji
           }
         }
       </span>
@@ -37,9 +37,7 @@
             <h2>{{ l.startsAt | date: 'EEEE, d MMMM' }}</h2>
             <p class="time">{{ l.startsAt | date: 'HH:mm' }}–{{ endTime(l) | date: 'HH:mm' }}</p>
             <div class="who">
-              <span class="avatar" [style.background]="color(l.student.id)">{{
-                initial(who(l))
-              }}</span>
+              <pl-avatar [name]="who(l)" [colorKey]="l.student.id" />
               <div>
                 <strong>{{ who(l) }}</strong>
                 <span class="muted">{{ l.subject }} · {{ l.durationMin }} min</span>
@@ -97,10 +95,7 @@
 
           @if (editing()) {
             <form [formGroup]="rescheduleForm" (ngSubmit)="reschedule(l)" class="form-stack inset">
-              <mat-form-field>
-                <mat-label>Nowy termin</mat-label>
-                <input matInput type="datetime-local" formControlName="startsAt" />
-              </mat-form-field>
+              <pl-date-time-field formControlName="startsAt" label="Nowy termin" [step]="step()" />
               <mat-form-field>
                 <mat-label>Czas trwania (min)</mat-label>
                 <input
@@ -109,10 +104,10 @@
                   formControlName="durationMin"
                   min="15"
                   max="240"
-                  step="15"
+                  [step]="step()"
                 />
               </mat-form-field>
-              <div class="row-actions">
+              <div class="form-actions">
                 <button type="button" matButton (click)="editing.set(false)">Anuluj</button>
                 <button type="submit" matButton="filled" [disabled]="busy()">Zapisz</button>
               </div>
@@ -124,8 +119,8 @@
                 <mat-label>Powód (opcjonalnie)</mat-label>
                 <input matInput [formControl]="cancelReason" />
               </mat-form-field>
-              <div class="row-actions">
-                <button type="button" matButton (click)="cancelling.set(false)">Nie</button>
+              <div class="form-actions">
+                <button type="button" matButton (click)="cancelling.set(false)">Wróć</button>
                 <button
                   type="button"
                   matButton="filled"
@@ -140,12 +135,14 @@
           }
           @if (isTutor() && l.status === 'cancelled' && l.chargeable === null) {
             <div class="inset">
-              <p>Późne odwołanie przez ucznia — czy lekcja jest płatna?</p>
-              <div class="row-actions">
+              <p>Uczeń odwołał lekcję po terminie. Czy naliczyć opłatę?</p>
+              <div class="form-actions">
                 <button type="button" matButton="outlined" (click)="decide(l, false)">
                   Bez opłaty
                 </button>
-                <button type="button" matButton="filled" (click)="decide(l, true)">Płatna</button>
+                <button type="button" matButton="filled" (click)="decide(l, true)">
+                  Nalicz opłatę
+                </button>
               </div>
             </div>
           }
@@ -164,10 +161,7 @@
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field>
-            <mat-label>Początek</mat-label>
-            <input matInput type="datetime-local" formControlName="startsAt" />
-          </mat-form-field>
+          <pl-date-time-field formControlName="startsAt" label="Dzień" [step]="step()" />
           <div class="two">
             <mat-form-field>
               <mat-label>Czas (min)</mat-label>
@@ -177,7 +171,7 @@
                 formControlName="durationMin"
                 min="15"
                 max="240"
-                step="15"
+                [step]="step()"
               />
             </mat-form-field>
             <mat-form-field>
@@ -197,8 +191,7 @@
           @if (error(); as e) {
             <div class="error-banner" role="alert">{{ e }}</div>
           }
-          <div class="row-actions">
-            <span class="muted">Lekcje grupowe — później.</span>
+          <div class="form-actions">
             <button type="submit" matButton="filled" [disabled]="busy()">Zaplanuj</button>
           </div>
         </form>
@@ -208,14 +201,39 @@
         <pl-availability-editor
           [value]="hours()"
           [suggestedDate]="mode() === 'day' ? (days()[0]?.key ?? null) : null"
+          [step]="step()"
           (changed)="hours.set($event)"
         />
       }
 
       @case ('rules') {
         <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="form-stack">
+          <h3>Rezerwacja</h3>
           <mat-form-field>
-            <mat-label>„Późne” odwołanie: mniej niż (godzin)</mat-label>
+            <mat-label>Krok rezerwacji</mat-label>
+            <mat-select formControlName="slotMinutes">
+              @for (m of slotOptions; track m) {
+                <mat-option [value]="m">co {{ m }} min</mat-option>
+              }
+            </mat-select>
+            <mat-hint
+              >Możliwe początki lekcji:
+              {{ slotExamples(settingsForm.value.slotMinutes ?? 30) }}</mat-hint
+            >
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Domyślna długość lekcji (min)</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="defaultLessonMinutes"
+              min="15"
+              max="240"
+            />
+          </mat-form-field>
+          <h3>Odwołania</h3>
+          <mat-form-field>
+            <mat-label>Odwołanie jest późne, gdy do lekcji zostało mniej niż (godz.)</mat-label>
             <input
               matInput
               type="number"
@@ -231,18 +249,7 @@
             Gdy wyłączone, późne odwołania czekają na Twoją decyzję. Odwołanie przez Ciebie nigdy
             nie jest płatne.
           </p>
-          <mat-form-field>
-            <mat-label>Domyślna długość lekcji (min)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="defaultLessonMinutes"
-              min="15"
-              max="240"
-            />
-          </mat-form-field>
-          <div class="row-actions">
-            <span></span>
+          <div class="form-actions">
             <button type="submit" matButton="filled" [disabled]="busy()">Zapisz</button>
           </div>
         </form>
@@ -252,87 +259,62 @@
 
   <mat-drawer-content>
     <div class="page">
-      <header class="page-head">
-        <div class="title">
-          <span class="muted"
-            >{{ count() }}
-            {{ count() === 1 ? 'lekcja' : count() > 1 && count() < 5 ? 'lekcje' : 'lekcji' }}</span
+      <pl-page-header [title]="title()" [eyebrow]="countLabel()">
+        <pl-period-nav prevLabel="Wstecz" nextLabel="Dalej" (prev)="move(-1)" (next)="move(1)">
+          <button matButton="outlined" type="button" (click)="today()">Dziś</button>
+        </pl-period-nav>
+        <span class="picker">
+          <input
+            class="picker-input"
+            [matDatepicker]="jump"
+            [value]="anchor()"
+            (dateChange)="goTo($event.value)"
+            tabindex="-1"
+            aria-hidden="true"
+          />
+          <mat-datepicker-toggle [for]="jump" matTooltip="Wybierz datę">
+            <mat-icon matDatepickerToggleIcon fontSet="material-symbols-outlined">event</mat-icon>
+          </mat-datepicker-toggle>
+          <mat-datepicker #jump />
+        </span>
+        <mat-button-toggle-group
+          [value]="mode()"
+          (change)="setMode($event.value)"
+          aria-label="Widok kalendarza"
+        >
+          <mat-button-toggle value="day">Dzień</mat-button-toggle>
+          <mat-button-toggle value="week">Tydzień</mat-button-toggle>
+          <mat-button-toggle value="month">Miesiąc</mat-button-toggle>
+        </mat-button-toggle-group>
+        @if (isTutor()) {
+          <button
+            matIconButton
+            type="button"
+            [matMenuTriggerFor]="opts"
+            matTooltip="Ustawienia"
+            aria-label="Ustawienia kalendarza"
           >
-          <h1>{{ title() }}</h1>
-        </div>
-        <div class="controls">
-          <div class="nav">
-            <button
-              matIconButton
-              type="button"
-              (click)="move(-1)"
-              matTooltip="Wstecz"
-              aria-label="Wstecz"
-            >
-              <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
+            <mat-icon fontSet="material-symbols-outlined">tune</mat-icon>
+          </button>
+          <mat-menu #opts="matMenu">
+            <button mat-menu-item (click)="panel.set('hours')">
+              <mat-icon fontSet="material-symbols-outlined">schedule</mat-icon>Godziny pracy
             </button>
-            <button matButton="outlined" type="button" (click)="today()">Dziś</button>
-            <button
-              matIconButton
-              type="button"
-              (click)="move(1)"
-              matTooltip="Dalej"
-              aria-label="Dalej"
-            >
-              <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
+            <button mat-menu-item (click)="panel.set('rules')">
+              <mat-icon fontSet="material-symbols-outlined">settings</mat-icon>Ustawienia lekcji
             </button>
-            <input
-              class="picker-input"
-              [matDatepicker]="jump"
-              [value]="anchor()"
-              (dateChange)="goTo($event.value)"
-              tabindex="-1"
-              aria-hidden="true"
-            />
-            <mat-datepicker-toggle [for]="jump" matTooltip="Wybierz datę">
-              <mat-icon matDatepickerToggleIcon fontSet="material-symbols-outlined">event</mat-icon>
-            </mat-datepicker-toggle>
-            <mat-datepicker #jump />
-          </div>
-          <mat-button-toggle-group
-            [value]="mode()"
-            (change)="setMode($event.value)"
-            aria-label="Widok kalendarza"
+          </mat-menu>
+          <button
+            type="button"
+            matButton="filled"
+            (click)="openCreate()"
+            [disabled]="!activeEnrollments().length"
           >
-            <mat-button-toggle value="day">Dzień</mat-button-toggle>
-            <mat-button-toggle value="week">Tydzień</mat-button-toggle>
-            <mat-button-toggle value="month">Miesiąc</mat-button-toggle>
-          </mat-button-toggle-group>
-          @if (isTutor()) {
-            <button
-              matIconButton
-              type="button"
-              [matMenuTriggerFor]="opts"
-              matTooltip="Ustawienia"
-              aria-label="Ustawienia kalendarza"
-            >
-              <mat-icon fontSet="material-symbols-outlined">tune</mat-icon>
-            </button>
-            <mat-menu #opts="matMenu">
-              <button mat-menu-item (click)="panel.set('hours')">
-                <mat-icon fontSet="material-symbols-outlined">schedule</mat-icon>Godziny pracy
-              </button>
-              <button mat-menu-item (click)="panel.set('rules')">
-                <mat-icon fontSet="material-symbols-outlined">event_busy</mat-icon>Zasady odwołań
-              </button>
-            </mat-menu>
-            <button
-              type="button"
-              matButton="filled"
-              (click)="openCreate()"
-              [disabled]="!activeEnrollments().length"
-            >
-              <mat-icon fontSet="material-symbols-outlined">add</mat-icon>
-              Zaplanuj lekcję
-            </button>
-          }
-        </div>
-      </header>
+            <mat-icon fontSet="material-symbols-outlined">add</mat-icon>
+            Zaplanuj lekcję
+          </button>
+        }
+      </pl-page-header>
 
       @if (error() && panel() !== 'create') {
         <div class="error-banner" role="alert">{{ error() }}</div>
@@ -495,8 +477,7 @@
       }
 
       @if (pending().length) {
-        <section class="pl-card pending">
-          <h2>Późne odwołania do decyzji</h2>
+        <pl-section title="Późne odwołania — decyzja o opłacie" [count]="pending().length">
           @for (l of pending(); track l.id) {
             <div class="pending-row">
               <span>
@@ -509,11 +490,13 @@
                 <button type="button" matButton="outlined" (click)="decide(l, false)">
                   Bez opłaty
                 </button>
-                <button type="button" matButton="filled" (click)="decide(l, true)">Płatna</button>
+                <button type="button" matButton="filled" (click)="decide(l, true)">
+                  Nalicz opłatę
+                </button>
               </span>
             </div>
           }
-        </section>
+        </pl-section>
       }
     </div>
   </mat-drawer-content>

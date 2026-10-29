@@ -10,6 +10,7 @@ import type { AdminUserRow } from '@pl/shared';
 import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
+import { PageHeader } from '../../shared/ui';
 
 const TYPE_LABEL: Record<string, string> = {
   tutor: 'Korepetytor',
@@ -26,6 +27,7 @@ const STATUS_LABEL: Record<AdminUserRow['status'], string> = {
 @Component({
   selector: 'pl-admin-page',
   imports: [
+    PageHeader,
     DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
@@ -36,11 +38,11 @@ const STATUS_LABEL: Record<AdminUserRow['status'], string> = {
   ],
   template: `
     <div class="page">
-      <h1>Administracja — konta</h1>
-      <p class="muted">
-        Administrator nie ma wglądu w lekcje, notatki ani płatności. Każde wyszukiwanie i zmiana
-        statusu trafia do dziennika audytu razem z podanym powodem.
-      </p>
+      <pl-page-header
+        title="Konta użytkowników"
+        eyebrow="Administracja"
+        subtitle="Administrator nie ma wglądu w lekcje, notatki ani płatności. Każde wyszukiwanie i zmiana statusu trafia do dziennika audytu razem z podanym powodem."
+      />
       @if (error(); as e) {
         <div class="error-banner" role="alert">{{ e }}</div>
       }
@@ -111,7 +113,7 @@ const STATUS_LABEL: Record<AdminUserRow['status'], string> = {
   styles: `
     .search {
       display: flex;
-      gap: 12px;
+      gap: var(--pl-space-md);
       align-items: center;
       flex-wrap: wrap;
     }

@@ -1,5 +1,5 @@
 <div class="page">
-  <h1>Konto i bezpieczeństwo</h1>
+  <pl-page-header title="Konto i bezpieczeństwo" />
 
   @if (me()?.mfaSetupRequired) {
     <div class="error-banner" role="alert">
@@ -165,7 +165,7 @@
                   }
                 </span>
                 <span matListItemLine class="muted">
-                  Ostatnio: {{ s.lastSeenAt | date: 'short' }} · zalogowano
+                  Ostatnia aktywność: {{ s.lastSeenAt | date: 'short' }} · zalogowano
                   {{ s.createdAt | date: 'short' }}
                 </span>
                 @if (!s.current) {
