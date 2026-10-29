@@ -35,6 +35,7 @@ export const NAV: Record<AccountType | 'admin', NavItem[]> = {
     HOME,
     { path: '/app/children', label: 'Dzieci', icon: 'family_restroom' },
     { path: '/app/calendar', label: 'Lekcje', icon: 'calendar_month' },
+    { path: '/app/homework', label: 'Zadania domowe', icon: 'assignment' },
     { path: '/app/progress', label: 'Postępy', icon: 'trending_up' },
     { path: '/app/billing', label: 'Płatności', icon: 'payments' },
     ...COMMON_END,

@@ -1,0 +1,147 @@
+<div class="page">
+  <div class="header">
+    <h1>Zadania domowe</h1>
+    @if (isTutor()) {
+      <button mat-flat-button (click)="openAssign()" [disabled]="!activeEnrollments().length">
+        <mat-icon fontSet="material-symbols-outlined">add_task</mat-icon> Zadaj zadanie
+      </button>
+    }
+  </div>
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+
+  @if (showAssign()) {
+    <mat-card appearance="outlined" class="panel">
+      <mat-card-content>
+        <form [formGroup]="assignForm" (ngSubmit)="assign()" class="form-stack">
+          <mat-form-field>
+            <mat-label>Uczeń</mat-label>
+            <mat-select formControlName="enrollmentId">
+              @for (e of activeEnrollments(); track e.id) {
+                <mat-option [value]="e.id"
+                  >{{ e.student.displayName }} — {{ e.subject.name }}</mat-option
+                >
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Tytuł</mat-label>
+            <input matInput formControlName="title" placeholder="np. Zadania 1–5, str. 42" />
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Polecenie (Markdown, wzory w $…$)</mat-label>
+            <textarea matInput formControlName="instructions" rows="5"></textarea>
+          </mat-form-field>
+          <pl-markdown [text]="assignForm.controls.instructions.value" />
+          <mat-form-field>
+            <mat-label>Termin</mat-label>
+            <input matInput type="date" formControlName="dueAt" />
+          </mat-form-field>
+          <div class="row-actions">
+            <button mat-button type="button" (click)="showAssign.set(false)">Anuluj</button>
+            <button mat-flat-button type="submit">Zadaj</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-button-toggle-group
+    [value]="filter()"
+    (change)="filter.set($event.value)"
+    aria-label="Filtr"
+  >
+    <mat-button-toggle value="all">Wszystkie</mat-button-toggle>
+    <mat-button-toggle value="assigned">Do zrobienia</mat-button-toggle>
+    <mat-button-toggle value="submitted">Oddane</mat-button-toggle>
+    <mat-button-toggle value="reviewed">Sprawdzone</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <div class="list">
+    @for (h of visible(); track h.id) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>{{ h.title }}</mat-card-title>
+          <mat-card-subtitle>
+            {{ isTutor() ? h.student : h.tutor }} · {{ h.subject }}
+            @if (role() === 'parent') {
+              · {{ h.student }}
+            }
+            @if (h.dueAt) {
+              · <span [class.overdue]="isOverdue(h)">termin {{ h.dueAt | date: 'EEE d.MM' }}</span>
+            }
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-chip-set
+            ><mat-chip>{{ statusLabel[h.status] }}</mat-chip></mat-chip-set
+          >
+          @if (h.instructions) {
+            <pl-markdown [text]="h.instructions" />
+          }
+          @if (h.submission) {
+            <div class="answer">
+              <div class="muted">Rozwiązanie · {{ h.submittedAt | date: 'd.MM HH:mm' }}</div>
+              <pl-markdown [text]="h.submission" />
+            </div>
+          }
+          @if (h.status === 'reviewed') {
+            <div class="feedback">
+              <div class="muted">Ocena korepetytora</div>
+              @if (h.grade) {
+                <div class="grade">{{ h.grade }}</div>
+              }
+              <pl-markdown [text]="h.feedback" />
+            </div>
+          }
+
+          @if (answering() === h.id) {
+            <mat-form-field class="full-width">
+              <mat-label>Twoje rozwiązanie (Markdown, wzory w $…$)</mat-label>
+              <textarea matInput [formControl]="answer" rows="6"></textarea>
+            </mat-form-field>
+            <pl-markdown [text]="answer.value" />
+            <div class="row-actions">
+              <button mat-button (click)="answering.set(null)">Anuluj</button>
+              <button mat-flat-button (click)="submit(h)">Oddaj</button>
+            </div>
+          }
+          @if (reviewing() === h.id) {
+            <form [formGroup]="reviewForm" (ngSubmit)="review(h)" class="form-stack">
+              <mat-form-field>
+                <mat-label>Komentarz</mat-label>
+                <textarea matInput formControlName="feedback" rows="4"></textarea>
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Ocena (opcjonalnie)</mat-label>
+                <input matInput formControlName="grade" placeholder="np. 5, 8/10, zaliczone" />
+              </mat-form-field>
+              <div class="row-actions">
+                <button mat-button type="button" (click)="reviewing.set(null)">Anuluj</button>
+                <button mat-flat-button type="submit">Zapisz ocenę</button>
+              </div>
+            </form>
+          }
+        </mat-card-content>
+        <mat-card-actions>
+          @if (role() === 'student' && h.status !== 'reviewed' && answering() !== h.id) {
+            <button mat-flat-button (click)="startAnswer(h)">
+              {{ h.submission ? 'Popraw rozwiązanie' : 'Rozwiąż' }}
+            </button>
+          }
+          @if (isTutor()) {
+            @if (h.status !== 'assigned' && reviewing() !== h.id) {
+              <button mat-flat-button (click)="startReview(h)">
+                {{ h.status === 'reviewed' ? 'Zmień ocenę' : 'Sprawdź' }}
+              </button>
+            }
+            <button mat-button (click)="remove(h)">Usuń</button>
+          }
+        </mat-card-actions>
+      </mat-card>
+    } @empty {
+      <p class="muted">Brak zadań.</p>
+    }
+  </div>
+</div>

@@ -34,9 +34,10 @@
               "@fontsource/roboto/500.css",
               "@fontsource/roboto/700.css",
               "material-symbols/outlined.css",
+              "katex/dist/katex.min.css",
               "src/styles.scss"
             ],
-            "allowedCommonJsDependencies": ["qrcode"]
+            "allowedCommonJsDependencies": ["qrcode", "dompurify"]
           },
           "configurations": {
             "production": {

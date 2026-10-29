@@ -9,8 +9,11 @@ import {
   enrollmentEvents,
   enrollmentRates,
   enrollments,
+  homework,
   ledgerEntries,
   lessons,
+  materialShares,
+  materials,
   memberships,
   organizations,
   parentLinks,
@@ -196,6 +199,41 @@ async function seedTeaching() {
       method: 'transfer',
       description: 'Wpłata (przelew)',
       createdBy: tutor.id,
+    });
+  }
+  if (!(await db.$count(materials, eq(materials.tutorId, tutor.id)))) {
+    const scope = {
+      organizationId: orgId,
+      enrollmentId: enrollment!.id,
+      tutorId: tutor.id,
+      studentId: student.id,
+    };
+    const [m] = await db
+      .insert(materials)
+      .values({
+        organizationId: orgId,
+        tutorId: tutor.id,
+        subjectId: math!.id,
+        title: 'Równanie kwadratowe — ściąga',
+        body: [
+          '## Postać ogólna',
+          '$$ax^2 + bx + c = 0, \\quad a \\neq 0$$',
+          '',
+          'Wyróżnik: $\\Delta = b^2 - 4ac$',
+          '',
+          '- $\\Delta > 0$ — dwa rozwiązania: $$x_{1,2} = \\frac{-b \\pm \\sqrt{\\Delta}}{2a}$$',
+          '- $\\Delta = 0$ — jedno rozwiązanie $x_0 = -\\frac{b}{2a}$',
+          '- $\\Delta < 0$ — brak rozwiązań rzeczywistych',
+        ].join('\n'),
+      })
+      .returning();
+    await db.insert(materialShares).values({ ...scope, materialId: m!.id });
+    await db.insert(homework).values({
+      ...scope,
+      title: 'Równania kwadratowe — zadania 1–5',
+      instructions:
+        'Rozwiąż: $x^2 - 5x + 6 = 0$ oraz $2x^2 + 3x - 2 = 0$. Pokaż obliczenie $\\Delta$.',
+      dueAt: new Date(Date.now() + 4 * 24 * 3600_000),
     });
   }
   console.log('  Kasia uczy się matematyki u Anny, Marek jest połączony z Kasią');

@@ -20,6 +20,7 @@ import {
   ACCOUNT_TYPES,
   ATTENDANCE,
   ENROLLMENT_STATUSES,
+  HOMEWORK_STATUSES,
   LEDGER_KINDS,
   LESSON_STATUSES,
   ORG_ROLES,
@@ -510,5 +511,71 @@ export const ledgerEntries = pgTable(
     index('ledger_enrollment_time_idx').on(t.enrollmentId, t.occurredAt),
     index('ledger_tutor_time_idx').on(t.tutorId, t.occurredAt),
     index('ledger_lesson_idx').on(t.lessonId),
+  ],
+);
+
+// ---------------------------------------------------------------- stage 6: materials and homework
+
+export const homeworkStatus = pgEnum('homework_status', HOMEWORK_STATUSES);
+
+/** A tutor's library item (Markdown + KaTeX). Students see it once shared with them. */
+export const materials = pgTable(
+  'materials',
+  {
+    id: id(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    tutorId: uuid('tutor_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    topicId: uuid('topic_id').references(() => topics.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    body: text('body').notNull().default(''),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('materials_tutor_idx').on(t.tutorId, t.subjectId)],
+);
+
+export const materialShares = pgTable(
+  'material_shares',
+  {
+    id: id(),
+    ...scoped(),
+    materialId: uuid('material_id')
+      .notNull()
+      .references(() => materials.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('material_shares_uq').on(t.materialId, t.enrollmentId),
+    index('material_shares_student_idx').on(t.studentId),
+  ],
+);
+
+export const homework = pgTable(
+  'homework',
+  {
+    id: id(),
+    ...scoped(),
+    lessonId: uuid('lesson_id').references(() => lessons.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    instructions: text('instructions').notNull().default(''),
+    dueAt: timestamp('due_at', { withTimezone: true }),
+    status: homeworkStatus('status').notNull().default('assigned'),
+    submission: text('submission'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    feedback: text('feedback'),
+    grade: text('grade'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('homework_enrollment_idx').on(t.enrollmentId, t.createdAt),
+    index('homework_student_idx').on(t.studentId, t.status),
   ],
 );

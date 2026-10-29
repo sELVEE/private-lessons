@@ -20,6 +20,7 @@ import { DbModule } from './db/db.module.js';
 import { HealthController } from './health/health.controller.js';
 import { LessonsModule } from './lessons/lessons.module.js';
 import { MailModule } from './mail/mail.module.js';
+import { MaterialsModule } from './materials/materials.module.js';
 import { NotesModule } from './notes/notes.module.js';
 import { RedisModule } from './redis/redis.module.js';
 import { RlsModule } from './rls/rls.module.js';
@@ -56,6 +57,7 @@ export class AppModule implements NestModule {
         LessonsModule,
         NotesModule,
         BillingModule,
+        MaterialsModule,
         AdminModule,
       ],
       controllers: [HealthController],

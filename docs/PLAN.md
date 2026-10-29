@@ -72,11 +72,13 @@ Legenda: ✅ zrobione · 🔜 następne · ⏳ później (świadomie odłożone)
 - Uczeń i rodzic widzą salda i rozliczenia (tylko odczyt), inni korepetytorzy nic (RLS).
 - ⏳ Rachunki / faktury (PDF, KSeF), płatności online przez operatora.
 
-### Etap 6 — materiały i zadania domowe
+### Etap 6 — materiały i zadania domowe ✅
 
-- Biblioteka materiałów według przedmiotu i tematu (Markdown + KaTeX).
-- Zadania domowe z terminem, oddawaniem i oceną.
-- ⏳ Pliki (PDF, zdjęcia, prezentacje) i linki. ⏳ Tablica online. ⏳ Lekcje online.
+- Biblioteka materiałów korepetytora według przedmiotu i tematu: Markdown + wzory KaTeX (`$…$`, `$$…$$`), edytor z podglądem na żywo.
+- Udostępnianie wybranym uczniom; uczeń i jego rodzic widzą tylko udostępnione materiały (RLS przez funkcję `app_material_shared_with_me`).
+- Zadania domowe: zadane (z terminem, opcjonalnie powiązane z lekcją) → oddane przez ucznia (Markdown + wzory) → sprawdzone (komentarz, ocena). E-maile na każdym kroku. Rodzic widzi zadania dziecka.
+- Renderowanie: `marked` + KaTeX, sanityzacja DOMPurify (bez skryptów, handlerów, `javascript:`), test jednostkowy XSS.
+- ⏳ Pliki (PDF, zdjęcia, prezentacje) i linki ze skanowaniem, tablica online, lekcje online.
 
 ### Etap 7 — postępy
 

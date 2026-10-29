@@ -1,0 +1,147 @@
+<div class="page">
+  <div class="header">
+    <h1>{{ isTutor() ? 'Biblioteka materiałów' : 'Materiały' }}</h1>
+    @if (isTutor()) {
+      <button mat-flat-button (click)="startNew()" [disabled]="!subjects().length">
+        <mat-icon fontSet="material-symbols-outlined">add</mat-icon> Nowy materiał
+      </button>
+    }
+  </div>
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+
+  <div class="layout">
+    <aside>
+      @if (isTutor()) {
+        <mat-chip-listbox
+          aria-label="Filtr przedmiotu"
+          [value]="filterSubject()"
+          (change)="filterSubject.set($event.value ?? '')"
+        >
+          <mat-chip-option value="">Wszystkie</mat-chip-option>
+          @for (s of subjects(); track s.id) {
+            <mat-chip-option [value]="s.id">{{ s.name }}</mat-chip-option>
+          }
+        </mat-chip-listbox>
+      }
+      <nav class="list">
+        @for (m of visible(); track m.id) {
+          <button class="item" [class.active]="selected()?.id === m.id" (click)="open(m)">
+            <span class="title">{{ m.title }}</span>
+            <span class="muted"
+              >{{ m.subject.name }}
+              @if (m.topic) {
+                · {{ m.topic.name }}
+              }
+              @if (!isTutor()) {
+                · {{ m.tutor }}
+              }
+            </span>
+          </button>
+        } @empty {
+          <p class="muted">
+            {{
+              isTutor()
+                ? 'Brak materiałów. Dodaj pierwszy.'
+                : 'Korepetytor nie udostępnił jeszcze materiałów.'
+            }}
+          </p>
+        }
+      </nav>
+    </aside>
+
+    <section class="content">
+      @if (editing()) {
+        <mat-card appearance="outlined">
+          <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="save()" class="form-stack">
+              <mat-form-field>
+                <mat-label>Tytuł</mat-label>
+                <input matInput formControlName="title" />
+              </mat-form-field>
+              <div class="two">
+                <mat-form-field>
+                  <mat-label>Przedmiot</mat-label>
+                  <mat-select formControlName="subjectId">
+                    @for (s of subjects(); track s.id) {
+                      <mat-option [value]="s.id">{{ s.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Temat</mat-label>
+                  <mat-select formControlName="topicId">
+                    <mat-option [value]="null">—</mat-option>
+                    @for (t of topics(); track t.id) {
+                      <mat-option [value]="t.id">{{ t.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="editor">
+                <mat-form-field>
+                  <mat-label>Treść (Markdown, wzory: $x^2$ lub $$\int f(x)\,dx$$)</mat-label>
+                  <textarea matInput formControlName="body" rows="18"></textarea>
+                </mat-form-field>
+                <div class="preview">
+                  <span class="muted">Podgląd</span>
+                  <pl-markdown [text]="preview()" />
+                </div>
+              </div>
+              <div class="row-actions">
+                <span class="muted">Pliki PDF, zdjęcia i linki — w kolejnym etapie.</span>
+                <span>
+                  <button mat-button type="button" (click)="editing.set(null)">Anuluj</button>
+                  <button mat-flat-button type="submit">Zapisz</button>
+                </span>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      } @else if (selected(); as m) {
+        <mat-card appearance="outlined">
+          <mat-card-header>
+            <mat-card-title>{{ m.title }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ m.subject.name }}
+              @if (m.topic) {
+                · {{ m.topic.name }}
+              }
+              · {{ m.updatedAt | date: 'd.MM.yyyy' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (isTutor()) {
+              <div class="actions">
+                <button mat-stroked-button (click)="startEdit(m)">Edytuj</button>
+                <button mat-stroked-button (click)="startShare(m)">Udostępnij</button>
+                <button mat-button (click)="remove(m)">Usuń</button>
+              </div>
+              <p class="muted">Udostępnione: {{ sharedNames(m) || 'nikomu' }}</p>
+              @if (sharing()) {
+                <div class="share">
+                  @for (e of activeEnrollments(); track e.id) {
+                    <mat-checkbox
+                      [checked]="shareSelection().has(e.id)"
+                      (change)="toggleShare(e.id, $event.checked)"
+                    >
+                      {{ e.student.displayName }} — {{ e.subject.name }}
+                    </mat-checkbox>
+                  }
+                  <div>
+                    <button mat-button (click)="sharing.set(false)">Anuluj</button>
+                    <button mat-flat-button (click)="saveShare(m)">Zapisz udostępnienie</button>
+                  </div>
+                </div>
+              }
+            }
+            <pl-markdown [text]="m.body" />
+          </mat-card-content>
+        </mat-card>
+      } @else {
+        <p class="muted placeholder">Wybierz materiał z listy.</p>
+      }
+    </section>
+  </div>
+</div>

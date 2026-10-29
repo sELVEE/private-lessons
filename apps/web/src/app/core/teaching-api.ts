@@ -10,6 +10,10 @@ import type {
   ChildInfo,
   CreateInviteInput,
   EnrollmentDetail,
+  HomeworkInfo,
+  HomeworkInput,
+  MaterialInfo,
+  MaterialInput,
   EnrollmentInfo,
   EnrollmentStatus,
   InviteInfo,
@@ -149,6 +153,25 @@ export class TeachingApi {
       note,
     });
   voidEntry = (id: string) => firstValueFrom(this.http.delete(`/api/billing/entries/${id}`));
+
+  materials = (subjectId?: string) =>
+    this.get<MaterialInfo[]>(`/api/materials${subjectId ? `?subjectId=${subjectId}` : ''}`);
+  material = (id: string) => this.get<MaterialInfo>(`/api/materials/${id}`);
+  createMaterial = (m: MaterialInput) => this.post<MaterialInfo>('/api/materials', m);
+  updateMaterial = (id: string, m: MaterialInput) =>
+    firstValueFrom(this.http.put<MaterialInfo>(`/api/materials/${id}`, m));
+  deleteMaterial = (id: string) => firstValueFrom(this.http.delete(`/api/materials/${id}`));
+  shareMaterial = (id: string, enrollmentIds: string[]) =>
+    firstValueFrom(this.http.put<MaterialInfo>(`/api/materials/${id}/shares`, { enrollmentIds }));
+
+  homework = (enrollmentId?: string) =>
+    this.get<HomeworkInfo[]>(`/api/homework${enrollmentId ? `?enrollmentId=${enrollmentId}` : ''}`);
+  assignHomework = (h: HomeworkInput) => this.post<HomeworkInfo>('/api/homework', h);
+  submitHomework = (id: string, submission: string) =>
+    this.post<HomeworkInfo>(`/api/homework/${id}/submit`, { submission });
+  reviewHomework = (id: string, feedback: string, grade?: string) =>
+    this.post<HomeworkInfo>(`/api/homework/${id}/review`, { feedback, grade });
+  deleteHomework = (id: string) => firstValueFrom(this.http.delete(`/api/homework/${id}`));
 
   private get<T>(url: string) {
     return firstValueFrom(this.http.get<T>(url));
