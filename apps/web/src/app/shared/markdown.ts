@@ -39,11 +39,11 @@ const inlineMath: TokenizerAndRendererExtension = {
 
 const parser = new Marked({ gfm: true, breaks: true, extensions: [blockMath, inlineMath] });
 
-/** Markdown → sanitised HTML. DOMPurify keeps KaTeX's MathML and inline styles but strips scripts and handlers. */
+/** Markdown → sanitised HTML. DOMPurify keeps KaTeX's MathML, SVG (e.g. √) and inline styles but strips scripts and handlers. */
 export function renderMarkdown(text: string): string {
   const html = parser.parse(text ?? '', { async: false }) as string;
   return DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true, mathMl: true },
+    USE_PROFILES: { html: true, mathMl: true, svg: true },
     ADD_ATTR: ['target'],
   });
 }

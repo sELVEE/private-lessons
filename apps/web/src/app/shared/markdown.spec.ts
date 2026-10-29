@@ -8,6 +8,10 @@ describe('renderMarkdown', () => {
     expect(html).toContain('<math');
   });
 
+  it('keeps the SVG KaTeX draws square roots with', () => {
+    expect(renderMarkdown('$\\sqrt{2}$')).toContain('<svg');
+  });
+
   it('removes scripts and event handlers', () => {
     const html = renderMarkdown(
       '<img src=x onerror="alert(1)"><script>alert(2)</script>[a](javascript:alert(3))',
@@ -15,5 +19,8 @@ describe('renderMarkdown', () => {
     expect(html).not.toContain('onerror');
     expect(html).not.toContain('<script');
     expect(html).not.toContain('javascript:');
+    expect(
+      renderMarkdown('<svg><script>alert(1)</script><a href="javascript:alert(1)">x</a></svg>'),
+    ).not.toMatch(/script|javascript:/);
   });
 });
