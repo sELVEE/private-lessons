@@ -56,6 +56,10 @@ export class Client {
     return this.agent.post(url).set('origin', ORIGIN).set('x-csrf-token', this.csrf).send(body);
   }
 
+  put(url: string, body?: object) {
+    return this.agent.put(url).set('origin', ORIGIN).set('x-csrf-token', this.csrf).send(body);
+  }
+
   patch(url: string, body?: object) {
     return this.agent.patch(url).set('origin', ORIGIN).set('x-csrf-token', this.csrf).send(body);
   }

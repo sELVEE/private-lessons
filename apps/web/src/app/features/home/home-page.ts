@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { RouterLink } from '@angular/router';
-import type { ChildInfo, EnrollmentInfo } from '@pl/shared';
+import type { ChildInfo, EnrollmentInfo, LessonInfo } from '@pl/shared';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
 import { studentLevel } from '../labels';
@@ -38,6 +38,7 @@ export default class HomePage implements OnInit {
 
   readonly enrollments = signal<EnrollmentInfo[]>([]);
   readonly children = signal<ChildInfo[]>([]);
+  readonly upcoming = signal<LessonInfo[]>([]);
   readonly active = computed(() => this.enrollments().filter((e) => e.status === 'active'));
   readonly schoolLabel = computed(() => {
     const s = this.me()?.student;
@@ -50,6 +51,11 @@ export default class HomePage implements OnInit {
       if (role === 'tutor' || role === 'student')
         this.enrollments.set(await this.api.enrollments());
       if (role === 'parent') this.children.set(await this.api.children());
+      if (role !== 'admin') {
+        const now = new Date();
+        const lessons = await this.api.lessons(now, new Date(now.getTime() + 14 * 24 * 3600_000));
+        this.upcoming.set(lessons.filter((l) => l.status === 'scheduled').slice(0, 5));
+      }
     } catch {
       // Widgets stay empty; each page shows its own errors.
     }

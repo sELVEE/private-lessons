@@ -15,6 +15,13 @@
       "when": 1793230761590,
       "tag": "0001_teaching_core",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793232546463,
+      "tag": "0002_lessons",
+      "breakpoints": true
     }
   ]
 }

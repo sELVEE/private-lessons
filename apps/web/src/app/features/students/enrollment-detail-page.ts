@@ -7,7 +7,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
-import type { EnrollmentDetail, EnrollmentStatus } from '@pl/shared';
+import {
+  ATTENDANCE_LABELS,
+  type EnrollmentDetail,
+  type EnrollmentStatus,
+  LESSON_STATUS_LABELS,
+  type LessonInfo,
+} from '@pl/shared';
 import { toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
@@ -73,6 +79,24 @@ export default class EnrollmentDetailPage implements OnInit {
   readonly error = signal<string | null>(null);
   readonly editing = signal(false);
   readonly busy = signal(false);
+  readonly lessons = signal<LessonInfo[]>([]);
+  readonly lessonStatus = LESSON_STATUS_LABELS;
+  readonly attendanceLabel = ATTENDANCE_LABELS;
+  /** Attendance over completed lessons, plus cancellations. */
+  readonly stats = computed(() => {
+    const ls = this.lessons();
+    const done = ls.filter((l) => l.status === 'completed');
+    const present = done.filter((l) => l.attendance !== 'absent').length;
+    return {
+      completed: done.length,
+      absent: done.length - present,
+      cancelled: ls.filter((l) => l.status === 'cancelled').length,
+      rate: done.length ? Math.round((present / done.length) * 100) : null,
+      upcoming: ls.filter((l) => l.status === 'scheduled' && Date.parse(l.startsAt) > Date.now())
+        .length,
+    };
+  });
+  readonly history = computed(() => [...this.lessons()].reverse().slice(0, 15));
   readonly goals = new FormControl('', {
     nonNullable: true,
     validators: [Validators.maxLength(2000)],
@@ -86,6 +110,14 @@ export default class EnrollmentDetailPage implements OnInit {
   async ngOnInit() {
     try {
       this.e.set(await this.api.enrollment(this.id()));
+      const day = 24 * 3600_000;
+      this.lessons.set(
+        await this.api.lessons(
+          new Date(Date.now() - 365 * day),
+          new Date(Date.now() + 60 * day),
+          this.id(),
+        ),
+      );
     } catch (err) {
       this.error.set(toApiError(err).message);
     }

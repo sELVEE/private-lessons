@@ -46,13 +46,16 @@ Legenda: ✅ zrobione · 🔜 następne · ⏳ później (świadomie odłożone)
 - Panel administratora: wyszukiwanie kont i blokowanie, tylko z MFA zweryfikowanym w tej sesji, z obowiązkowym powodem zapisywanym w audycie; bez wglądu w lekcje, notatki i płatności.
 - ⏳ Wybór organizacji dla korepetytora uczącego w kilku szkołach; zapraszanie korepetytorów do organizacji-szkoły.
 
-### Etap 3 — kalendarz i lekcje
+### Etap 3 — kalendarz i lekcje ✅
 
-- Widok tygodnia/miesiąca, lekcje indywidualne, powtarzanie (np. co tydzień).
-- Przekładanie i odwoływanie (z historią i powodem), polityka opłat jak w „Decyzjach”.
-- Lista obecności, historia spotkań.
-- Przypomnienia: kolejka BullMQ → e-mail + Web Push.
-- ⏳ Lekcje grupowe. ⏳ Integracja z Google Calendar.
+- Widok tygodnia (kalendarz korepetytora, plan ucznia i rodzica), nawigacja po tygodniach.
+- Lekcje indywidualne, powtarzanie co tydzień (do 26 razy), miejsce/link, temat; kontrola kolizji terminów korepetytora.
+- Przekładanie (z historią zmian i e-mailem do drugiej strony), odwoływanie przez korepetytora lub ucznia.
+- Polityka odwołań w ustawieniach: okno „późnego” odwołania (h) i opcjonalny automat opłaty; bez automatu późne odwołanie czeka na decyzję korepetytora (lista „do decyzji”). Odwołanie przez korepetytora nigdy nie jest płatne.
+- Obecność (obecny / spóźniony / nieobecny) po rozpoczęciu lekcji; frekwencja i historia lekcji w karcie ucznia; najbliższe lekcje na pulpitach.
+- Przypomnienia e-mail ok. 24 h przed lekcją (zadanie co minutę z blokadą w Redisie).
+- RLS dla `lessons`, `lesson_changes`, `org_settings`.
+- ⏳ Lekcje grupowe. ⏳ Google Calendar. ⏳ Web Push.
 
 ### Etap 4 — notatki i raporty
 

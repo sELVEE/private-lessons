@@ -36,7 +36,24 @@
         </mat-card>
         <mat-card appearance="outlined">
           <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
-          <mat-card-content class="muted">Kalendarz pojawi się w etapie 3.</mat-card-content>
+          <mat-card-content>
+            <mat-list>
+              @for (l of upcoming(); track l.id) {
+                <a mat-list-item routerLink="/app/calendar">
+                  <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM, HH:mm' }}</span>
+                  <span matListItemLine class="muted">
+                    {{ role() === 'tutor' ? l.student.displayName : l.tutor.displayName }} ·
+                    {{ l.subject }}
+                  </span>
+                </a>
+              } @empty {
+                <p class="muted">Brak zaplanowanych lekcji w najbliższych 2 tygodniach.</p>
+              }
+            </mat-list>
+          </mat-card-content>
+          <mat-card-actions
+            ><a mat-button routerLink="/app/calendar">Kalendarz</a></mat-card-actions
+          >
         </mat-card>
         <mat-card appearance="outlined">
           <mat-card-header><mat-card-title>Zarobki w tym miesiącu</mat-card-title></mat-card-header>
@@ -73,7 +90,24 @@
         </mat-card>
         <mat-card appearance="outlined">
           <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
-          <mat-card-content class="muted">Plan lekcji pojawi się w etapie 3.</mat-card-content>
+          <mat-card-content>
+            <mat-list>
+              @for (l of upcoming(); track l.id) {
+                <a mat-list-item routerLink="/app/calendar">
+                  <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM, HH:mm' }}</span>
+                  <span matListItemLine class="muted">
+                    {{ role() === 'tutor' ? l.student.displayName : l.tutor.displayName }} ·
+                    {{ l.subject }}
+                  </span>
+                </a>
+              } @empty {
+                <p class="muted">Brak zaplanowanych lekcji w najbliższych 2 tygodniach.</p>
+              }
+            </mat-list>
+          </mat-card-content>
+          <mat-card-actions
+            ><a mat-button routerLink="/app/calendar">Kalendarz</a></mat-card-actions
+          >
         </mat-card>
       }
       @case ('parent') {
@@ -96,6 +130,27 @@
           </mat-card-content>
           <mat-card-actions
             ><a mat-button routerLink="/app/children">Zarządzaj</a></mat-card-actions
+          >
+        </mat-card>
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <mat-list>
+              @for (l of upcoming(); track l.id) {
+                <a mat-list-item routerLink="/app/calendar">
+                  <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM, HH:mm' }}</span>
+                  <span matListItemLine class="muted">
+                    {{ role() === 'tutor' ? l.student.displayName : l.tutor.displayName }} ·
+                    {{ l.subject }}
+                  </span>
+                </a>
+              } @empty {
+                <p class="muted">Brak zaplanowanych lekcji w najbliższych 2 tygodniach.</p>
+              }
+            </mat-list>
+          </mat-card-content>
+          <mat-card-actions
+            ><a mat-button routerLink="/app/calendar">Kalendarz</a></mat-card-actions
           >
         </mat-card>
       }

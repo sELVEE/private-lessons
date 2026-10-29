@@ -109,7 +109,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/admin-page'),
       },
       // Later stages — placeholders until each module lands (see docs/PLAN.md).
-      ...placeholder('calendar', 'Kalendarz', 3, 'tutor', 'student', 'parent'),
+      {
+        path: 'calendar',
+        title: 'Kalendarz',
+        canMatch: [roleMatch('tutor', 'student', 'parent')],
+        loadComponent: () => import('./features/calendar/calendar-page'),
+      },
       ...placeholder('billing', 'Rozliczenia', 5, 'tutor', 'parent'),
       ...placeholder('homework', 'Zadania domowe', 6, 'tutor', 'student'),
       ...placeholder('materials', 'Materiały', 6, 'tutor', 'student'),

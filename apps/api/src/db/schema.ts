@@ -15,7 +15,14 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { ACCOUNT_TYPES, ENROLLMENT_STATUSES, ORG_ROLES, SCHOOL_LEVELS } from '@pl/shared';
+import {
+  ACCOUNT_TYPES,
+  ATTENDANCE,
+  ENROLLMENT_STATUSES,
+  LESSON_STATUSES,
+  ORG_ROLES,
+  SCHOOL_LEVELS,
+} from '@pl/shared';
 
 const citext = customType<{ data: string }>({ dataType: () => 'citext' });
 
@@ -29,6 +36,8 @@ export const accountType = pgEnum('account_type', ACCOUNT_TYPES);
 export const orgRole = pgEnum('org_role', ORG_ROLES);
 export const schoolLevel = pgEnum('school_level', SCHOOL_LEVELS);
 export const enrollmentStatus = pgEnum('enrollment_status', ENROLLMENT_STATUSES);
+export const lessonStatus = pgEnum('lesson_status', LESSON_STATUSES);
+export const attendance = pgEnum('attendance', ATTENDANCE);
 export const userStatus = pgEnum('user_status', ['active', 'locked', 'disabled']);
 export const tokenPurpose = pgEnum('token_purpose', [
   'email_verify',
@@ -324,4 +333,76 @@ export const parentLinks = pgTable(
     uniqueIndex('parent_links_parent_student_uq').on(t.parentId, t.studentId),
     index('parent_links_student_idx').on(t.studentId),
   ],
+);
+
+// ---------------------------------------------------------------- stage 3+: data scoped to one enrollment
+// Every such table carries organization, tutor and student ids so RLS policies can stay simple.
+
+const scoped = () => ({
+  organizationId: uuid('organization_id')
+    .notNull()
+    .references(() => organizations.id, { onDelete: 'cascade' }),
+  enrollmentId: uuid('enrollment_id')
+    .notNull()
+    .references(() => enrollments.id, { onDelete: 'cascade' }),
+  tutorId: uuid('tutor_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  studentId: uuid('student_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+});
+
+export const orgSettings = pgTable('org_settings', {
+  organizationId: uuid('organization_id')
+    .primaryKey()
+    .references(() => organizations.id, { onDelete: 'cascade' }),
+  autoChargeLateCancellation: boolean('auto_charge_late_cancellation').notNull().default(false),
+  cancellationWindowHours: smallint('cancellation_window_hours').notNull().default(24),
+  defaultLessonMinutes: smallint('default_lesson_minutes').notNull().default(60),
+});
+
+/** Individual lessons. Group lessons (several students) are planned for later. */
+export const lessons = pgTable(
+  'lessons',
+  {
+    id: id(),
+    ...scoped(),
+    seriesId: uuid('series_id'),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    durationMin: smallint('duration_min').notNull(),
+    status: lessonStatus('status').notNull().default('scheduled'),
+    attendance: attendance('attendance'),
+    location: text('location'),
+    topic: text('topic'),
+    cancelledBy: uuid('cancelled_by').references(() => users.id, { onDelete: 'set null' }),
+    cancelReason: text('cancel_reason'),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    /** For cancelled lessons: true = paid, false = free, null = late, waiting for tutor's decision. */
+    chargeable: boolean('chargeable'),
+    reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('lessons_tutor_time_idx').on(t.tutorId, t.startsAt),
+    index('lessons_student_time_idx').on(t.studentId, t.startsAt),
+    index('lessons_enrollment_idx').on(t.enrollmentId, t.startsAt),
+  ],
+);
+
+export const lessonChanges = pgTable(
+  'lesson_changes',
+  {
+    id: id(),
+    lessonId: uuid('lesson_id')
+      .notNull()
+      .references(() => lessons.id, { onDelete: 'cascade' }),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    type: text('type').notNull(),
+    fromStartsAt: timestamp('from_starts_at', { withTimezone: true }),
+    toStartsAt: timestamp('to_starts_at', { withTimezone: true }),
+    note: text('note'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('lesson_changes_lesson_idx').on(t.lessonId, t.createdAt)],
 );

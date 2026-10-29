@@ -17,6 +17,7 @@ import { ENV, type Env } from './config/env.js';
 import { CryptoModule } from './crypto/crypto.module.js';
 import { DbModule } from './db/db.module.js';
 import { HealthController } from './health/health.controller.js';
+import { LessonsModule } from './lessons/lessons.module.js';
 import { MailModule } from './mail/mail.module.js';
 import { RedisModule } from './redis/redis.module.js';
 import { RlsModule } from './rls/rls.module.js';
@@ -50,6 +51,7 @@ export class AppModule implements NestModule {
         RlsModule,
         AuthModule,
         TeachingModule,
+        LessonsModule,
         AdminModule,
       ],
       controllers: [HealthController],

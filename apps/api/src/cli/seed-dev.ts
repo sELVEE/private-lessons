@@ -8,6 +8,7 @@ import { ARGON_OPTS } from '../auth/password.service.js';
 import {
   enrollmentEvents,
   enrollments,
+  lessons,
   memberships,
   organizations,
   parentLinks,
@@ -136,5 +137,33 @@ async function seedTeaching() {
     .insert(parentLinks)
     .values({ parentId: parent.id, studentId: student.id })
     .onConflictDoNothing();
+
+  const [enrollment] = await db
+    .select()
+    .from(enrollments)
+    .where(and(eq(enrollments.tutorId, tutor.id), eq(enrollments.studentId, student.id)));
+  if (!(await db.$count(lessons, eq(lessons.enrollmentId, enrollment!.id)))) {
+    // Weekly lessons at 17:00: three in the past (completed), four upcoming.
+    const base = new Date();
+    base.setDate(base.getDate() - 20);
+    base.setHours(17, 0, 0, 0);
+    await db.insert(lessons).values(
+      Array.from({ length: 7 }, (_, i) => {
+        const startsAt = new Date(base.getTime() + i * 7 * 24 * 3600_000);
+        const past = startsAt.getTime() < Date.now();
+        return {
+          organizationId: orgId,
+          enrollmentId: enrollment!.id,
+          tutorId: tutor.id,
+          studentId: student.id,
+          startsAt,
+          durationMin: 60,
+          location: 'online',
+          status: past ? ('completed' as const) : ('scheduled' as const),
+          attendance: past ? ('present' as const) : null,
+        };
+      }),
+    );
+  }
   console.log('  Kasia uczy się matematyki u Anny, Marek jest połączony z Kasią');
 }

@@ -9,6 +9,9 @@ import type {
   EnrollmentStatus,
   InviteInfo,
   InvitePreview,
+  LessonDetail,
+  LessonInfo,
+  OrgSettings,
   ParentLinkCode,
   ParentLinkInfo,
   SchoolLevel,
@@ -59,6 +62,38 @@ export class TeachingApi {
     );
   adminSetStatus = (id: string, status: AdminUserRow['status'], reason: string) =>
     firstValueFrom(this.http.patch(`/api/admin/users/${id}/status`, { status, reason }));
+
+  lessons = (from: Date, to: Date, enrollmentId?: string) =>
+    firstValueFrom(
+      this.http.get<LessonInfo[]>('/api/lessons', {
+        params: new HttpParams({
+          fromObject: {
+            from: from.toISOString(),
+            to: to.toISOString(),
+            ...(enrollmentId ? { enrollmentId } : {}),
+          },
+        }),
+      }),
+    );
+  lesson = (id: string) => this.get<LessonDetail>(`/api/lessons/${id}`);
+  createLesson = (input: {
+    enrollmentId: string;
+    startsAt: string;
+    durationMin: number;
+    repeatWeeks: number;
+    location?: string;
+    topic?: string;
+  }) => this.post<LessonInfo[]>('/api/lessons', input);
+  rescheduleLesson = (id: string, startsAt: string, durationMin: number) =>
+    this.post<LessonDetail>(`/api/lessons/${id}/reschedule`, { startsAt, durationMin });
+  cancelLesson = (id: string, reason?: string) =>
+    this.post<LessonDetail>(`/api/lessons/${id}/cancel`, { reason });
+  completeLesson = (id: string, attendance: 'present' | 'late' | 'absent') =>
+    this.post<LessonDetail>(`/api/lessons/${id}/complete`, { attendance });
+  decideCharge = (id: string, chargeable: boolean) =>
+    this.post<LessonDetail>(`/api/lessons/${id}/charge`, { chargeable });
+  settings = () => this.get<OrgSettings>('/api/settings');
+  saveSettings = (s: OrgSettings) => firstValueFrom(this.http.put<OrgSettings>('/api/settings', s));
 
   private get<T>(url: string) {
     return firstValueFrom(this.http.get<T>(url));

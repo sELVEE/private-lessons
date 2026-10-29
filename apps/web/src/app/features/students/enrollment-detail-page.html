@@ -111,7 +111,42 @@
               </mat-list-item>
             }
           </mat-list>
-          <p class="muted">Frekwencja i historia lekcji pojawią się z kalendarzem (etap 3).</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Lekcje i frekwencja</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <dl>
+            <dt>Odbyte</dt>
+            <dd>{{ stats().completed }}</dd>
+            <dt>Frekwencja</dt>
+            <dd>{{ stats().rate === null ? '—' : stats().rate + '%' }}</dd>
+            <dt>Nieobecności</dt>
+            <dd>{{ stats().absent }}</dd>
+            <dt>Odwołane</dt>
+            <dd>{{ stats().cancelled }}</dd>
+            <dt>Zaplanowane</dt>
+            <dd>{{ stats().upcoming }}</dd>
+          </dl>
+          <mat-list>
+            @for (l of history(); track l.id) {
+              <mat-list-item>
+                <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM.yyyy, HH:mm' }}</span>
+                <span matListItemLine class="muted">
+                  {{ lessonStatus[l.status] }}
+                  @if (l.attendance) {
+                    · {{ attendanceLabel[l.attendance] }}
+                  }
+                  @if (l.topic) {
+                    · {{ l.topic }}
+                  }
+                </span>
+              </mat-list-item>
+            } @empty {
+              <p class="muted">Brak lekcji.</p>
+            }
+          </mat-list>
         </mat-card-content>
       </mat-card>
     </div>
