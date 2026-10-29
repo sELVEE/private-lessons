@@ -2,7 +2,7 @@
   <div class="header">
     <h1>{{ isTutor() ? 'Biblioteka materiałów' : 'Materiały' }}</h1>
     @if (isTutor()) {
-      <button mat-flat-button (click)="startNew()" [disabled]="!subjects().length">
+      <button matButton="filled" (click)="startNew()" [disabled]="!subjects().length">
         <mat-icon fontSet="material-symbols-outlined">add</mat-icon> Nowy materiał
       </button>
     }
@@ -92,8 +92,8 @@
               <div class="row-actions">
                 <span class="muted">Pliki PDF, zdjęcia i linki — w kolejnym etapie.</span>
                 <span>
-                  <button mat-button type="button" (click)="editing.set(null)">Anuluj</button>
-                  <button mat-flat-button type="submit">Zapisz</button>
+                  <button matButton type="button" (click)="editing.set(null)">Anuluj</button>
+                  <button matButton="filled" type="submit">Zapisz</button>
                 </span>
               </div>
             </form>
@@ -114,9 +114,9 @@
           <mat-card-content>
             @if (isTutor()) {
               <div class="actions">
-                <button mat-stroked-button (click)="startEdit(m)">Edytuj</button>
-                <button mat-stroked-button (click)="startShare(m)">Udostępnij</button>
-                <button mat-button (click)="remove(m)">Usuń</button>
+                <button matButton="outlined" (click)="startEdit(m)">Edytuj</button>
+                <button matButton="outlined" (click)="startShare(m)">Udostępnij</button>
+                <button matButton (click)="remove(m)">Usuń</button>
               </div>
               <p class="muted">Udostępnione: {{ sharedNames(m) || 'nikomu' }}</p>
               @if (sharing()) {
@@ -130,8 +130,8 @@
                     </mat-checkbox>
                   }
                   <div>
-                    <button mat-button (click)="sharing.set(false)">Anuluj</button>
-                    <button mat-flat-button (click)="saveShare(m)">Zapisz udostępnienie</button>
+                    <button matButton (click)="sharing.set(false)">Anuluj</button>
+                    <button matButton="filled" (click)="saveShare(m)">Zapisz udostępnienie</button>
                   </div>
                 </div>
               }

@@ -28,7 +28,7 @@
 }
 
 .up {
-  color: #2e7d32;
+  color: var(--pl-good);
 }
 
 .down {
@@ -120,8 +120,8 @@
 }
 
 .b-mastered {
-  background: #c8e6c9;
-  color: #1b5e20;
+  background: color-mix(in srgb, var(--pl-good) 22%, var(--pl-card));
+  color: var(--pl-good);
 }
 
 .b-review {

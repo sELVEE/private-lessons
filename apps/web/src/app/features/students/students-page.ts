@@ -1,6 +1,6 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, type OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -41,6 +41,9 @@ export default class StudentsPage implements OnInit {
   private readonly clipboard = inject(Clipboard);
   private readonly snack = inject(MatSnackBar);
   private readonly fb = inject(NonNullableFormBuilder);
+
+  /** `?invite=1` (szybka akcja z ekranu „Teraz”) otwiera panel zaproszenia. */
+  readonly invite = input<string>();
 
   readonly level = studentLevel;
   readonly statusLabel = statusLabel;
@@ -88,6 +91,7 @@ export default class StudentsPage implements OnInit {
     } finally {
       this.loaded.set(true);
     }
+    if (this.invite()) this.openInvite();
   }
 
   openInvite() {

@@ -14,6 +14,7 @@ import type {
   CreateInviteInput,
   EnrollmentDetail,
   HomeworkInfo,
+  LedgerRow,
   HomeworkInput,
   MaterialInfo,
   MaterialInput,
@@ -155,6 +156,9 @@ export class TeachingApi {
       amount,
       note,
     });
+  ledger = (month: string) => this.get<LedgerRow[]>(`/api/billing/ledger?month=${month}`);
+  remind = (enrollmentId: string) =>
+    this.post<{ sent: number }>(`/api/billing/enrollments/${enrollmentId}/remind`, {});
   voidEntry = (id: string) => firstValueFrom(this.http.delete(`/api/billing/entries/${id}`));
 
   materials = (subjectId?: string) =>

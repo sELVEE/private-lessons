@@ -1,7 +1,7 @@
 <div class="page">
   <div class="header">
     <h1>Uczniowie</h1>
-    <button mat-flat-button (click)="openInvite()">
+    <button matButton="filled" (click)="openInvite()">
       <mat-icon fontSet="material-symbols-outlined">person_add</mat-icon>
       Zaproś ucznia
     </button>
@@ -27,14 +27,14 @@
           </p>
           <div class="code-box">
             <span class="code">{{ inv.code }}</span>
-            <button mat-stroked-button (click)="copy(inv.code!, 'kod')">Kopiuj kod</button>
-            <button mat-stroked-button (click)="copy(inv.link!, 'link')">Kopiuj link</button>
+            <button matButton="outlined" (click)="copy(inv.code!, 'kod')">Kopiuj kod</button>
+            <button matButton="outlined" (click)="copy(inv.link!, 'link')">Kopiuj link</button>
           </div>
           <p class="muted">
             Ważny do {{ inv.expiresAt | date: 'd MMMM, HH:mm' }} · liczba użyć: {{ inv.maxUses }}.
             Kodu nie pokażemy ponownie — w razie potrzeby utwórz nowy.
           </p>
-          <button mat-button (click)="created.set(null)">Utwórz kolejne zaproszenie</button>
+          <button matButton (click)="created.set(null)">Utwórz kolejne zaproszenie</button>
         } @else {
           <form [formGroup]="inviteForm" (ngSubmit)="createInvite()" class="form-stack">
             <mat-button-toggle-group formControlName="mode" class="mode">
@@ -72,7 +72,7 @@
             </mat-form-field>
             <div class="row-actions">
               <span></span>
-              <button mat-flat-button type="submit" [disabled]="busy()">
+              <button matButton="filled" type="submit" [disabled]="busy()">
                 {{
                   inviteForm.controls.mode.value === 'email' ? 'Wyślij zaproszenie' : 'Utwórz kod'
                 }}
@@ -95,7 +95,7 @@
             {{ i.uses }}/{{ i.maxUses }}
             <span class="muted">· do {{ i.expiresAt | date: 'd.MM' }}</span>
           </span>
-          <button mat-button (click)="revoke(i)">Unieważnij</button>
+          <button matButton (click)="revoke(i)">Unieważnij</button>
         </div>
       }
     </div>

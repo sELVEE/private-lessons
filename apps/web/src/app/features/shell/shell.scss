@@ -1,60 +1,166 @@
-.container {
-  height: 100dvh;
+:host {
+  display: block;
+  min-height: 100dvh;
 }
 
-.sidenav {
-  width: 248px;
+.pl-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 32px 4px;
+  max-width: 1280px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 20px 16px 12px;
-  font: var(--mat-sys-title-large);
-  color: var(--mat-sys-primary);
-}
-
-.toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: var(--mat-sys-surface-container);
+  font-family: var(--pl-font-display);
+  font-size: 28px;
+  color: var(--pl-ink);
+  text-decoration: none;
 }
 
 .spacer {
   flex: 1;
 }
 
+.today {
+  font-size: 14px;
+  color: var(--pl-ink-soft);
+}
+
+.account {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--pl-ink);
+  color: var(--pl-bg);
+  font: 700 16px var(--pl-font-ui);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid var(--pl-accent);
+    outline-offset: 2px;
+  }
+}
+
 .menu-header {
-  padding: 8px 16px 12px;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding: 10px 16px 12px;
+  border-bottom: 1px solid var(--pl-line);
   margin-bottom: 4px;
 }
 
 .offline {
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
-  padding: 8px 16px;
+  margin: 8px auto 0;
+  max-width: 1216px;
+  border-radius: 16px;
+  background: var(--pl-ink);
+  color: var(--pl-card);
+  padding: 10px 16px;
   text-align: center;
-  font: var(--mat-sys-body-medium);
+}
+
+main:focus {
+  outline: none;
+}
+
+/* Floating dock */
+.pl-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 999px;
+  background: var(--pl-ink);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--pl-ink) 30%, transparent);
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+
+  a,
+  .more {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 0;
+    background: transparent;
+    color: var(--pl-bg);
+    font: 600 14px var(--pl-font-ui);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      background: color-mix(in srgb, var(--pl-on-ink) 10%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--pl-accent);
+      outline-offset: 2px;
+    }
+
+    &.active {
+      background: var(--pl-card);
+      color: var(--pl-ink);
+      font-weight: 800;
+    }
+  }
 }
 
 .skip-link {
   position: absolute;
   left: 8px;
   top: -48px;
-  z-index: 10;
+  z-index: 30;
   padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
+  border-radius: 999px;
+  background: var(--pl-ink);
+  color: var(--pl-card);
 
   &:focus {
     top: 8px;
   }
 }
 
-main:focus {
-  outline: none;
+@media (max-width: 900px) {
+  .today {
+    display: none;
+  }
+
+  .pl-topbar {
+    padding: 16px 16px 0;
+  }
+
+  /* On phones the dock spans the width and shows icons over short labels. */
+  .pl-dock {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    transform: none;
+    justify-content: space-between;
+
+    a,
+    .more {
+      flex: 1;
+      flex-direction: column;
+      gap: 2px;
+      height: 56px;
+      padding: 0 4px;
+      font-size: 11px;
+      justify-content: center;
+    }
+  }
 }

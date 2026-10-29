@@ -1,74 +1,187 @@
 <div class="page">
-  <div class="head">
-    <button mat-icon-button (click)="location.back()" aria-label="Wstecz">
-      <mat-icon fontSet="material-symbols-outlined">arrow_back</mat-icon>
-    </button>
+  <nav class="crumbs" aria-label="Okruszki">
+    <a [routerLink]="backLink()">← {{ isTutor() ? 'Uczniowie' : 'Teraz' }}</a>
     @if (e(); as e) {
-      <h1>{{ isTutor() ? e.student.displayName : e.tutor.displayName }} · {{ e.subject.name }}</h1>
+      <span>/</span
+      ><span
+        >{{ isTutor() ? e.student.displayName : e.tutor.displayName }} · {{ e.subject.name }}</span
+      >
     }
-  </div>
+  </nav>
 
   @if (error(); as msg) {
     <div class="error-banner" role="alert">{{ msg }}</div>
   }
 
   @if (e(); as e) {
-    <div class="cards">
-      <mat-card appearance="outlined">
-        <mat-card-header><mat-card-title>Współpraca</mat-card-title></mat-card-header>
-        <mat-card-content>
-          <dl>
-            <dt>Uczeń</dt>
-            <dd>{{ e.student.displayName }}</dd>
-            <dt>Korepetytor</dt>
-            <dd>{{ e.tutor.displayName }}</dd>
-            <dt>Przedmiot</dt>
-            <dd>{{ e.subject.name }}</dd>
-            <dt>Poziom</dt>
-            <dd>{{ level(e.student) || '—' }}</dd>
-            @if (e.student.age) {
-              <dt>Wiek</dt>
-              <dd>ok. {{ e.student.age }} lat</dd>
+    <section class="hero">
+      <div class="ring">
+        <svg
+          width="120"
+          height="120"
+          viewBox="0 0 120 120"
+          role="img"
+          [attr.aria-label]="ring().avg === null ? 'Brak ocen' : 'Średni wynik ' + ring().avg + '%'"
+        >
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#c9ceb4" stroke-width="10" />
+          <circle
+            cx="60"
+            cy="60"
+            r="52"
+            fill="none"
+            stroke="#a84f2c"
+            stroke-width="10"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="ring().dash"
+            transform="rotate(-90 60 60)"
+          />
+        </svg>
+        <span class="ring-label display">{{
+          initial(isTutor() ? e.student.displayName : e.tutor.displayName)
+        }}</span>
+      </div>
+      <div class="who">
+        <h1>{{ isTutor() ? e.student.displayName : e.tutor.displayName }}</h1>
+        <span class="muted">
+          {{ e.subject.name }} · {{ level(e.student) || 'poziom nieznany' }} · od
+          {{ e.startedAt | date: 'd MMMM' }}
+          @if (ring().avg !== null) {
+            · <strong>średni wynik {{ ring().avg }}%</strong>
+          }
+          @if (e.status !== 'active') {
+            · <strong>{{ statusLabel(e.status) }}</strong>
+          }
+        </span>
+      </div>
+      @if (isTutor()) {
+        <div class="hero-actions">
+          <a matButton="filled" routerLink="/app/calendar" [queryParams]="{ new: 1 }"
+            >Zaplanuj lekcję</a
+          >
+          <a matButton="outlined" routerLink="/app/homework" [queryParams]="{ new: 1 }"
+            >Zadaj zadanie</a
+          >
+          <a matButton="outlined" [routerLink]="['/app/progress', e.id]">Oceny i postępy</a>
+        </div>
+      } @else {
+        <div class="hero-actions">
+          <a matButton="outlined" [routerLink]="['/app/progress', e.id]">Postępy</a>
+          <a matButton="outlined" [routerLink]="['/app/billing', e.id]">Rozliczenie</a>
+        </div>
+      }
+    </section>
+
+    <div class="layout">
+      <section class="timeline">
+        <div class="filters" role="group" aria-label="Filtr osi czasu">
+          <button
+            type="button"
+            class="chip"
+            [class.on]="filter() === 'all'"
+            [attr.aria-pressed]="filter() === 'all'"
+            (click)="filter.set('all')"
+          >
+            Wszystko
+          </button>
+          @for (k of kinds; track k[0]) {
+            <button
+              type="button"
+              class="chip"
+              [class.on]="filter() === k[0]"
+              [attr.aria-pressed]="filter() === k[0]"
+              (click)="filter.set(k[0])"
+            >
+              {{ k[1] }}
+            </button>
+          }
+        </div>
+
+        @if (upcoming(); as u) {
+          <div class="upcoming">
+            <span class="display when">{{ u.startsAt | date: 'EEE HH:mm' }}</span>
+            <span class="grow"
+              >Następna lekcja{{ u.location ? ' · ' + u.location : ''
+              }}{{ u.topic ? ' · ' + u.topic : '' }}</span
+            >
+            <a matButton="filled" class="pl-accent" [routerLink]="['/app/lessons', u.id]">Otwórz</a>
+          </div>
+        }
+
+        @for (item of feed(); track item.id) {
+          <div class="row">
+            <span class="date">{{ item.at | date: 'd.MM' }}</span>
+            <article class="item" [class]="'k-' + item.kind">
+              @if (item.big) {
+                <span class="display big">{{ item.big }}</span>
+              }
+              <div class="item-body">
+                <span class="eyebrow kind">{{ item.title }}</span>
+                @if (item.body) {
+                  <span>{{ item.body }}</span>
+                }
+                @if (item.extra) {
+                  <strong>{{ item.extra }}</strong>
+                }
+              </div>
+              @if (item.action; as a) {
+                <a matButton="filled" [routerLink]="a.link">{{ a.label }}</a>
+              } @else if (item.link) {
+                <a class="more" [routerLink]="item.link" aria-label="Szczegóły">→</a>
+              }
+            </article>
+          </div>
+        } @empty {
+          <p class="muted">Nic tu jeszcze nie ma — oś wypełni się po pierwszej lekcji.</p>
+        }
+      </section>
+
+      <aside class="side">
+        <section class="pl-card-dark facts-card">
+          <h2>W skrócie</h2>
+          <dl class="facts">
+            @if (billing(); as b) {
+              <dt>Saldo</dt>
+              <dd [class.owes]="b.balance > 0">
+                {{
+                  b.balance > 0
+                    ? 'do zapłaty ' + money(b.balance)
+                    : b.balance < 0
+                      ? 'nadpłata ' + money(-b.balance)
+                      : 'rozliczone'
+                }}
+              </dd>
+              <dt>Stawka</dt>
+              <dd>
+                {{ b.hourlyRate === null ? 'nie ustawiona' : money(b.hourlyRate) + ' / 60 min' }}
+              </dd>
             }
+            <dt>Frekwencja</dt>
+            <dd>
+              {{ stats().rate === null ? '—' : stats().rate + '%' }} · {{ stats().completed }}
+              {{ stats().completed === 1 ? 'lekcja' : 'lekcji' }}
+            </dd>
             @if (e.studentEmail) {
               <dt>E-mail</dt>
               <dd>
                 <a [href]="'mailto:' + e.studentEmail">{{ e.studentEmail }}</a>
               </dd>
             }
-            <dt>Status</dt>
-            <dd>{{ statusLabel(e.status) }}</dd>
-            <dt>Od</dt>
-            <dd>{{ e.startedAt | date: 'd MMMM yyyy' }}</dd>
-            @if (e.endedAt) {
-              <dt>Do</dt>
-              <dd>{{ e.endedAt | date: 'd MMMM yyyy' }}</dd>
+            @if (e.student.age) {
+              <dt>Wiek</dt>
+              <dd>ok. {{ e.student.age }} lat</dd>
             }
           </dl>
-          @if (isTutor()) {
-            <div class="actions">
-              @if (e.status === 'active') {
-                <button mat-stroked-button (click)="setStatus('paused')" [disabled]="busy()">
-                  Wstrzymaj
-                </button>
-                <button mat-stroked-button (click)="setStatus('ended')" [disabled]="busy()">
-                  Zakończ współpracę
-                </button>
-              } @else {
-                <button mat-flat-button (click)="setStatus('active')" [disabled]="busy()">
-                  Wznów
-                </button>
-              }
-            </div>
+          @if (billing()) {
+            <a matButton="outlined" class="pl-on-dark" [routerLink]="['/app/billing', e.id]"
+              >Rozliczenie</a
+            >
           }
-        </mat-card-content>
-      </mat-card>
+        </section>
 
-      <mat-card appearance="outlined">
-        <mat-card-header><mat-card-title>Cele nauki</mat-card-title></mat-card-header>
-        <mat-card-content>
+        <section class="pl-card">
+          <h2>Cele</h2>
           @if (editing()) {
-            <mat-form-field class="full-width">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>Cele</mat-label>
               <textarea
                 matInput
@@ -76,79 +189,96 @@
                 rows="5"
                 placeholder="np. matura rozszerzona, cel 80%"
               ></textarea>
-              <mat-hint align="end">{{ goals.value.length }}/2000</mat-hint>
             </mat-form-field>
-            <div class="actions">
-              <button mat-button (click)="editing.set(false)">Anuluj</button>
-              <button mat-flat-button (click)="saveGoals()" [disabled]="busy()">Zapisz</button>
+            <div class="row-actions">
+              <button type="button" matButton="outlined" (click)="editing.set(false)">
+                Anuluj
+              </button>
+              <button type="button" matButton="filled" (click)="saveGoals()" [disabled]="busy()">
+                Zapisz
+              </button>
             </div>
           } @else {
-            @if (e.goals) {
-              <p class="goals">{{ e.goals }}</p>
-            } @else {
-              <p class="muted">Cele nie zostały jeszcze określone.</p>
+            <p class="goals">{{ e.goals || 'Cele nie zostały jeszcze określone.' }}</p>
+            @for (g of progress()?.goals ?? []; track g.id) {
+              <div class="goal" [class.done]="g.achievedAt">
+                {{ g.achievedAt ? '✓' : '○' }} {{ g.title }}
+              </div>
             }
             @if (isTutor()) {
-              <button mat-stroked-button (click)="startEdit()">Edytuj cele</button>
+              <button type="button" matButton="outlined" (click)="startEdit()">Edytuj cele</button>
             }
           }
-        </mat-card-content>
-      </mat-card>
+        </section>
 
-      <mat-card appearance="outlined">
-        <mat-card-header><mat-card-title>Historia współpracy</mat-card-title></mat-card-header>
-        <mat-card-content>
-          <mat-list>
-            @for (ev of e.events; track $index) {
-              <mat-list-item>
-                <span matListItemTitle>{{ eventLabel(ev.type) }}</span>
-                <span matListItemLine class="muted">
-                  {{ ev.createdAt | date: 'd.MM.yyyy HH:mm' }}
-                  @if (ev.actor) {
-                    · {{ ev.actor }}
-                  }
+        @if (progress()?.topics?.length) {
+          <section class="pl-card">
+            <h2>Tematy</h2>
+            <div class="topics">
+              @for (t of progress()?.topics ?? []; track t.topicId) {
+                <span class="topic" [class]="'t-' + (t.status ?? 'none')">
+                  {{ t.status === 'mastered' ? '✓ ' : t.status === 'review' ? '↺ ' : ''
+                  }}{{ t.name }}
                 </span>
-              </mat-list-item>
-            }
-          </mat-list>
-        </mat-card-content>
-      </mat-card>
+              }
+            </div>
+          </section>
+        }
 
-      <mat-card appearance="outlined">
-        <mat-card-header><mat-card-title>Lekcje i frekwencja</mat-card-title></mat-card-header>
-        <mat-card-content>
-          <dl>
-            <dt>Odbyte</dt>
-            <dd>{{ stats().completed }}</dd>
-            <dt>Frekwencja</dt>
-            <dd>{{ stats().rate === null ? '—' : stats().rate + '%' }}</dd>
-            <dt>Nieobecności</dt>
-            <dd>{{ stats().absent }}</dd>
-            <dt>Odwołane</dt>
-            <dd>{{ stats().cancelled }}</dd>
-            <dt>Zaplanowane</dt>
-            <dd>{{ stats().upcoming }}</dd>
-          </dl>
-          <mat-list>
-            @for (l of history(); track l.id) {
-              <a mat-list-item [routerLink]="['/app/lessons', l.id]">
-                <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM.yyyy, HH:mm' }}</span>
-                <span matListItemLine class="muted">
-                  {{ lessonStatus[l.status] }}
-                  @if (l.attendance) {
-                    · {{ attendanceLabel[l.attendance] }}
-                  }
-                  @if (l.topic) {
-                    · {{ l.topic }}
-                  }
-                </span>
-              </a>
-            } @empty {
-              <p class="muted">Brak lekcji.</p>
+        @if (isTutor()) {
+          <section class="pl-card">
+            <h2>Współpraca</h2>
+            <p class="muted">Status: {{ statusLabel(e.status) }}</p>
+            <div class="row-actions">
+              @if (e.status === 'active') {
+                <button
+                  type="button"
+                  matButton="outlined"
+                  (click)="setStatus('paused')"
+                  [disabled]="busy()"
+                >
+                  Wstrzymaj
+                </button>
+                <button
+                  type="button"
+                  matButton="outlined"
+                  (click)="setStatus('ended')"
+                  [disabled]="busy()"
+                >
+                  Zakończ
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  matButton="filled"
+                  (click)="setStatus('active')"
+                  [disabled]="busy()"
+                >
+                  Wznów
+                </button>
+              }
+              <button type="button" matButton="outlined" (click)="showHistory.set(!showHistory())">
+                Historia zmian
+              </button>
+            </div>
+            @if (showHistory()) {
+              <ul class="history">
+                @for (ev of e.events; track $index) {
+                  <li>
+                    <strong>{{ eventLabel(ev.type) }}</strong>
+                    <span class="muted"
+                      >{{ ev.createdAt | date: 'd.MM.yyyy HH:mm' }}
+                      @if (ev.actor) {
+                        · {{ ev.actor }}
+                      }
+                    </span>
+                  </li>
+                }
+              </ul>
             }
-          </mat-list>
-        </mat-card-content>
-      </mat-card>
+          </section>
+        }
+      </aside>
     </div>
   }
 </div>

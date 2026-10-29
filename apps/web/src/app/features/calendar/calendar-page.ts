@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, type OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -21,6 +21,7 @@ import {
 import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
 import { TeachingApi } from '../../core/teaching-api';
+import { initial, personColor } from '../../shared/person-color';
 
 const DAY_MS = 24 * 3600_000;
 
@@ -62,7 +63,13 @@ export default class CalendarPage implements OnInit {
   private readonly store = inject(AuthStore);
   private readonly fb = inject(NonNullableFormBuilder);
 
+  /** `?new=1` opens the „new lesson” form (quick action from „Teraz”). */
+  readonly new = input<string>();
   readonly role = this.store.role;
+  readonly color = personColor;
+  readonly initial = initial;
+  readonly selectedId = signal<string | null>(null);
+  readonly hiddenStudents = signal<Set<string>>(new Set());
   readonly isTutor = computed(() => this.role() === 'tutor');
   readonly statusLabel = LESSON_STATUS_LABELS;
   readonly attendanceLabel = ATTENDANCE_LABELS;
@@ -89,7 +96,7 @@ export default class CalendarPage implements OnInit {
         today: new Date().toDateString() === date.toDateString(),
         lessons: this.lessons().filter((l) => {
           const t = Date.parse(l.startsAt);
-          return t >= date.getTime() && t < next;
+          return t >= date.getTime() && t < next && !this.hiddenStudents().has(l.student.id);
         }),
       };
     });
@@ -97,6 +104,40 @@ export default class CalendarPage implements OnInit {
   readonly activeEnrollments = computed(() =>
     this.enrollments().filter((e) => e.status === 'active'),
   );
+
+  /** Visible hours on the lanes: 8–21, widened when a lesson falls outside. */
+  readonly hours = computed(() => {
+    let from = 8;
+    let to = 21;
+    for (const l of this.lessons()) {
+      const d = new Date(l.startsAt);
+      from = Math.min(from, d.getHours());
+      to = Math.max(to, Math.ceil(d.getHours() + d.getMinutes() / 60 + l.durationMin / 60));
+    }
+    return { from, to, list: Array.from({ length: to - from }, (_, i) => from + i) };
+  });
+  readonly students = computed(() => {
+    const seen = new Map<string, { id: string; name: string }>();
+    for (const l of this.lessons())
+      seen.set(l.student.id, { id: l.student.id, name: l.student.displayName });
+    return [...seen.values()];
+  });
+  readonly weekCount = computed(
+    () => this.lessons().filter((l) => l.status !== 'cancelled').length,
+  );
+  readonly selected = computed(() => {
+    const all = this.lessons();
+    const id = this.selectedId();
+    return (
+      all.find((l) => l.id === id) ??
+      all.find(
+        (l) =>
+          l.status === 'scheduled' && Date.parse(l.startsAt) + l.durationMin * 60_000 > Date.now(),
+      ) ??
+      null
+    );
+  });
+  readonly nowLeft = computed(() => this.pos(new Date()));
 
   readonly createForm = this.fb.group({
     enrollmentId: ['', Validators.required],
@@ -133,6 +174,70 @@ export default class CalendarPage implements OnInit {
       }
     }
     await this.load();
+    if (this.new() && this.isTutor()) this.openCreate();
+  }
+
+  /** Horizontal position (%) of a moment on the lane. */
+  pos(d: Date): number {
+    const { from, to } = this.hours();
+    const h = d.getHours() + d.getMinutes() / 60;
+    return Math.max(0, Math.min(100, ((h - from) / (to - from)) * 100));
+  }
+
+  pillStyle(l: LessonInfo) {
+    const { from, to } = this.hours();
+    const start = this.pos(new Date(l.startsAt));
+    const width = (l.durationMin / 60 / (to - from)) * 100;
+    return {
+      left: `${start}%`,
+      width: `${width}%`,
+      ...(l.status === 'cancelled' ? {} : { background: this.color(l.student.id) }),
+    };
+  }
+
+  /** Gaps of at least two hours between 14:00 and the end of the lane — when lessons usually happen. */
+  freeSlots(lessons: LessonInfo[]): { left: number; width: number; label: string }[] {
+    const { to } = this.hours();
+    const busy = lessons
+      .filter((l) => l.status !== 'cancelled')
+      .map((l) => {
+        const d = new Date(l.startsAt);
+        const s = d.getHours() + d.getMinutes() / 60;
+        return [s, s + l.durationMin / 60] as const;
+      })
+      .sort((a, b) => a[0] - b[0]);
+    const slots: { left: number; width: number; label: string }[] = [];
+    let cursor = 14;
+    for (const [s, e] of [...busy, [to, to] as const]) {
+      if (s - cursor >= 2) {
+        const { from } = this.hours();
+        const span = to - from;
+        slots.push({
+          left: ((cursor - from) / span) * 100,
+          width: ((s - cursor) / span) * 100,
+          label: `wolne ${Math.ceil(cursor)}–${Math.floor(s)}`,
+        });
+      }
+      cursor = Math.max(cursor, e);
+    }
+    return slots;
+  }
+
+  isToday(d: Date) {
+    return d.toDateString() === new Date().toDateString();
+  }
+
+  toggleStudent(id: string) {
+    const next = new Set(this.hiddenStudents());
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    this.hiddenStudents.set(next);
+  }
+
+  select(l: LessonInfo) {
+    this.selectedId.set(l.id);
+    this.editing.set(null);
+    this.cancelling.set(null);
   }
 
   move(weeks: number) {

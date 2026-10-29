@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, type OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import {
   FormControl,
   NonNullableFormBuilder,
@@ -81,6 +81,9 @@ export default class HomeworkPage implements OnInit {
   private readonly store = inject(AuthStore);
   private readonly fb = inject(NonNullableFormBuilder);
 
+  /** `?new=1` (szybka akcja z ekranu „Teraz”) otwiera formularz zadania. */
+  readonly new = input<string>();
+
   readonly role = this.store.role;
   readonly isTutor = computed(() => this.role() === 'tutor');
   readonly statusLabel = HOMEWORK_STATUS_LABELS;
@@ -114,6 +117,7 @@ export default class HomeworkPage implements OnInit {
     try {
       if (this.isTutor()) this.enrollments.set(await this.api.enrollments());
       await this.reload();
+      if (this.isTutor() && this.new()) this.openAssign();
     } catch (err) {
       this.error.set(toApiError(err).message);
     }

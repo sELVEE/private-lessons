@@ -57,6 +57,13 @@ export interface LedgerEntryInfo {
   voided: boolean;
 }
 
+/** One entry of the tutor's monthly ledger across all students. */
+export interface LedgerRow extends LedgerEntryInfo {
+  enrollmentId: string;
+  student: string;
+  subject: string;
+}
+
 export interface PackageInfo {
   id: string;
   lessonsTotal: number;

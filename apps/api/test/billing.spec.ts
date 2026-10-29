@@ -149,3 +149,29 @@ describe('billing', () => {
     expect((await other.c.get('/api/billing/balances')).body).toEqual([]);
   });
 });
+
+describe('tutor ledger and payment reminders', () => {
+  it('lists the month across students and e-mails a reminder to student and parents', async () => {
+    const { t, s, p, e } = await setup();
+    await t.c.put(`/api/billing/enrollments/${e.id}/rate`, { hourlyRate: 12000 });
+    expect((await t.c.post(`/api/billing/enrollments/${e.id}/remind`)).body.code).toBe(
+      'nothing_due',
+    );
+    const id = await pastLesson(t, e.id, 2);
+    await t.c.post(`/api/lessons/${id}/complete`, { attendance: 'present' });
+
+    const ledger = (await t.c.get(`/api/billing/ledger?month=${month()}`)).body;
+    expect(ledger[0]).toMatchObject({ student: 'Kasia', subject: 'Matematyka', amount: 12000 });
+    expect((await s.c.get(`/api/billing/ledger?month=${month()}`)).body.code).toBe('not_a_tutor');
+
+    const before = h.mail.outbox.length;
+    expect((await t.c.post(`/api/billing/enrollments/${e.id}/remind`)).body.sent).toBe(2);
+    expect(
+      h.mail.outbox
+        .slice(before)
+        .map((m) => m.to)
+        .sort(),
+    ).toEqual([p.email, s.email].sort());
+    expect((await s.c.post(`/api/billing/enrollments/${e.id}/remind`)).status).toBe(404);
+  });
+});

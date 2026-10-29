@@ -20,7 +20,7 @@
             </p>
           }
         </div>
-        <a mat-flat-button routerLink="/login">Przejdź do logowania</a>
+        <a matButton="filled" routerLink="/login">Przejdź do logowania</a>
       } @else {
         @if (error(); as message) {
           <div class="error-banner" role="alert">{{ message }}</div>
@@ -186,8 +186,8 @@
           }
 
           <div class="row-actions" style="margin-top: 16px">
-            <a mat-button routerLink="/login">Mam już konto</a>
-            <button mat-flat-button type="submit" [disabled]="busy()">Załóż konto</button>
+            <a matButton routerLink="/login">Mam już konto</a>
+            <button matButton="filled" type="submit" [disabled]="busy()">Załóż konto</button>
           </div>
         </form>
       }

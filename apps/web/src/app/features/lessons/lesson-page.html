@@ -91,7 +91,7 @@
             </mat-form-field>
             <div class="row-actions">
               <span></span>
-              <button mat-flat-button (click)="saveNote()">Zapisz notatkę</button>
+              <button matButton="filled" (click)="saveNote()">Zapisz notatkę</button>
             </div>
             @if (note()?.revisions?.length) {
               <mat-expansion-panel>
@@ -104,7 +104,7 @@
                       {{ r.editedBy }} · {{ r.createdAt | date: 'd.MM HH:mm' }}
                     </div>
                     <div class="pre">{{ r.content }}</div>
-                    <button mat-button (click)="restore(r.content)">Przywróć do edycji</button>
+                    <button matButton (click)="restore(r.content)">Przywróć do edycji</button>
                   </div>
                 }
               </mat-expansion-panel>
@@ -144,8 +144,8 @@
                 </mat-select>
               </mat-form-field>
               <div class="row-actions">
-                <button mat-button type="button" (click)="editingReport.set(false)">Anuluj</button>
-                <button mat-flat-button type="submit">Zapisz raport</button>
+                <button matButton type="button" (click)="editingReport.set(false)">Anuluj</button>
+                <button matButton="filled" type="submit">Zapisz raport</button>
               </div>
             </form>
           } @else if (report(); as r) {
@@ -162,12 +162,12 @@
               <p class="muted">Zaangażowanie: {{ r.engagement }}/5</p>
             }
             @if (isTutor()) {
-              <button mat-stroked-button (click)="editReport()">Edytuj raport</button>
+              <button matButton="outlined" (click)="editReport()">Edytuj raport</button>
             }
           } @else {
             <p class="muted">Raport nie został jeszcze dodany.</p>
             @if (isTutor() && l.status !== 'cancelled') {
-              <button mat-flat-button (click)="editReport()">Dodaj raport</button>
+              <button matButton="filled" (click)="editReport()">Dodaj raport</button>
             }
           }
         </mat-card-content>

@@ -15,6 +15,7 @@ import {
   type BalanceRow,
   type BillingAccount,
   type EarningsSummary,
+  type LedgerRow,
   monthSchema,
   packageSchema,
   paymentSchema,
@@ -22,7 +23,7 @@ import {
   type Statement,
 } from '@pl/shared';
 import type { z } from 'zod';
-import { Auth } from '../common/decorators.js';
+import { Auth, RateLimit } from '../common/decorators.js';
 import type { AuthContext } from '../common/request.js';
 import { ZodPipe } from '../common/zod.pipe.js';
 import { BillingService } from './billing.service.js';
@@ -44,6 +45,21 @@ export class BillingController {
     @Query(new ZodPipe(monthSchema)) q: { month: string },
   ): Promise<EarningsSummary> {
     return this.billing.earnings(user, q.month);
+  }
+
+  @Get('ledger')
+  ledger(
+    @Auth() { user }: AuthContext,
+    @Query(new ZodPipe(monthSchema)) q: { month: string },
+  ): Promise<LedgerRow[]> {
+    return this.billing.ledger(user, q.month);
+  }
+
+  @RateLimit({ limit: 20, windowSec: 3600 })
+  @Post('enrollments/:id/remind')
+  @HttpCode(200)
+  remind(@Auth() { user }: AuthContext, @Param('id', Uuid) id: string) {
+    return this.billing.remind(user, id);
   }
 
   @Get('enrollments/:id')

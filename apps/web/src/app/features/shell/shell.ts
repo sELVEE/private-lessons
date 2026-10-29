@@ -1,16 +1,10 @@
-import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { SwUpdate } from '@angular/service-worker';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { SwUpdate } from '@angular/service-worker';
+import { filter } from 'rxjs';
 import { AuthStore } from '../../core/auth.store';
 import { NAV } from '../nav';
 
@@ -21,19 +15,16 @@ const ROLE_LABEL = {
   admin: 'Administrator',
 } as const;
 
+/** Top bar with the brand and account menu, floating dock for navigation (direction C). */
 @Component({
   selector: 'pl-shell',
   imports: [
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
-    MatButtonModule,
     MatIconModule,
-    MatListModule,
     MatMenuModule,
-    MatSidenavModule,
     MatSnackBarModule,
-    MatToolbarModule,
   ],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
@@ -44,19 +35,18 @@ export default class Shell {
   readonly me = this.store.me;
   readonly nav = computed(() => {
     const role = this.store.role();
-    return role ? NAV[role] : [];
+    return role ? NAV[role] : { dock: [], more: [] };
   });
   readonly roleLabel = computed(() => {
     const role = this.store.role();
     return role ? ROLE_LABEL[role] : '';
   });
-  readonly isHandset = toSignal(
-    inject(BreakpointObserver)
-      .observe('(max-width: 840px)')
-      .pipe(map((r) => r.matches)),
-    { initialValue: false },
-  );
-
+  readonly initial = computed(() => this.me()?.displayName.charAt(0).toUpperCase() ?? '?');
+  readonly today = new Date().toLocaleDateString('pl-PL', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
   readonly online = signal(typeof navigator === 'undefined' ? true : navigator.onLine);
 
   constructor() {

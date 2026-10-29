@@ -30,9 +30,9 @@
               }
             ],
             "styles": [
-              "@fontsource/roboto/400.css",
-              "@fontsource/roboto/500.css",
-              "@fontsource/roboto/700.css",
+              "@fontsource-variable/manrope/index.css",
+              "@fontsource/instrument-serif/400.css",
+              "@fontsource/instrument-serif/400-italic.css",
               "material-symbols/outlined.css",
               "katex/dist/katex.min.css",
               "src/styles.scss"
@@ -49,8 +49,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all",

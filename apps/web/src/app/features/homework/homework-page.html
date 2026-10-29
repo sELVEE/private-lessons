@@ -2,7 +2,7 @@
   <div class="header">
     <h1>Zadania domowe</h1>
     @if (isTutor()) {
-      <button mat-flat-button (click)="openAssign()" [disabled]="!activeEnrollments().length">
+      <button matButton="filled" (click)="openAssign()" [disabled]="!activeEnrollments().length">
         <mat-icon fontSet="material-symbols-outlined">add_task</mat-icon> Zadaj zadanie
       </button>
     }
@@ -39,8 +39,8 @@
             <input matInput type="date" formControlName="dueAt" />
           </mat-form-field>
           <div class="row-actions">
-            <button mat-button type="button" (click)="showAssign.set(false)">Anuluj</button>
-            <button mat-flat-button type="submit">Zadaj</button>
+            <button matButton type="button" (click)="showAssign.set(false)">Anuluj</button>
+            <button matButton="filled" type="submit">Zadaj</button>
           </div>
         </form>
       </mat-card-content>
@@ -103,8 +103,8 @@
             </mat-form-field>
             <pl-markdown [text]="answer.value" />
             <div class="row-actions">
-              <button mat-button (click)="answering.set(null)">Anuluj</button>
-              <button mat-flat-button (click)="submit(h)">Oddaj</button>
+              <button matButton (click)="answering.set(null)">Anuluj</button>
+              <button matButton="filled" (click)="submit(h)">Oddaj</button>
             </div>
           }
           @if (reviewing() === h.id) {
@@ -118,25 +118,25 @@
                 <input matInput formControlName="grade" placeholder="np. 5, 8/10, zaliczone" />
               </mat-form-field>
               <div class="row-actions">
-                <button mat-button type="button" (click)="reviewing.set(null)">Anuluj</button>
-                <button mat-flat-button type="submit">Zapisz ocenę</button>
+                <button matButton type="button" (click)="reviewing.set(null)">Anuluj</button>
+                <button matButton="filled" type="submit">Zapisz ocenę</button>
               </div>
             </form>
           }
         </mat-card-content>
         <mat-card-actions>
           @if (role() === 'student' && h.status !== 'reviewed' && answering() !== h.id) {
-            <button mat-flat-button (click)="startAnswer(h)">
+            <button matButton="filled" (click)="startAnswer(h)">
               {{ h.submission ? 'Popraw rozwiązanie' : 'Rozwiąż' }}
             </button>
           }
           @if (isTutor()) {
             @if (h.status !== 'assigned' && reviewing() !== h.id) {
-              <button mat-flat-button (click)="startReview(h)">
+              <button matButton="filled" (click)="startReview(h)">
                 {{ h.status === 'reviewed' ? 'Zmień ocenę' : 'Sprawdź' }}
               </button>
             }
-            <button mat-button (click)="remove(h)">Usuń</button>
+            <button matButton (click)="remove(h)">Usuń</button>
           }
         </mat-card-actions>
       </mat-card>

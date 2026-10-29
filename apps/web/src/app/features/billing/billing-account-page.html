@@ -51,10 +51,10 @@
 
     @if (isTutor()) {
       <div class="actions no-print">
-        <button mat-flat-button (click)="open('payment')">Zapisz wpłatę</button>
-        <button mat-stroked-button (click)="open('package')">Sprzedaj pakiet</button>
-        <button mat-stroked-button (click)="open('rate')">Stawka</button>
-        <button mat-button (click)="open('adjustment')">Korekta</button>
+        <button matButton="filled" (click)="open('payment')">Zapisz wpłatę</button>
+        <button matButton="outlined" (click)="open('package')">Sprzedaj pakiet</button>
+        <button matButton="outlined" (click)="open('rate')">Stawka</button>
+        <button matButton (click)="open('adjustment')">Korekta</button>
       </div>
 
       @switch (panel()) {
@@ -79,7 +79,7 @@
               <mat-form-field
                 ><mat-label>Notatka</mat-label><input matInput formControlName="note"
               /></mat-form-field>
-              <button mat-flat-button type="submit" [disabled]="busy()">Zapisz</button>
+              <button matButton="filled" type="submit" [disabled]="busy()">Zapisz</button>
             </form>
           </mat-card>
         }
@@ -97,7 +97,7 @@
               <mat-form-field
                 ><mat-label>Notatka</mat-label><input matInput formControlName="note"
               /></mat-form-field>
-              <button mat-flat-button type="submit" [disabled]="busy()">Dodaj</button>
+              <button matButton="filled" type="submit" [disabled]="busy()">Dodaj</button>
             </form>
             <p class="muted">
               Odbyte lekcje najpierw zużywają pakiet, potem liczone są wg stawki. Cena pakietu
@@ -112,7 +112,7 @@
                 ><mat-label>Stawka za 60 min (zł)</mat-label
                 ><input matInput formControlName="rate" inputmode="decimal"
               /></mat-form-field>
-              <button mat-flat-button type="submit" [disabled]="busy()">Zapisz</button>
+              <button matButton="filled" type="submit" [disabled]="busy()">Zapisz</button>
             </form>
             <p class="muted">
               Lekcje innej długości liczone proporcjonalnie. Zmiana nie przelicza lekcji już
@@ -134,7 +134,7 @@
               <mat-form-field
                 ><mat-label>Powód</mat-label><input matInput formControlName="note"
               /></mat-form-field>
-              <button mat-flat-button type="submit" [disabled]="busy()">Zapisz</button>
+              <button matButton="filled" type="submit" [disabled]="busy()">Zapisz</button>
             </form>
           </mat-card>
         }
@@ -157,7 +157,7 @@
             <button mat-icon-button (click)="moveMonth(1)" aria-label="Następny miesiąc">
               <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
             </button>
-            <button mat-button (click)="print()">
+            <button matButton (click)="print()">
               <mat-icon fontSet="material-symbols-outlined">print</mat-icon> Drukuj / PDF
             </button>
           </div>

@@ -71,13 +71,13 @@
                   enableForm.controls.code.errors?.['server'] ?? 'Podaj 6 cyfr'
                 }}</mat-error>
               </mat-form-field>
-              <button mat-flat-button type="submit" [disabled]="busy()">Włącz</button>
+              <button matButton="filled" type="submit" [disabled]="busy()">Włącz</button>
             </form>
           } @else {
             <p class="muted">
               Po włączeniu przy logowaniu podasz także kod z aplikacji w telefonie.
             </p>
-            <button mat-flat-button (click)="startMfa()" [disabled]="busy()">Skonfiguruj</button>
+            <button matButton="filled" (click)="startMfa()" [disabled]="busy()">Skonfiguruj</button>
           }
         } @else if (!me()?.isPlatformAdmin) {
           <form [formGroup]="disableForm" (ngSubmit)="disableMfa()" class="form-stack narrow">
@@ -101,7 +101,7 @@
                 disableForm.controls.code.errors?.['server'] ?? 'Podaj kod'
               }}</mat-error>
             </mat-form-field>
-            <button mat-stroked-button type="submit" [disabled]="busy()">
+            <button matButton="outlined" type="submit" [disabled]="busy()">
               Wyłącz weryfikację dwuetapową
             </button>
           </form>
@@ -144,7 +144,7 @@
                   'Co najmniej ' + passwordMin + ' znaków'
               }}</mat-error>
             </mat-form-field>
-            <button mat-flat-button type="submit" [disabled]="busy()">Zmień hasło</button>
+            <button matButton="filled" type="submit" [disabled]="busy()">Zmień hasło</button>
           </form>
         </mat-card-content>
       </mat-card>
@@ -169,7 +169,7 @@
                   {{ s.createdAt | date: 'short' }}
                 </span>
                 @if (!s.current) {
-                  <button mat-button matListItemMeta (click)="revoke(s.id)" [disabled]="busy()">
+                  <button matButton matListItemMeta (click)="revoke(s.id)" [disabled]="busy()">
                     Wyloguj
                   </button>
                 }
@@ -178,7 +178,7 @@
           </mat-list>
         </mat-card-content>
         <mat-card-actions align="end">
-          <button mat-stroked-button (click)="revokeAll()" [disabled]="busy()">
+          <button matButton="outlined" (click)="revokeAll()" [disabled]="busy()">
             Wyloguj ze wszystkich urządzeń
           </button>
         </mat-card-actions>

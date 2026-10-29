@@ -75,7 +75,7 @@
           <p><strong>Dalsze kroki:</strong> {{ p.summary.lastNextSteps }}</p>
         }
         @if (isTutor()) {
-          <button mat-stroked-button (click)="send()">
+          <button matButton="outlined" (click)="send()">
             <mat-icon fontSet="material-symbols-outlined">forward_to_inbox</mat-icon> Wyślij
             podsumowanie uczniowi i rodzicom
           </button>
@@ -162,14 +162,14 @@
                   </mat-select>
                 </mat-form-field>
                 <div class="row-actions span-2">
-                  <button mat-button type="button" (click)="showAssessment.set(false)">
+                  <button matButton type="button" (click)="showAssessment.set(false)">
                     Anuluj
                   </button>
-                  <button mat-flat-button type="submit">Dodaj</button>
+                  <button matButton="filled" type="submit">Dodaj</button>
                 </div>
               </form>
             } @else {
-              <button mat-flat-button (click)="showAssessment.set(true)">
+              <button matButton="filled" (click)="showAssessment.set(true)">
                 Dodaj ocenę / wynik
               </button>
             }
@@ -280,7 +280,7 @@
                   ><mat-label>Termin</mat-label
                   ><input matInput type="date" formControlName="targetDate"
                 /></mat-form-field>
-                <button mat-stroked-button type="submit">Dodaj</button>
+                <button matButton="outlined" type="submit">Dodaj</button>
               </form>
             }
           </mat-card-content>

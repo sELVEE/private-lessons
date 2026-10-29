@@ -1,180 +1,283 @@
 <div class="page">
-  <h1>Cześć, {{ me()?.displayName }}!</h1>
+  <section class="intro">
+    <h1>
+      {{ greeting() }}
+      @if (role() === 'tutor') {
+        <em>Co robimy?</em>
+      } @else if (next()) {
+        <em>Lekcja {{ nextIn() }}.</em>
+      }
+    </h1>
 
-  @if (joined()) {
-    <div class="info-banner" role="status">Dołączono do korepetytora. Powodzenia w nauce!</div>
-  }
+    @if (joined()) {
+      <div class="info-banner" role="status">Dołączono do korepetytora. Powodzenia w nauce!</div>
+    }
+    @if (error(); as e) {
+      <div class="error-banner" role="alert">{{ e }}</div>
+    }
+    @if (info(); as i) {
+      <div class="info-banner" role="status">{{ i }}</div>
+    }
+
+    @if (role() !== 'admin') {
+      <form class="command" (ngSubmit)="submitQuery()" role="search">
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">search</mat-icon>
+        <input
+          name="q"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event)"
+          [attr.aria-label]="
+            role() === 'tutor' ? 'Szukaj ucznia' : 'Szukaj korepetytora lub przedmiotu'
+          "
+          [placeholder]="
+            role() === 'tutor' ? 'Wpisz imię ucznia…' : 'Wpisz przedmiot lub korepetytora…'
+          "
+          autocomplete="off"
+        />
+      </form>
+      @if (matches().length) {
+        <ul class="matches" role="listbox" aria-label="Wyniki">
+          @for (e of matches(); track e.id) {
+            <li>
+              <button type="button" (click)="openEnrollment(e)">
+                <span class="avatar small" [style.background]="color(e.student.id)">{{
+                  initial(e.student.displayName)
+                }}</span>
+                {{ role() === 'tutor' ? e.student.displayName : e.tutor.displayName }} ·
+                {{ e.subject.name }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+    <div class="quick">
+      @for (q of quick(); track q.label; let first = $first) {
+        <a
+          [matButton]="first ? 'filled' : 'outlined'"
+          [routerLink]="q.link"
+          [queryParams]="q.params"
+          >{{ q.label }}</a
+        >
+      }
+    </div>
+  </section>
+
   @if (!me()?.mfaEnabled) {
-    <div class="info-banner">
-      Zabezpiecz konto weryfikacją dwuetapową.
-      <a mat-button routerLink="/app/account">Włącz</a>
+    <div class="info-banner nudge">
+      <span>Zabezpiecz konto weryfikacją dwuetapową.</span>
+      <a matButton="outlined" routerLink="/app/account">Włącz</a>
     </div>
   }
 
-  <div class="grid">
-    @switch (role()) {
-      @case ('tutor') {
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Aktywni uczniowie</mat-card-title></mat-card-header>
-          <mat-card-content>
-            <p class="big">{{ active().length }}</p>
-            <mat-list>
-              @for (e of active().slice(0, 5); track e.id) {
-                <a mat-list-item [routerLink]="['/app/students', e.id]">
-                  <span matListItemTitle>{{ e.student.displayName }}</span>
-                  <span matListItemLine class="muted"
-                    >{{ e.subject.name }} · {{ level(e.student) }}</span
-                  >
-                </a>
+  @if (role() !== 'admin') {
+    <div class="main">
+      <section class="pl-card-dark next" [class.empty]="!next()">
+        @if (next(); as n) {
+          <div class="eyebrow light"><span class="dot"></span>Następna lekcja · {{ nextIn() }}</div>
+          <div class="next-head">
+            <div>
+              <div class="display big">
+                {{ day(n.startsAt) }} {{ time(n.startsAt) }} ·
+                {{ role() === 'tutor' ? n.student.displayName : n.tutor.displayName }}
+              </div>
+              <div class="sub">
+                {{ n.subject }}
+                @if (role() === 'parent') {
+                  · {{ n.student.displayName }}
+                }
+                @if (n.location) {
+                  · {{ n.location }}
+                }
+                · {{ n.durationMin }} min
+              </div>
+            </div>
+            <a matButton="filled" class="pl-accent large" [routerLink]="['/app/lessons', n.id]">
+              {{ role() === 'tutor' ? 'Otwórz lekcję' : 'Szczegóły' }}
+            </a>
+          </div>
+          <div class="hints">
+            <div class="hint">
+              <span class="eyebrow light">Ostatnio ustaliliście</span>
+              <span>{{
+                lastReport()?.nextSteps ||
+                  lastReport()?.summary ||
+                  'Brak raportu z poprzedniej lekcji.'
+              }}</span>
+            </div>
+            <div class="hint">
+              <span class="eyebrow light">Zadanie domowe</span>
+              @if (nextHomework(); as h) {
+                <span>
+                  {{ h.title }} —
+                  @if (h.status === 'submitted') {
+                    <a routerLink="/app/homework"
+                      >oddane, {{ role() === 'tutor' ? 'sprawdź' : 'czeka na ocenę' }}</a
+                    >
+                  } @else {
+                    <a routerLink="/app/homework">{{
+                      role() === 'student' ? 'do zrobienia' : 'jeszcze nieoddane'
+                    }}</a>
+                  }
+                </span>
+              } @else {
+                <span>Nic nie jest zadane.</span>
               }
-            </mat-list>
-          </mat-card-content>
-          <mat-card-actions>
-            <a mat-button routerLink="/app/students">Wszyscy uczniowie</a>
-            <a mat-button routerLink="/app/students">Zaproś ucznia</a>
-          </mat-card-actions>
-        </mat-card>
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
-          <mat-card-content>
-            <mat-list>
-              @for (l of upcoming(); track l.id) {
-                <a mat-list-item routerLink="/app/calendar">
-                  <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM, HH:mm' }}</span>
-                  <span matListItemLine class="muted">
-                    {{ role() === 'tutor' ? l.student.displayName : l.tutor.displayName }} ·
-                    {{ l.subject }}
-                  </span>
-                </a>
-              } @empty {
-                <p class="muted">Brak zaplanowanych lekcji w najbliższych 2 tygodniach.</p>
+            </div>
+            <div class="hint">
+              <span class="eyebrow light">Do powtórki</span>
+              <span>
+                @if (nextSummary()?.toReview?.length) {
+                  {{ nextSummary()?.toReview?.join(', ') }}
+                } @else {
+                  Nic nie czeka na powtórkę.
+                }
+                @if (
+                  nextSummary()?.averagePercent !== null &&
+                  nextSummary()?.averagePercent !== undefined
+                ) {
+                  · średnio {{ nextSummary()?.averagePercent }}%
+                }
+              </span>
+            </div>
+          </div>
+        } @else {
+          <div class="eyebrow light">Następna lekcja</div>
+          <div class="display big">Brak zaplanowanych lekcji</div>
+          @if (role() === 'tutor') {
+            <a
+              matButton="filled"
+              class="pl-accent large"
+              routerLink="/app/calendar"
+              [queryParams]="{ new: 1 }"
+              >Zaplanuj lekcję</a
+            >
+          }
+        }
+      </section>
+
+      @switch (role()) {
+        @case ('tutor') {
+          <section class="pl-card inbox">
+            <div class="inbox-head">
+              <h2>Czeka na Ciebie</h2>
+              @if (inbox().length) {
+                <span class="count">{{ inbox().length }}</span>
               }
-            </mat-list>
-          </mat-card-content>
-          <mat-card-actions
-            ><a mat-button routerLink="/app/calendar">Kalendarz</a></mat-card-actions
-          >
-        </mat-card>
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Ten miesiąc</mat-card-title></mat-card-header>
-          <mat-card-content>
-            @if (earnings(); as e) {
-              <p class="big">{{ money(e.received) }}</p>
-              <p class="muted">
-                wpłaty · naliczone {{ money(e.charged) }} · zaległości {{ money(e.outstanding) }} ·
-                lekcje
-                {{ e.lessonsCompleted }}
-              </p>
+            </div>
+            @for (item of inbox(); track item.id) {
+              <div class="inbox-row">
+                <div class="what">
+                  <strong>{{ item.title }}</strong>
+                  <span class="muted">{{ item.detail }}</span>
+                </div>
+                @switch (item.kind) {
+                  @case ('charge') {
+                    <button matButton="outlined" (click)="decide(item, false)">Nie</button>
+                    <button matButton="filled" (click)="decide(item, true)">Tak</button>
+                  }
+                  @case ('homework') {
+                    <a matButton="filled" routerLink="/app/homework">Sprawdź</a>
+                  }
+                  @case ('debt') {
+                    <button matButton="outlined" (click)="remind(item)">Przypomnij</button>
+                  }
+                }
+              </div>
+            } @empty {
+              <p class="muted calm">Nic nie czeka. Wszystko załatwione.</p>
             }
-          </mat-card-content>
-          <mat-card-actions
-            ><a mat-button routerLink="/app/billing">Rozliczenia</a></mat-card-actions
-          >
-        </mat-card>
-      }
-      @case ('student') {
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Moi korepetytorzy</mat-card-title></mat-card-header>
-          <mat-card-content>
-            <mat-list>
-              @for (e of enrollments(); track e.id) {
-                <a mat-list-item [routerLink]="['/app/cooperation', e.id]">
-                  <span matListItemTitle>{{ e.subject.name }} — {{ e.tutor.displayName }}</span>
-                  <span matListItemLine class="muted"
-                    >od {{ e.startedAt | date: 'd.MM.yyyy' }}</span
+          </section>
+        }
+        @case ('student') {
+          <section class="pl-card inbox">
+            <div class="inbox-head"><h2>Do zrobienia</h2></div>
+            @for (h of studentTodo(); track h.id) {
+              <div class="inbox-row">
+                <div class="what">
+                  <strong>{{ h.title }}</strong>
+                  <span class="muted"
+                    >{{ h.subject }}
+                    @if (h.dueAt) {
+                      · termin {{ day(h.dueAt) }}
+                    }
+                  </span>
+                </div>
+                <a matButton="filled" routerLink="/app/homework">Rozwiąż</a>
+              </div>
+            } @empty {
+              <p class="muted calm">Wszystkie zadania oddane.</p>
+            }
+            <div class="inbox-row">
+              <div class="what"><strong>Materiały od korepetytora</strong></div>
+              <a matButton="outlined" routerLink="/app/materials">Otwórz</a>
+            </div>
+          </section>
+        }
+        @case ('parent') {
+          <section class="pl-card inbox">
+            <div class="inbox-head"><h2>Dzieci</h2></div>
+            @for (c of children(); track c.id) {
+              <div class="inbox-row">
+                <span class="avatar" [style.background]="color(c.id)">{{
+                  initial(c.displayName)
+                }}</span>
+                <div class="what">
+                  <strong>{{ c.displayName }}</strong>
+                  <span class="muted"
+                    >{{ c.enrollments.length }}
+                    {{ c.enrollments.length === 1 ? 'przedmiot' : 'przedmioty' }}</span
                   >
-                </a>
-              } @empty {
-                <p class="muted">Nie masz jeszcze korepetytora. Poproś go o kod zaproszenia.</p>
-              }
-            </mat-list>
-          </mat-card-content>
-          <mat-card-actions>
-            <a mat-button routerLink="/app/join">Dołącz z kodem</a>
-          </mat-card-actions>
-        </mat-card>
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Mój profil</mat-card-title></mat-card-header>
-          <mat-card-content>
-            <p>{{ schoolLabel() }}</p>
-          </mat-card-content>
-          <mat-card-actions><a mat-button routerLink="/app/account">Zmień</a></mat-card-actions>
-        </mat-card>
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
-          <mat-card-content>
-            <mat-list>
-              @for (l of upcoming(); track l.id) {
-                <a mat-list-item routerLink="/app/calendar">
-                  <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM, HH:mm' }}</span>
-                  <span matListItemLine class="muted">
-                    {{ role() === 'tutor' ? l.student.displayName : l.tutor.displayName }} ·
-                    {{ l.subject }}
-                  </span>
-                </a>
-              } @empty {
-                <p class="muted">Brak zaplanowanych lekcji w najbliższych 2 tygodniach.</p>
-              }
-            </mat-list>
-          </mat-card-content>
-          <mat-card-actions
-            ><a mat-button routerLink="/app/calendar">Kalendarz</a></mat-card-actions
-          >
-        </mat-card>
+                </div>
+                <a matButton="outlined" routerLink="/app/progress">Postępy</a>
+              </div>
+            } @empty {
+              <p class="muted calm">Połącz konto dziecka kodem, który wygeneruje w swoim koncie.</p>
+            }
+          </section>
+        }
       }
-      @case ('parent') {
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Moje dzieci</mat-card-title></mat-card-header>
-          <mat-card-content>
-            <mat-list>
-              @for (c of children(); track c.id) {
-                <a mat-list-item routerLink="/app/children">
-                  <span matListItemTitle>{{ c.displayName }}</span>
-                  <span matListItemLine class="muted">
-                    {{ c.enrollments.length }}
-                    {{ c.enrollments.length === 1 ? 'przedmiot' : 'przedmioty' }} · {{ level(c) }}
-                  </span>
-                </a>
-              } @empty {
-                <p class="muted">Połącz konto dziecka kodem, który wygeneruje w swoim koncie.</p>
+    </div>
+
+    <section class="week">
+      <div class="week-head">
+        <h2>Ten tydzień</h2>
+        <span class="muted">
+          {{ weekCount() }}
+          {{
+            weekCount() === 1 ? 'lekcja' : weekCount() < 5 && weekCount() > 1 ? 'lekcje' : 'lekcji'
+          }}
+          · wolne dni: {{ freeDays() }}
+        </span>
+        <a class="link" routerLink="/app/calendar">Kalendarz →</a>
+      </div>
+      <div class="days">
+        @for (d of week(); track d.label) {
+          <a class="day" [class.today]="d.today" routerLink="/app/calendar">
+            <span class="day-label"
+              >{{ d.label }}
+              @if (d.today) {
+                · dziś
               }
-            </mat-list>
-          </mat-card-content>
-          <mat-card-actions
-            ><a mat-button routerLink="/app/children">Zarządzaj</a></mat-card-actions
-          >
-        </mat-card>
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Najbliższe lekcje</mat-card-title></mat-card-header>
-          <mat-card-content>
-            <mat-list>
-              @for (l of upcoming(); track l.id) {
-                <a mat-list-item routerLink="/app/calendar">
-                  <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM, HH:mm' }}</span>
-                  <span matListItemLine class="muted">
-                    {{ role() === 'tutor' ? l.student.displayName : l.tutor.displayName }} ·
-                    {{ l.subject }}
-                  </span>
-                </a>
-              } @empty {
-                <p class="muted">Brak zaplanowanych lekcji w najbliższych 2 tygodniach.</p>
-              }
-            </mat-list>
-          </mat-card-content>
-          <mat-card-actions
-            ><a mat-button routerLink="/app/calendar">Kalendarz</a></mat-card-actions
-          >
-        </mat-card>
-      }
-      @case ('admin') {
-        <mat-card appearance="outlined">
-          <mat-card-header><mat-card-title>Administracja</mat-card-title></mat-card-header>
-          <mat-card-content class="muted"
-            >Wyszukiwanie i blokowanie kont, z audytem każdej operacji.</mat-card-content
-          >
-          <mat-card-actions><a mat-button routerLink="/app/admin">Otwórz</a></mat-card-actions>
-        </mat-card>
-      }
-    }
-  </div>
+            </span>
+            @for (l of d.lessons; track l.id) {
+              <span
+                class="bar"
+                [style.background]="color(l.student.id)"
+                [title]="time(l.startsAt) + ' ' + l.student.displayName"
+              ></span>
+            } @empty {
+              <span class="muted free">wolne</span>
+            }
+          </a>
+        }
+      </div>
+    </section>
+  } @else {
+    <section class="pl-card">
+      <h2>Administracja</h2>
+      <p class="muted">Wyszukiwanie i blokowanie kont, z audytem każdej operacji.</p>
+      <a matButton="filled" routerLink="/app/admin">Otwórz</a>
+    </section>
+  }
 </div>

@@ -4,6 +4,7 @@ import type {
   BillingAccount,
   EarningsSummary,
   LedgerEntryInfo,
+  LedgerRow,
   PackageInfo,
   PaymentMethod,
   Statement,
@@ -19,9 +20,12 @@ import {
   ledgerEntries,
   lessonPackages,
   lessons,
+  parentLinks,
   subjects,
   users,
 } from '../db/schema.js';
+import { AuditService } from '../audit/audit.service.js';
+import { MailService } from '../mail/mail.service.js';
 import { type ChargeHandler, LessonHooks } from '../lessons/lesson-hooks.js';
 import { RlsService, type Tx } from '../rls/rls.service.js';
 import { notFound, requireTutorOrg } from '../teaching/access.js';
@@ -64,6 +68,8 @@ export class BillingService implements ChargeHandler, OnModuleInit {
     @Inject(DB) private readonly db: Db,
     private readonly rls: RlsService,
     private readonly hooks: LessonHooks,
+    private readonly mail: MailService,
+    private readonly audit: AuditService,
   ) {}
 
   onModuleInit() {
@@ -386,6 +392,85 @@ export class BillingService implements ChargeHandler, OnModuleInit {
         history,
       };
     });
+  }
+
+  /** All of the tutor's ledger entries in a month, newest first, with the student's name. */
+  async ledger(user: User, month: string): Promise<LedgerRow[]> {
+    await requireTutorOrg(this.db, user);
+    return this.rls.run(user.id, async (tx) => {
+      const { start, end } = monthRange(month);
+      const rows = await tx
+        .select({ e: ledgerEntries, student: studentU.displayName, subject: subjects.name })
+        .from(ledgerEntries)
+        .innerJoin(enrollments, eq(enrollments.id, ledgerEntries.enrollmentId))
+        .innerJoin(subjects, eq(subjects.id, enrollments.subjectId))
+        .innerJoin(studentU, eq(studentU.id, ledgerEntries.studentId))
+        .where(
+          and(
+            eq(ledgerEntries.tutorId, user.id),
+            isNull(ledgerEntries.voidedAt),
+            gte(ledgerEntries.occurredAt, start),
+            lt(ledgerEntries.occurredAt, end),
+          ),
+        )
+        .orderBy(desc(ledgerEntries.occurredAt))
+        .limit(500);
+      return rows.map(({ e, student, subject }) => ({
+        ...toEntry(e),
+        enrollmentId: e.enrollmentId,
+        student,
+        subject,
+      }));
+    });
+  }
+
+  /** E-mails the student and linked parents about the outstanding balance. */
+  async remind(user: User, enrollmentId: string): Promise<{ sent: number }> {
+    const { balance, studentName, subject, emails } = await this.rls.run(user.id, async (tx) => {
+      const e = await this.ownEnrollment(tx, user, enrollmentId);
+      const balance = await this.balance(tx, enrollmentId);
+      const info = await this.rls.asOwner(tx, async () => {
+        const [s] = await tx
+          .select({ name: users.displayName, email: users.email })
+          .from(users)
+          .where(eq(users.id, e.studentId));
+        const [subj] = await tx
+          .select({ name: subjects.name })
+          .from(subjects)
+          .where(eq(subjects.id, e.subjectId));
+        const parents = await tx
+          .select({ email: users.email })
+          .from(parentLinks)
+          .innerJoin(users, eq(users.id, parentLinks.parentId))
+          .where(eq(parentLinks.studentId, e.studentId));
+        return {
+          studentName: s!.name,
+          subject: subj!.name,
+          emails: [s!.email, ...parents.map((p) => p.email)],
+        };
+      });
+      return { balance, ...info };
+    });
+    if (balance <= 0) {
+      throw new AppError(HttpStatus.BAD_REQUEST, 'nothing_due', 'Ten uczeń nie ma zaległości');
+    }
+    const amount = (balance / 100).toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' });
+    for (const to of emails) {
+      await this.mail.send({
+        to,
+        subject: `Przypomnienie o płatności — ${subject}`,
+        text:
+          `Dzień dobry,\n\nprzypominamy o płatności za korepetycje (${studentName}, ${subject}): do zapłaty ${amount}.\n` +
+          `Szczegóły rozliczenia: ${this.mail.link(`/app/billing/${enrollmentId}`)}\n\n— ${user.displayName}`,
+      });
+    }
+    await this.audit.log({
+      actorId: user.id,
+      action: 'billing.reminder_sent',
+      targetType: 'enrollment',
+      targetId: enrollmentId,
+    });
+    return { sent: emails.length };
   }
 
   private heads(tx: Tx, where?: ReturnType<typeof eq>) {
