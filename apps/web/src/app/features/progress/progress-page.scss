@@ -1,0 +1,149 @@
+.summary {
+  margin-bottom: 16px;
+
+  .period {
+    margin-left: auto;
+  }
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 8px 0 16px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.v {
+  font: var(--mat-sys-headline-small);
+}
+
+.l {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.up {
+  color: #2e7d32;
+}
+
+.down {
+  color: var(--mat-sys-error);
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.side {
+  display: grid;
+  gap: 16px;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  margin-bottom: 12px;
+
+  .grid {
+    stroke: var(--mat-sys-outline-variant);
+  }
+
+  .axis {
+    font-size: 10px;
+    fill: var(--mat-sys-on-surface-variant);
+  }
+
+  .line {
+    fill: none;
+    stroke: var(--mat-sys-primary);
+    stroke-width: 2.5;
+  }
+
+  .dot {
+    fill: var(--mat-sys-primary);
+  }
+}
+
+.grid-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+  margin-top: 8px;
+
+  .span-2 {
+    grid-column: span 2;
+  }
+}
+
+.list {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+
+  td {
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+.topic,
+.goal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.status {
+  width: 140px;
+}
+
+.badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font: var(--mat-sys-label-medium);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.b-mastered {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+
+.b-review {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.goal-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .cols,
+  .grid-form {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-form .span-2 {
+    grid-column: auto;
+  }
+}

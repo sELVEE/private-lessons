@@ -5,9 +5,11 @@ import {
   integer,
   boolean,
   customType,
+  date,
   index,
   inet,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   smallint,
@@ -18,6 +20,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import {
   ACCOUNT_TYPES,
+  ASSESSMENT_KINDS,
   ATTENDANCE,
   ENROLLMENT_STATUSES,
   HOMEWORK_STATUSES,
@@ -26,6 +29,7 @@ import {
   ORG_ROLES,
   PAYMENT_METHODS,
   SCHOOL_LEVELS,
+  TOPIC_STATUSES,
 } from '@pl/shared';
 
 const citext = customType<{ data: string }>({ dataType: () => 'citext' });
@@ -578,4 +582,54 @@ export const homework = pgTable(
     index('homework_enrollment_idx').on(t.enrollmentId, t.createdAt),
     index('homework_student_idx').on(t.studentId, t.status),
   ],
+);
+
+// ---------------------------------------------------------------- stage 7: progress
+
+export const assessmentKind = pgEnum('assessment_kind', ASSESSMENT_KINDS);
+export const topicStatus = pgEnum('topic_status', TOPIC_STATUSES);
+
+export const assessments = pgTable(
+  'assessments',
+  {
+    id: id(),
+    ...scoped(),
+    title: text('title').notNull(),
+    kind: assessmentKind('kind').notNull(),
+    score: numeric('score', { precision: 8, scale: 2, mode: 'number' }),
+    maxScore: numeric('max_score', { precision: 8, scale: 2, mode: 'number' }),
+    grade: text('grade'),
+    takenAt: date('taken_at').notNull(),
+    topicId: uuid('topic_id').references(() => topics.id, { onDelete: 'set null' }),
+    note: text('note'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('assessments_enrollment_idx').on(t.enrollmentId, t.takenAt)],
+);
+
+export const topicProgress = pgTable(
+  'topic_progress',
+  {
+    id: id(),
+    ...scoped(),
+    topicId: uuid('topic_id')
+      .notNull()
+      .references(() => topics.id, { onDelete: 'cascade' }),
+    status: topicStatus('status').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('topic_progress_uq').on(t.enrollmentId, t.topicId)],
+);
+
+export const learningGoals = pgTable(
+  'learning_goals',
+  {
+    id: id(),
+    ...scoped(),
+    title: text('title').notNull(),
+    targetDate: date('target_date'),
+    achievedAt: timestamp('achieved_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('learning_goals_enrollment_idx').on(t.enrollmentId)],
 );

@@ -80,10 +80,13 @@ Legenda: ✅ zrobione · 🔜 następne · ⏳ później (świadomie odłożone)
 - Renderowanie: `marked` + KaTeX, sanityzacja DOMPurify (bez skryptów, handlerów, `javascript:`), test jednostkowy XSS.
 - ⏳ Pliki (PDF, zdjęcia, prezentacje) i linki ze skanowaniem, tablica online, lekcje online.
 
-### Etap 7 — postępy
+### Etap 7 — postępy ✅
 
-- Oceny i wyniki testów, tematy opanowane / do powtórki, cele i postęp w czasie.
-- Podsumowania dla ucznia i rodzica.
+- Oceny i wyniki (sprawdzian, kartkówka, egzamin próbny, odpowiedź, inne): punkty / maksimum i/lub ocena, data, temat; wykres wyników procentowych w czasie.
+- Tematy przedmiotu ze statusem: w trakcie / do powtórki / opanowany.
+- Cele nauki z terminem i odhaczaniem.
+- Podsumowanie za 30 dni / 3 miesiące / rok: lekcje, frekwencja, zadania, średni wynik z trendem, opanowane tematy, lista do powtórki, cele, ostatnie „dalsze kroki” z raportu. Korepetytor wysyła je e-mailem uczniowi i rodzicom.
+- Uczeń i rodzic widzą postępy (tylko odczyt), RLS dla `assessments`, `topic_progress`, `learning_goals`.
 
 ### Etap 8 — PWA i dopracowanie
 

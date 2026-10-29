@@ -13,6 +13,7 @@ import { BillingModule } from './billing/billing.module.js';
 import { CommonModule } from './common/common.module.js';
 import { CsrfMiddleware } from './common/csrf.middleware.js';
 import { AllExceptionsFilter } from './common/http-exception.filter.js';
+import { ProgressModule } from './progress/progress.module.js';
 import { RateLimitGuard } from './common/rate-limit.guard.js';
 import { ENV, type Env } from './config/env.js';
 import { CryptoModule } from './crypto/crypto.module.js';
@@ -58,6 +59,7 @@ export class AppModule implements NestModule {
         NotesModule,
         BillingModule,
         MaterialsModule,
+        ProgressModule,
         AdminModule,
       ],
       controllers: [HealthController],

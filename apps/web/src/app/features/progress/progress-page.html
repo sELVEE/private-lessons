@@ -1,0 +1,291 @@
+<div class="page">
+  @if (p(); as p) {
+    <h1>{{ isTutor() ? p.student : p.subject }} · postępy</h1>
+    <p class="muted">{{ p.subject }} · {{ p.tutor }} · {{ p.student }}</p>
+  }
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+  @if (info(); as i) {
+    <div class="info-banner" role="status">{{ i }}</div>
+  }
+
+  @if (p(); as p) {
+    <mat-card appearance="outlined" class="summary">
+      <mat-card-header>
+        <mat-card-title>Podsumowanie</mat-card-title>
+        <mat-button-toggle-group
+          [value]="days()"
+          (change)="setDays($event.value)"
+          class="period"
+          aria-label="Okres"
+        >
+          <mat-button-toggle [value]="30">30 dni</mat-button-toggle>
+          <mat-button-toggle [value]="90">3 mies.</mat-button-toggle>
+          <mat-button-toggle [value]="365">rok</mat-button-toggle>
+        </mat-button-toggle-group>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="kpis">
+          <div>
+            <span class="v">{{ p.summary.lessonsCompleted }}</span
+            ><span class="l">lekcji</span>
+          </div>
+          <div>
+            <span class="v"
+              >{{ p.summary.attendanceRate ?? '—'
+              }}{{ p.summary.attendanceRate !== null ? '%' : '' }}</span
+            ><span class="l">frekwencja</span>
+          </div>
+          <div>
+            <span class="v">{{ p.summary.homeworkDone }}/{{ p.summary.homeworkAssigned }}</span
+            ><span class="l">zadania</span>
+          </div>
+          <div>
+            <span class="v"
+              >{{ p.summary.averagePercent ?? '—'
+              }}{{ p.summary.averagePercent !== null ? '%' : '' }}</span
+            >
+            <span class="l">
+              średni wynik
+              @if (p.summary.trend !== null) {
+                <span [class.up]="p.summary.trend >= 0" [class.down]="p.summary.trend < 0">
+                  {{ p.summary.trend >= 0 ? '▲' : '▼' }} {{ p.summary.trend >= 0 ? '+' : ''
+                  }}{{ p.summary.trend }} pp.
+                </span>
+              }
+            </span>
+          </div>
+          <div>
+            <span class="v">{{ p.summary.mastered }}</span
+            ><span class="l">opanowane tematy</span>
+          </div>
+          <div>
+            <span class="v"
+              >{{ p.summary.goalsAchieved }}/{{
+                p.summary.goalsAchieved + p.summary.goalsOpen
+              }}</span
+            ><span class="l">cele</span>
+          </div>
+        </div>
+        @if (p.summary.toReview.length) {
+          <p><strong>Do powtórki:</strong> {{ p.summary.toReview.join(', ') }}</p>
+        }
+        @if (p.summary.lastNextSteps) {
+          <p><strong>Dalsze kroki:</strong> {{ p.summary.lastNextSteps }}</p>
+        }
+        @if (isTutor()) {
+          <button mat-stroked-button (click)="send()">
+            <mat-icon fontSet="material-symbols-outlined">forward_to_inbox</mat-icon> Wyślij
+            podsumowanie uczniowi i rodzicom
+          </button>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <div class="cols">
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Wyniki w czasie</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @if (chart(); as c) {
+            <svg
+              [attr.viewBox]="'0 0 ' + c.w + ' ' + c.h"
+              class="chart"
+              role="img"
+              aria-label="Wyniki procentowe w czasie"
+            >
+              @for (y of [0, 50, 100]; track y) {
+                <line
+                  [attr.x1]="c.pad"
+                  [attr.x2]="c.w - c.pad"
+                  [attr.y1]="c.h - c.pad - (y / 100) * (c.h - 2 * c.pad)"
+                  [attr.y2]="c.h - c.pad - (y / 100) * (c.h - 2 * c.pad)"
+                  class="grid"
+                />
+                <text
+                  [attr.x]="2"
+                  [attr.y]="c.h - c.pad - (y / 100) * (c.h - 2 * c.pad) + 4"
+                  class="axis"
+                >
+                  {{ y }}%
+                </text>
+              }
+              <polyline [attr.points]="c.points" class="line" />
+              @for (pt of c.coords; track $index) {
+                <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="4" class="dot">
+                  <title>{{ pt.label }}</title>
+                </circle>
+              }
+            </svg>
+          } @else {
+            <p class="muted">Wykres pojawi się po co najmniej dwóch ocenach punktowych.</p>
+          }
+
+          @if (isTutor()) {
+            @if (showAssessment()) {
+              <form [formGroup]="assessmentForm" (ngSubmit)="addAssessment()" class="grid-form">
+                <mat-form-field class="span-2"
+                  ><mat-label>Nazwa</mat-label><input matInput formControlName="title"
+                /></mat-form-field>
+                <mat-form-field>
+                  <mat-label>Rodzaj</mat-label>
+                  <mat-select formControlName="kind">
+                    @for (k of kinds; track k.value) {
+                      <mat-option [value]="k.value">{{ k.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field
+                  ><mat-label>Data</mat-label><input matInput type="date" formControlName="takenAt"
+                /></mat-form-field>
+                <mat-form-field>
+                  <mat-label>Punkty</mat-label
+                  ><input matInput formControlName="score" inputmode="decimal" />
+                  <mat-error>{{ assessmentForm.controls.score.errors?.['server'] }}</mat-error>
+                </mat-form-field>
+                <mat-form-field
+                  ><mat-label>Na ile</mat-label
+                  ><input matInput formControlName="maxScore" inputmode="decimal"
+                /></mat-form-field>
+                <mat-form-field>
+                  <mat-label>Ocena (opcjonalnie)</mat-label
+                  ><input matInput formControlName="grade" />
+                  <mat-error>{{ assessmentForm.controls.grade.errors?.['server'] }}</mat-error>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Temat</mat-label>
+                  <mat-select formControlName="topicId">
+                    <mat-option [value]="null">—</mat-option>
+                    @for (t of p.topics; track t.topicId) {
+                      <mat-option [value]="t.topicId">{{ t.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <div class="row-actions span-2">
+                  <button mat-button type="button" (click)="showAssessment.set(false)">
+                    Anuluj
+                  </button>
+                  <button mat-flat-button type="submit">Dodaj</button>
+                </div>
+              </form>
+            } @else {
+              <button mat-flat-button (click)="showAssessment.set(true)">
+                Dodaj ocenę / wynik
+              </button>
+            }
+          }
+
+          <table class="list">
+            <tbody>
+              @for (a of p.assessments; track a.id) {
+                <tr>
+                  <td>
+                    <strong>{{ a.title }}</strong>
+                    <div class="muted">
+                      {{ kindLabel[a.kind] }} · {{ a.takenAt | date: 'd.MM.yyyy' }}
+                      @if (a.topic) {
+                        · {{ a.topic }}
+                      }
+                    </div>
+                  </td>
+                  <td class="num">
+                    @if (a.percent !== null) {
+                      {{ a.score }}/{{ a.maxScore }} ({{ a.percent }}%)
+                    }
+                    @if (a.grade) {
+                      <div>{{ a.grade }}</div>
+                    }
+                  </td>
+                  @if (isTutor()) {
+                    <td>
+                      <button
+                        mat-icon-button
+                        (click)="removeAssessment(a.id)"
+                        aria-label="Usuń ocenę"
+                      >
+                        <mat-icon fontSet="material-symbols-outlined">delete</mat-icon>
+                      </button>
+                    </td>
+                  }
+                </tr>
+              } @empty {
+                <tr>
+                  <td class="muted">Brak ocen.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="side">
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Tematy</mat-card-title></mat-card-header>
+          <mat-card-content>
+            @for (t of p.topics; track t.topicId) {
+              <div class="topic">
+                <span>{{ t.name }}</span>
+                @if (isTutor()) {
+                  <mat-select
+                    [value]="t.status"
+                    (selectionChange)="setTopic(t.topicId, $event.value)"
+                    class="status"
+                    aria-label="Status tematu"
+                  >
+                    <mat-option [value]="null">—</mat-option>
+                    @for (s of statuses; track s.value) {
+                      <mat-option [value]="s.value">{{ s.label }}</mat-option>
+                    }
+                  </mat-select>
+                } @else if (t.status) {
+                  <span class="badge" [class]="'b-' + t.status">{{ statusLabel[t.status] }}</span>
+                }
+              </div>
+            } @empty {
+              <p class="muted">Brak tematów — korepetytor dodaje je w „Przedmioty”.</p>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card appearance="outlined">
+          <mat-card-header><mat-card-title>Cele</mat-card-title></mat-card-header>
+          <mat-card-content>
+            @for (g of p.goals; track g.id) {
+              <div class="goal">
+                @if (isTutor()) {
+                  <mat-checkbox
+                    [checked]="!!g.achievedAt"
+                    (change)="toggleGoal(g.id, $event.checked)"
+                    >{{ g.title }}</mat-checkbox
+                  >
+                  <button mat-icon-button (click)="removeGoal(g.id)" aria-label="Usuń cel">
+                    <mat-icon fontSet="material-symbols-outlined">close</mat-icon>
+                  </button>
+                } @else {
+                  <span>{{ g.achievedAt ? '✓' : '○' }} {{ g.title }}</span>
+                }
+                @if (g.targetDate) {
+                  <span class="muted">do {{ g.targetDate | date: 'd.MM.yyyy' }}</span>
+                }
+              </div>
+            } @empty {
+              <p class="muted">Brak celów.</p>
+            }
+            @if (isTutor()) {
+              <form [formGroup]="goalForm" (ngSubmit)="addGoal()" class="goal-form">
+                <mat-form-field subscriptSizing="dynamic"
+                  ><mat-label>Nowy cel</mat-label><input matInput formControlName="title"
+                /></mat-form-field>
+                <mat-form-field subscriptSizing="dynamic"
+                  ><mat-label>Termin</mat-label
+                  ><input matInput type="date" formControlName="targetDate"
+                /></mat-form-field>
+                <button mat-stroked-button type="submit">Dodaj</button>
+              </form>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  }
+</div>

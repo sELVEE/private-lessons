@@ -43,6 +43,13 @@
       "when": 1793233595560,
       "tag": "0005_materials_homework",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793233976452,
+      "tag": "0006_progress",
+      "breakpoints": true
     }
   ]
 }

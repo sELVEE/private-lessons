@@ -7,10 +7,12 @@ import pg from 'pg';
 import { ARGON_OPTS } from '../auth/password.service.js';
 import {
   enrollmentEvents,
+  assessments,
   enrollmentRates,
   enrollments,
   homework,
   ledgerEntries,
+  learningGoals,
   lessons,
   materialShares,
   materials,
@@ -235,6 +237,50 @@ async function seedTeaching() {
         'Rozwiąż: $x^2 - 5x + 6 = 0$ oraz $2x^2 + 3x - 2 = 0$. Pokaż obliczenie $\\Delta$.',
       dueAt: new Date(Date.now() + 4 * 24 * 3600_000),
     });
+  }
+  if (!(await db.$count(assessments, eq(assessments.enrollmentId, enrollment!.id)))) {
+    const scope = {
+      organizationId: orgId,
+      enrollmentId: enrollment!.id,
+      tutorId: tutor.id,
+      studentId: student.id,
+    };
+    const day = (n: number) => new Date(Date.now() - n * 24 * 3600_000).toISOString().slice(0, 10);
+    await db.insert(assessments).values([
+      {
+        ...scope,
+        title: 'Test diagnozujący',
+        kind: 'test',
+        score: 22,
+        maxScore: 50,
+        takenAt: day(60),
+      },
+      {
+        ...scope,
+        title: 'Kartkówka — funkcje',
+        kind: 'quiz',
+        score: 14,
+        maxScore: 20,
+        takenAt: day(35),
+      },
+      {
+        ...scope,
+        title: 'Próbna matura',
+        kind: 'exam',
+        score: 34,
+        maxScore: 50,
+        takenAt: day(10),
+        grade: '68%',
+      },
+    ]);
+    await db.insert(learningGoals).values([
+      {
+        ...scope,
+        title: 'Matura rozszerzona min. 80%',
+        targetDate: `${new Date().getFullYear() + 1}-05-10`,
+      },
+      { ...scope, title: 'Opanować funkcję kwadratową' },
+    ]);
   }
   console.log('  Kasia uczy się matematyki u Anny, Marek jest połączony z Kasią');
 }

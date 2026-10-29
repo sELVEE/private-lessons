@@ -108,7 +108,6 @@ export const routes: Routes = [
         canMatch: [roleMatch('admin')],
         loadComponent: () => import('./features/admin/admin-page'),
       },
-      // Later stages — placeholders until each module lands (see docs/PLAN.md).
       {
         path: 'lessons/:id',
         title: 'Lekcja',
@@ -145,20 +144,19 @@ export const routes: Routes = [
         canMatch: [roleMatch('tutor', 'student', 'parent')],
         loadComponent: () => import('./features/materials/materials-page'),
       },
-      ...placeholder('progress', 'Postępy', 7, 'tutor', 'student', 'parent'),
+      {
+        path: 'progress',
+        title: 'Postępy',
+        canMatch: [roleMatch('tutor', 'student', 'parent')],
+        loadComponent: () => import('./features/progress/progress-list-page'),
+      },
+      {
+        path: 'progress/:id',
+        title: 'Postępy',
+        canMatch: [roleMatch('tutor', 'student', 'parent')],
+        loadComponent: () => import('./features/progress/progress-page'),
+      },
     ],
   },
   { path: '**', title: 'Nie znaleziono', loadComponent: () => import('./features/not-found-page') },
 ];
-
-function placeholder(path: string, title: string, stage: number, ...roles: string[]): Routes {
-  return [
-    {
-      path,
-      title,
-      canMatch: [roleMatch(...roles)],
-      data: { stage },
-      loadComponent: () => import('./features/coming-soon-page'),
-    },
-  ];
-}

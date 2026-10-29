@@ -2,10 +2,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type {
   AdminUserRow,
+  AssessmentInput,
   BalanceRow,
   BillingAccount,
   EarningsSummary,
   PaymentMethod,
+  ProgressInfo,
+  TopicStatus,
   Statement,
   ChildInfo,
   CreateInviteInput,
@@ -172,6 +175,24 @@ export class TeachingApi {
   reviewHomework = (id: string, feedback: string, grade?: string) =>
     this.post<HomeworkInfo>(`/api/homework/${id}/review`, { feedback, grade });
   deleteHomework = (id: string) => firstValueFrom(this.http.delete(`/api/homework/${id}`));
+
+  progress = (enrollmentId: string, days = 30) =>
+    this.get<ProgressInfo>(`/api/progress/${enrollmentId}?days=${days}`);
+  addAssessment = (enrollmentId: string, a: AssessmentInput) =>
+    this.post<ProgressInfo>(`/api/progress/${enrollmentId}/assessments`, a);
+  removeAssessment = (id: string) =>
+    firstValueFrom(this.http.delete(`/api/progress/assessments/${id}`));
+  setTopicStatus = (enrollmentId: string, topicId: string, status: TopicStatus | null) =>
+    firstValueFrom(
+      this.http.put<ProgressInfo>(`/api/progress/${enrollmentId}/topics/${topicId}`, { status }),
+    );
+  addGoal = (enrollmentId: string, title: string, targetDate: string | null) =>
+    this.post<ProgressInfo>(`/api/progress/${enrollmentId}/goals`, { title, targetDate });
+  setGoal = (id: string, achieved: boolean) =>
+    firstValueFrom(this.http.patch(`/api/progress/goals/${id}`, { achieved }));
+  removeGoal = (id: string) => firstValueFrom(this.http.delete(`/api/progress/goals/${id}`));
+  sendSummary = (enrollmentId: string, days: number) =>
+    this.post<{ sent: number }>(`/api/progress/${enrollmentId}/send-summary?days=${days}`, {});
 
   private get<T>(url: string) {
     return firstValueFrom(this.http.get<T>(url));
