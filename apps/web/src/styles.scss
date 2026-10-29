@@ -117,6 +117,14 @@ html {
     )
   );
 
+  @include mat.sidenav-overrides(
+    (
+      container-shape: 0,
+      container-width: 440px,
+      container-background-color: var(--mat-sys-surface-container-low),
+    )
+  );
+
   @include mat.list-overrides(
     (
       active-indicator-shape: var(--mat-sys-corner-small),
@@ -369,4 +377,15 @@ a {
   .pl-hover:hover {
     transform: none;
   }
+}
+
+/* Compact form fields (e.g. time inputs): drop Material's 180 px minimum infix width. */
+.pl-compact-field .mat-mdc-form-field-infix {
+  width: auto;
+  min-width: 0;
+}
+
+/* Side panels never scroll sideways (icon-button touch targets may stick out a few px). */
+.mat-drawer-inner-container {
+  overflow-x: hidden;
 }

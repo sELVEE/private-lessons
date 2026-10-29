@@ -435,10 +435,10 @@
               </button>
             }
           </div>
-          <div class="body" [style.height.px]="span().list.length * hourPx">
+          <div class="body" [style.height.px]="span().list.length * hourPx()">
             <div class="hours" aria-hidden="true">
               @for (h of span().list; track h) {
-                <span [style.height.px]="hourPx">{{ h }}:00</span>
+                <span [style.height.px]="hourPx()">{{ h }}:00</span>
               }
             </div>
             @for (d of days(); track d.key) {
@@ -450,7 +450,7 @@
                 (mouseleave)="hoverSlot.set(null)"
               >
                 @for (h of span().list; track h) {
-                  <span class="line" [style.top.px]="(h - span().from) * hourPx"></span>
+                  <span class="line" [style.top.px]="(h - span().from) * hourPx()"></span>
                 }
                 @for (b of d.off; track b.top) {
                   <span class="off" [style]="offStyle(b)" aria-hidden="true"></span>

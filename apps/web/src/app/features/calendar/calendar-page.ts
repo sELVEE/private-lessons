@@ -44,8 +44,8 @@ import { AvailabilityEditor } from './availability-editor';
 export type CalendarView = 'day' | 'week' | 'month';
 type Panel = 'lesson' | 'create' | 'hours' | 'rules';
 
-/** Pixel height of one hour in the day and week grids. */
-const HOUR_PX = 64;
+/** Pixel height of one hour in the day and week grids — taller when the working day is short. */
+const hourHeight = (hours: number) => (hours <= 6 ? 96 : hours <= 9 ? 80 : 64);
 
 /** `<input type="datetime-local">` value for a Date, in local time. */
 export function toLocalInput(d: Date): string {
@@ -93,7 +93,6 @@ export default class CalendarPage implements OnInit {
 
   private readonly gridEl = viewChild<ElementRef<HTMLElement>>('grid');
 
-  readonly hourPx = HOUR_PX;
   readonly role = this.store.role;
   readonly color = personColor;
   readonly initial = initial;
@@ -163,25 +162,36 @@ export default class CalendarPage implements OnInit {
     return out;
   });
 
-  /** Hours shown in the grid: 8–21 by default, widened to cover working hours and lessons. */
+  /**
+   * Hours shown in the grid: the tutor's working hours (the whole weekly template, so free days keep
+   * the same range), widened only for lessons outside them; 8–21 when no hours are set.
+   */
   readonly span = computed(() => {
-    let from = 8 * 60;
-    let to = 21 * 60;
-    for (const d of this.days()) {
-      for (const r of d.working) {
-        from = Math.min(from, r.start);
-        to = Math.max(to, r.end);
-      }
+    let from = Infinity;
+    let to = -Infinity;
+    const widen = (start: number, end: number) => {
+      from = Math.min(from, start);
+      to = Math.max(to, end);
+    };
+    for (const w of this.hours()?.weekly ?? [])
+      for (const r of w.ranges) widen(clockToMinutes(r.start), clockToMinutes(r.end));
+    for (const d of this.days()) for (const r of d.working) widen(r.start, r.end);
+    if (from === Infinity) widen(8 * 60, 21 * 60);
+    for (const d of this.days())
       for (const l of d.lessons) {
         const s = minutesOf(new Date(l.startsAt));
-        from = Math.min(from, s);
-        to = Math.max(to, s + l.durationMin);
+        widen(s, s + l.durationMin);
       }
-    }
-    from = Math.floor(from / 60);
-    to = Math.min(24, Math.ceil(to / 60));
-    return { from, to, list: Array.from({ length: to - from }, (_, i) => from + i) };
+    const first = Math.floor(from / 60);
+    const last = Math.min(24, Math.ceil(to / 60));
+    return {
+      from: first,
+      to: last,
+      list: Array.from({ length: last - first }, (_, i) => first + i),
+    };
   });
+
+  readonly hourPx = computed(() => hourHeight(this.span().list.length));
 
   readonly students = computed(() => {
     const seen = new Map<string, { id: string; name: string }>();
@@ -300,14 +310,14 @@ export default class CalendarPage implements OnInit {
   // ── Grid geometry ─────────────────────────────────────────────────────────
 
   top(minutes: number) {
-    return ((minutes - this.span().from * 60) / 60) * HOUR_PX;
+    return ((minutes - this.span().from * 60) / 60) * this.hourPx();
   }
 
   lessonBox(l: LessonInfo) {
     const start = minutesOf(new Date(l.startsAt));
     return {
       top: `${this.top(start)}px`,
-      height: `${Math.max(22, (l.durationMin / 60) * HOUR_PX - 3)}px`,
+      height: `${Math.max(22, (l.durationMin / 60) * this.hourPx() - 3)}px`,
       '--c': this.color(l.student.id),
     };
   }
@@ -345,7 +355,7 @@ export default class CalendarPage implements OnInit {
     const start = Math.max(b.top, from * 60);
     const end = Math.min(b.top + b.height, to * 60);
     if (end <= start) return { display: 'none' };
-    return { top: `${this.top(start)}px`, height: `${((end - start) / 60) * HOUR_PX}px` };
+    return { top: `${this.top(start)}px`, height: `${((end - start) / 60) * this.hourPx()}px` };
   }
 
   isWorkingDay(d: { working: unknown[] }) {
@@ -355,7 +365,7 @@ export default class CalendarPage implements OnInit {
 
   private slotAt(ev: MouseEvent, day: Date) {
     const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
-    const minutes = this.span().from * 60 + ((ev.clientY - rect.top) / HOUR_PX) * 60;
+    const minutes = this.span().from * 60 + ((ev.clientY - rect.top) / this.hourPx()) * 60;
     const at = new Date(day);
     at.setHours(0, Math.floor(minutes / 30) * 30, 0, 0);
     return at;

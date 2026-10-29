@@ -56,7 +56,11 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
             <div class="ranges">
               @for (r of d.ranges; track $index; let i = $index) {
                 <span class="range">
-                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="time">
+                  <mat-form-field
+                    appearance="outline"
+                    subscriptSizing="dynamic"
+                    class="time pl-compact-field"
+                  >
                     <input
                       matInput
                       [matTimepicker]="from"
@@ -67,7 +71,11 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
                     <mat-timepicker #from interval="30m" />
                   </mat-form-field>
                   –
-                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="time">
+                  <mat-form-field
+                    appearance="outline"
+                    subscriptSizing="dynamic"
+                    class="time pl-compact-field"
+                  >
                     <input
                       matInput
                       [matTimepicker]="to"
@@ -150,13 +158,21 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       <mat-checkbox [(ngModel)]="exOff">Wolne cały dzień</mat-checkbox>
       @if (!exOff) {
         <span class="range">
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="time">
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="time pl-compact-field"
+          >
             <mat-label>Od</mat-label>
             <input matInput [matTimepicker]="exFrom" [(ngModel)]="exStart" />
             <mat-timepicker #exFrom interval="30m" />
           </mat-form-field>
           –
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="time">
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="time pl-compact-field"
+          >
             <mat-label>Do</mat-label>
             <input matInput [matTimepicker]="exTo" [(ngModel)]="exEnd" />
             <mat-timepicker #exTo interval="30m" />
@@ -194,15 +210,15 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       margin: 8px 0;
     }
     .day {
-      display: flex;
+      display: grid;
+      grid-template-columns: 136px minmax(0, 1fr);
       align-items: center;
       gap: 8px;
       min-height: 48px;
       border-bottom: 1px solid var(--pl-line);
       padding: 6px 0;
       mat-checkbox {
-        width: 140px;
-        flex-shrink: 0;
+        min-width: 0;
       }
     }
     .ranges {
@@ -217,7 +233,7 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       gap: 4px;
     }
     .time {
-      width: 104px;
+      width: 84px;
     }
     .quick {
       display: flex;
