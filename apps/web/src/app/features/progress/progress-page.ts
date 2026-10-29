@@ -62,6 +62,7 @@ export default class ProgressPage implements OnInit {
   readonly kindLabel = ASSESSMENT_KIND_LABELS;
   readonly statuses = TOPIC_STATUSES.map((s) => ({ value: s, label: TOPIC_STATUS_LABELS[s] }));
   readonly statusLabel = TOPIC_STATUS_LABELS;
+  readonly tagClass: Record<string, string> = { mastered: 'good', review: 'warn' };
 
   readonly assessmentForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(2)]],

@@ -206,7 +206,7 @@
                   @if (isTutor()) {
                     <td>
                       <button
-                        mat-icon-button
+                        matIconButton
                         (click)="removeAssessment(a.id)"
                         aria-label="Usuń ocenę"
                       >
@@ -245,7 +245,9 @@
                     }
                   </mat-select>
                 } @else if (t.status) {
-                  <span class="badge" [class]="'b-' + t.status">{{ statusLabel[t.status] }}</span>
+                  <span class="pl-tag" [class]="tagClass[t.status]">{{
+                    statusLabel[t.status]
+                  }}</span>
                 }
               </div>
             } @empty {
@@ -265,7 +267,7 @@
                     (change)="toggleGoal(g.id, $event.checked)"
                     >{{ g.title }}</mat-checkbox
                   >
-                  <button mat-icon-button (click)="removeGoal(g.id)" aria-label="Usuń cel">
+                  <button matIconButton (click)="removeGoal(g.id)" aria-label="Usuń cel">
                     <mat-icon fontSet="material-symbols-outlined">close</mat-icon>
                   </button>
                 } @else {

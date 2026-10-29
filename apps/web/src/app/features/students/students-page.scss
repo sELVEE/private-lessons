@@ -8,7 +8,6 @@
 }
 
 .section {
-  font: var(--mat-sys-title-medium);
   margin: 24px 0 12px;
 }
 
@@ -80,14 +79,6 @@
   }
 }
 
-.avatar {
-  display: grid;
-  place-items: center;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  font: var(--mat-sys-title-medium);
-}
-
 .goals {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -95,12 +86,10 @@
   overflow: hidden;
 }
 
-.status-paused {
-  --mat-chip-elevated-container-color: var(--mat-sys-tertiary-container);
-}
-
-.status-ended {
-  opacity: 0.7;
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .empty {

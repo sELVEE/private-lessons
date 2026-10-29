@@ -97,11 +97,11 @@
 
           @if (editing()) {
             <form [formGroup]="rescheduleForm" (ngSubmit)="reschedule(l)" class="form-stack inset">
-              <mat-form-field appearance="outline">
+              <mat-form-field>
                 <mat-label>Nowy termin</mat-label>
                 <input matInput type="datetime-local" formControlName="startsAt" />
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field>
                 <mat-label>Czas trwania (min)</mat-label>
                 <input
                   matInput
@@ -120,7 +120,7 @@
           }
           @if (cancelling()) {
             <div class="form-stack inset">
-              <mat-form-field appearance="outline">
+              <mat-form-field>
                 <mat-label>Powód (opcjonalnie)</mat-label>
                 <input matInput [formControl]="cancelReason" />
               </mat-form-field>
@@ -154,7 +154,7 @@
 
       @case ('create') {
         <form [formGroup]="createForm" (ngSubmit)="create()" class="form-stack">
-          <mat-form-field appearance="outline">
+          <mat-form-field>
             <mat-label>Uczeń</mat-label>
             <mat-select formControlName="enrollmentId">
               @for (e of activeEnrollments(); track e.id) {
@@ -164,12 +164,12 @@
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field appearance="outline">
+          <mat-form-field>
             <mat-label>Początek</mat-label>
             <input matInput type="datetime-local" formControlName="startsAt" />
           </mat-form-field>
           <div class="two">
-            <mat-form-field appearance="outline">
+            <mat-form-field>
               <mat-label>Czas (min)</mat-label>
               <input
                 matInput
@@ -180,17 +180,17 @@
                 step="15"
               />
             </mat-form-field>
-            <mat-form-field appearance="outline">
+            <mat-form-field>
               <mat-label>Powtórz (tygodni)</mat-label>
               <input matInput type="number" formControlName="repeatWeeks" min="1" max="26" />
               <mat-hint>1 = jednorazowo</mat-hint>
             </mat-form-field>
           </div>
-          <mat-form-field appearance="outline">
+          <mat-form-field>
             <mat-label>Miejsce / link</mat-label>
             <input matInput formControlName="location" placeholder="np. online, ul. Szkolna 5" />
           </mat-form-field>
-          <mat-form-field appearance="outline">
+          <mat-form-field>
             <mat-label>Temat (opcjonalnie)</mat-label>
             <input matInput formControlName="topic" />
           </mat-form-field>
@@ -214,7 +214,7 @@
 
       @case ('rules') {
         <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="form-stack">
-          <mat-form-field appearance="outline">
+          <mat-form-field>
             <mat-label>„Późne” odwołanie: mniej niż (godzin)</mat-label>
             <input
               matInput
@@ -231,7 +231,7 @@
             Gdy wyłączone, późne odwołania czekają na Twoją decyzję. Odwołanie przez Ciebie nigdy
             nie jest płatne.
           </p>
-          <mat-form-field appearance="outline">
+          <mat-form-field>
             <mat-label>Domyślna długość lekcji (min)</mat-label>
             <input
               matInput
@@ -252,7 +252,7 @@
 
   <mat-drawer-content>
     <div class="page">
-      <header class="head">
+      <header class="page-head">
         <div class="title">
           <span class="muted"
             >{{ count() }}
@@ -297,7 +297,6 @@
           <mat-button-toggle-group
             [value]="mode()"
             (change)="setMode($event.value)"
-            hideSingleSelectionIndicator
             aria-label="Widok kalendarza"
           >
             <mat-button-toggle value="day">Dzień</mat-button-toggle>

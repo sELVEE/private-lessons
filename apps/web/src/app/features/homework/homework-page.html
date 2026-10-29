@@ -1,5 +1,5 @@
 <div class="page">
-  <div class="header">
+  <div class="page-head">
     <h1>Zadania domowe</h1>
     @if (isTutor()) {
       <button matButton="filled" (click)="openAssign()" [disabled]="!activeEnrollments().length">
@@ -74,8 +74,11 @@
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <mat-chip-set
-            ><mat-chip>{{ statusLabel[h.status] }}</mat-chip></mat-chip-set
+          <span
+            class="pl-tag"
+            [class.good]="h.status === 'reviewed'"
+            [class.accent]="h.status === 'submitted'"
+            >{{ statusLabel[h.status] }}</span
           >
           @if (h.instructions) {
             <pl-markdown [text]="h.instructions" />

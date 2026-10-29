@@ -1,13 +1,25 @@
 <div class="page">
   @if (isTutor()) {
-    <header class="head">
+    <header class="page-head">
       <div class="title">
-        <div class="switcher">
-          <button type="button" (click)="move(-1)" aria-label="Poprzedni miesiąc">
+        <div class="month-nav">
+          <button
+            matIconButton
+            type="button"
+            (click)="move(-1)"
+            aria-label="Poprzedni miesiąc"
+            matTooltip="Poprzedni miesiąc"
+          >
             <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
           </button>
           <span class="month">{{ monthLabel(month()) }}</span>
-          <button type="button" (click)="move(1)" aria-label="Następny miesiąc">
+          <button
+            matIconButton
+            type="button"
+            (click)="move(1)"
+            aria-label="Następny miesiąc"
+            matTooltip="Następny miesiąc"
+          >
             <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
           </button>
         </div>
@@ -79,7 +91,7 @@
             <strong>{{ isTutor() ? r.student : r.tutor }} · {{ r.subject }}</strong>
             <span class="muted">wpłacone {{ money(r.paid) }}</span>
           </div>
-          <span class="muted state">{{
+          <span class="pl-tag" [class.good]="r.balance === 0">{{
             r.balance < 0 ? 'nadpłata ' + money(-r.balance) : 'rozliczone'
           }}</span>
         </a>

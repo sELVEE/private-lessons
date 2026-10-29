@@ -101,14 +101,8 @@ import { statusLabel, studentLevel } from '../labels';
     .inline {
       display: flex;
       gap: 12px;
-      align-items: baseline;
+      align-items: center;
       flex-wrap: wrap;
-    }
-    .avatar {
-      display: grid;
-      place-items: center;
-      background: var(--mat-sys-primary-container);
-      color: var(--mat-sys-on-primary-container);
     }
   `,
 })

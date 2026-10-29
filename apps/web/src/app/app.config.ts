@@ -1,3 +1,4 @@
+import { ENTER } from '@angular/cdk/keycodes';
 import {
   provideHttpClient,
   withFetch,
@@ -12,6 +13,12 @@ import {
   isDevMode,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
+import {
+  MAT_FORM_FIELD_DEFAULT_OPTIONS,
+  type MatFormFieldDefaultOptions,
+} from '@angular/material/form-field';
+import { MAT_BUTTON_TOGGLE_DEFAULT_OPTIONS } from '@angular/material/button-toggle';
+import { MAT_CHIPS_DEFAULT_OPTIONS } from '@angular/material/chips';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
@@ -30,6 +37,23 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([sessionExpiredInterceptor]),
     ),
     { provide: LOCALE_ID, useValue: 'pl' },
+    // Jeden wygląd pól w całej aplikacji; podpowiedzi i błędy zajmują miejsce tylko gdy są.
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: {
+        appearance: 'outline',
+        subscriptSizing: 'dynamic',
+      } satisfies MatFormFieldDefaultOptions,
+    },
+    // Wybraną opcję pokazuje kolor wypełnienia — bez dodatkowego ✓, który zmienia szerokość przycisku.
+    {
+      provide: MAT_BUTTON_TOGGLE_DEFAULT_OPTIONS,
+      useValue: { hideSingleSelectionIndicator: true },
+    },
+    {
+      provide: MAT_CHIPS_DEFAULT_OPTIONS,
+      useValue: { separatorKeyCodes: [ENTER], hideSingleSelectionIndicator: true },
+    },
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

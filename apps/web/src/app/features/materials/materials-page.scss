@@ -1,11 +1,3 @@
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
 .layout {
   display: grid;
   grid-template-columns: 300px 1fr;

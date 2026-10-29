@@ -1,5 +1,5 @@
 <div class="page">
-  <div class="header">
+  <div class="page-head">
     <h1>{{ isTutor() ? 'Biblioteka materiałów' : 'Materiały' }}</h1>
     @if (isTutor()) {
       <button matButton="filled" (click)="startNew()" [disabled]="!subjects().length">

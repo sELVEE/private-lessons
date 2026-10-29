@@ -56,11 +56,7 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
             <div class="ranges">
               @for (r of d.ranges; track $index; let i = $index) {
                 <span class="range">
-                  <mat-form-field
-                    appearance="outline"
-                    subscriptSizing="dynamic"
-                    class="time pl-compact-field"
-                  >
+                  <mat-form-field subscriptSizing="dynamic" class="time pl-compact-field">
                     <input
                       matInput
                       [matTimepicker]="from"
@@ -71,11 +67,7 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
                     <mat-timepicker #from interval="30m" />
                   </mat-form-field>
                   –
-                  <mat-form-field
-                    appearance="outline"
-                    subscriptSizing="dynamic"
-                    class="time pl-compact-field"
-                  >
+                  <mat-form-field subscriptSizing="dynamic" class="time pl-compact-field">
                     <input
                       matInput
                       [matTimepicker]="to"
@@ -149,7 +141,7 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       <p class="muted">Brak wyjątków.</p>
     }
     <div class="add">
-      <mat-form-field appearance="outline">
+      <mat-form-field>
         <mat-label>Dzień</mat-label>
         <input matInput [matDatepicker]="dp" [(ngModel)]="exDate" [min]="today" />
         <mat-datepicker-toggle matIconSuffix [for]="dp" />
@@ -158,28 +150,20 @@ const DEFAULT_RANGE: TimeRange = { start: '15:00', end: '20:00' };
       <mat-checkbox [(ngModel)]="exOff">Wolne cały dzień</mat-checkbox>
       @if (!exOff) {
         <span class="range">
-          <mat-form-field
-            appearance="outline"
-            subscriptSizing="dynamic"
-            class="time pl-compact-field"
-          >
+          <mat-form-field subscriptSizing="dynamic" class="time pl-compact-field">
             <mat-label>Od</mat-label>
             <input matInput [matTimepicker]="exFrom" [(ngModel)]="exStart" />
             <mat-timepicker #exFrom interval="30m" />
           </mat-form-field>
           –
-          <mat-form-field
-            appearance="outline"
-            subscriptSizing="dynamic"
-            class="time pl-compact-field"
-          >
+          <mat-form-field subscriptSizing="dynamic" class="time pl-compact-field">
             <mat-label>Do</mat-label>
             <input matInput [matTimepicker]="exTo" [(ngModel)]="exEnd" />
             <mat-timepicker #exTo interval="30m" />
           </mat-form-field>
         </span>
       }
-      <mat-form-field appearance="outline">
+      <mat-form-field>
         <mat-label>Notatka (opcjonalnie)</mat-label>
         <input matInput [(ngModel)]="exNote" maxlength="120" />
       </mat-form-field>

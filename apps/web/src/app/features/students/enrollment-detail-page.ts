@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -53,6 +54,7 @@ const KIND_LABEL: Record<Kind, string> = {
 @Component({
   selector: 'pl-enrollment-detail-page',
   imports: [
+    MatChipsModule,
     MatTooltipModule,
     MatButtonModule,
     DatePipe,

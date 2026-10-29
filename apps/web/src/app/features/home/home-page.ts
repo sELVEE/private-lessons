@@ -1,7 +1,9 @@
 import { Component, computed, inject, input, type OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
 import type {
   BalanceRow,
@@ -60,7 +62,14 @@ const QUICK: Record<string, QuickAction[]> = {
  */
 @Component({
   selector: 'pl-home-page',
-  imports: [MatButtonModule, FormsModule, MatIconModule, RouterLink],
+  imports: [
+    MatButtonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    RouterLink,
+  ],
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',
 })

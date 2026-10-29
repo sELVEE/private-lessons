@@ -122,12 +122,6 @@
   padding-top: 8px;
   padding-bottom: 8px;
 
-  .avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-
   .label {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -170,8 +164,8 @@
 
 .account-small {
   display: none;
-  width: 40px;
-  height: 40px;
+  width: var(--pl-control-h);
+  height: var(--pl-control-h);
   border-radius: 50%;
   border: 0;
   background: var(--pl-ink);

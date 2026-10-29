@@ -22,13 +22,16 @@ Status: **wdrożony** (kierunek C).
 
 ## Tokeny
 
-| Element      | Wartość                                                                     |
-| ------------ | --------------------------------------------------------------------------- |
-| Tło          | `#DFE2CF` (szałwia), karty `#F7F8F1`                                        |
-| Tusz         | `#23291E` — tekst, ciemne karty, główne przyciski                           |
-| Akcent       | terakota: wypełnienie `#E08A5F`, tekst `#A84F2C` (bez żółtego)              |
-| Kroje        | Instrument Serif (nagłówki, kwoty), Manrope (interfejs); hostowane lokalnie |
-| Zaokrąglenia | subtelne: 4–6 px kontrolki i przyciski, 8 px panele, 12 px karty            |
+| Element      | Wartość                                                                          |
+| ------------ | -------------------------------------------------------------------------------- |
+| Tło          | `#DFE2CF` (szałwia), karty `#F7F8F1`                                             |
+| Tusz         | `#23291E` — tekst, ciemne karty, główne przyciski                                |
+| Akcent       | terakota: wypełnienie `#E08A5F`, tekst `#A84F2C` (bez żółtego)                   |
+| Kroje        | Instrument Serif (nagłówki, kwoty), Manrope (interfejs); hostowane lokalnie      |
+| Zaokrąglenia | subtelne: 4–6 px kontrolki i przyciski, 8 px panele, 12 px karty                 |
+| Kontrolki    | 42 px: przyciski, pola (outline), selecty, przełączniki, przyciski-ikony         |
+| Tagi         | 28 px (2/3 kontrolki): chipy, statusy `.pl-tag`, liczniki, małe awatary          |
+| Nagłówki     | h1 32–44 px (`.page-head` z akcjami po prawej), h2 = tytuł karty 26 px, h3 18 px |
 
 ## Implementacja
 
@@ -39,4 +42,8 @@ Wszystko przez system motywów Angular Material (https://material.angular.dev/gu
   list, chipów i przełączników.
 - Warianty przycisków jako klasy z zakresowym `mat.button-overrides`: `.pl-accent` (terakota), `.pl-on-dark`
   (na ciemnej karcie), `.large`. Przyciski w szablonach: `matButton="filled" | "outlined"` / `matButton`.
+- Rozmiary: zmienne Sass `$control` / `$tag` w `styles.scss` trafiają do tokenów `button`, `icon-button`,
+  `form-field`, `button-toggle` i `chips`; własne elementy używają `--pl-control-h` / `--pl-tag-h`.
+- Domyślne opcje w `app.config.ts`: pola `outline` z dynamicznym miejscem na podpowiedź, przełączniki i chipy
+  jednokrotnego wyboru bez znacznika ✓ (wybór pokazuje wypełnienie).
 - Zmienne `--pl-*` są tylko aliasami tokenów `--mat-sys-*`, dzięki czemu style ekranów nie mają własnych kolorów.

@@ -107,7 +107,7 @@ import { TeachingApi } from '../../core/teaching-api';
     .inline {
       display: flex;
       gap: 12px;
-      align-items: baseline;
+      align-items: center;
       flex-wrap: wrap;
     }
     .code {

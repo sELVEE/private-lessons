@@ -1,6 +1,6 @@
 <div class="page">
-  <div class="head no-print">
-    <button mat-icon-button (click)="location.back()" aria-label="Wstecz">
+  <div class="page-head start no-print">
+    <button matIconButton (click)="location.back()" aria-label="Wstecz">
       <mat-icon fontSet="material-symbols-outlined">arrow_back</mat-icon>
     </button>
     @if (acc(); as a) {
@@ -151,10 +151,10 @@
         </mat-card-header>
         <mat-card-content>
           <div class="month no-print">
-            <button mat-icon-button (click)="moveMonth(-1)" aria-label="Poprzedni miesiąc">
+            <button matIconButton (click)="moveMonth(-1)" aria-label="Poprzedni miesiąc">
               <mat-icon fontSet="material-symbols-outlined">chevron_left</mat-icon>
             </button>
-            <button mat-icon-button (click)="moveMonth(1)" aria-label="Następny miesiąc">
+            <button matIconButton (click)="moveMonth(1)" aria-label="Następny miesiąc">
               <mat-icon fontSet="material-symbols-outlined">chevron_right</mat-icon>
             </button>
             <button matButton (click)="print()">
@@ -176,7 +176,7 @@
                   <td class="amt" [class.neg]="e.amount < 0">{{ money(e.amount) }}</td>
                   <td class="no-print">
                     @if (isTutor() && !e.lessonId && e.kind !== 'charge') {
-                      <button mat-icon-button (click)="voidEntry(e.id)" aria-label="Anuluj wpis">
+                      <button matIconButton (click)="voidEntry(e.id)" aria-label="Anuluj wpis">
                         <mat-icon fontSet="material-symbols-outlined">undo</mat-icon>
                       </button>
                     }

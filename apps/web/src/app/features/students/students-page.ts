@@ -5,7 +5,6 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -14,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import type { EnrollmentInfo, EnrollmentStatus, InviteInfo, SubjectInfo } from '@pl/shared';
 import { applyServerErrors, toApiError } from '../../core/api-error';
+import { personColor } from '../../shared/person-color';
 import { TeachingApi } from '../../core/teaching-api';
 import { statusLabel, studentLevel } from '../labels';
 
@@ -26,7 +26,6 @@ import { statusLabel, studentLevel } from '../labels';
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,
-    MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -45,6 +44,7 @@ export default class StudentsPage implements OnInit {
   /** `?invite=1` (szybka akcja z ekranu „Teraz”) otwiera panel zaproszenia. */
   readonly invite = input<string>();
 
+  readonly color = personColor;
   readonly level = studentLevel;
   readonly statusLabel = statusLabel;
 

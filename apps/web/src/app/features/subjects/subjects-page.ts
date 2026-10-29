@@ -45,7 +45,7 @@ import { TeachingApi } from '../../core/teaching-api';
             <mat-card-header>
               <mat-card-title>{{ s.name }}</mat-card-title>
               <button
-                mat-icon-button
+                matIconButton
                 class="end"
                 (click)="removeSubject(s)"
                 aria-label="Usuń przedmiot"
@@ -89,7 +89,7 @@ import { TeachingApi } from '../../core/teaching-api';
     .add {
       display: flex;
       gap: 12px;
-      align-items: baseline;
+      align-items: center;
       flex-wrap: wrap;
     }
     .topic {

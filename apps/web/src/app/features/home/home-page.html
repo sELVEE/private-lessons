@@ -20,20 +20,25 @@
     }
 
     @if (role() !== 'admin') {
-      <form class="command" (ngSubmit)="submitQuery()" role="search">
-        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">search</mat-icon>
-        <input
-          name="q"
-          [ngModel]="query()"
-          (ngModelChange)="query.set($event)"
-          [attr.aria-label]="
-            role() === 'tutor' ? 'Szukaj ucznia' : 'Szukaj korepetytora lub przedmiotu'
-          "
-          [placeholder]="
-            role() === 'tutor' ? 'Wpisz imię ucznia…' : 'Wpisz przedmiot lub korepetytora…'
-          "
-          autocomplete="off"
-        />
+      <form class="search" (ngSubmit)="submitQuery()" role="search">
+        <mat-form-field class="full-width">
+          <mat-icon matPrefix fontSet="material-symbols-outlined" aria-hidden="true"
+            >search</mat-icon
+          >
+          <input
+            matInput
+            name="q"
+            [ngModel]="query()"
+            (ngModelChange)="query.set($event)"
+            [attr.aria-label]="
+              role() === 'tutor' ? 'Szukaj ucznia' : 'Szukaj korepetytora lub przedmiotu'
+            "
+            [placeholder]="
+              role() === 'tutor' ? 'Wpisz imię ucznia…' : 'Wpisz przedmiot lub korepetytora…'
+            "
+            autocomplete="off"
+          />
+        </mat-form-field>
       </form>
       @if (matches().length) {
         <ul class="matches" role="listbox" aria-label="Wyniki">
@@ -92,7 +97,7 @@
                 · {{ n.durationMin }} min
               </div>
             </div>
-            <a matButton="filled" class="pl-accent large" [routerLink]="['/app/lessons', n.id]">
+            <a matButton="filled" class="pl-accent" [routerLink]="['/app/lessons', n.id]">
               {{ role() === 'tutor' ? 'Otwórz lekcję' : 'Szczegóły' }}
             </a>
           </div>
@@ -147,7 +152,7 @@
           @if (role() === 'tutor') {
             <a
               matButton="filled"
-              class="pl-accent large"
+              class="pl-accent"
               routerLink="/app/calendar"
               [queryParams]="{ new: 1 }"
               >Zaplanuj lekcję</a
@@ -162,7 +167,7 @@
             <div class="inbox-head">
               <h2>Czeka na Ciebie</h2>
               @if (inbox().length) {
-                <span class="count">{{ inbox().length }}</span>
+                <span class="pl-tag accent">{{ inbox().length }}</span>
               }
             </div>
             @for (item of inbox(); track item.id) {

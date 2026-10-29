@@ -1,43 +1,16 @@
-.head {
-  margin-bottom: 22px;
-
-  h1 {
-    margin: 10px 0 0;
-    max-width: 960px;
-  }
-}
-
 .nowrap {
   white-space: nowrap;
 }
 
-.switcher {
+.month-nav {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px;
-  border-radius: var(--mat-sys-corner-small);
-  background: var(--pl-card);
-
-  button {
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--pl-ink);
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-
-    &:focus-visible {
-      outline: 3px solid var(--pl-accent);
-    }
-  }
 }
 
 .month {
-  padding: 0 10px;
+  min-width: 128px;
+  text-align: center;
   font-weight: 700;
   font-size: 14px;
 }
@@ -74,11 +47,6 @@
 
   &.soft {
     background: var(--pl-card-soft);
-  }
-
-  .avatar {
-    width: 44px;
-    height: 44px;
   }
 }
 

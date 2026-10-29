@@ -1,5 +1,5 @@
 <div class="page">
-  <div class="header">
+  <div class="page-head">
     <h1>Uczniowie</h1>
     <button matButton="filled" (click)="openInvite()">
       <mat-icon fontSet="material-symbols-outlined">person_add</mat-icon>
@@ -15,7 +15,7 @@
     <mat-card appearance="outlined" class="invite-card">
       <mat-card-header>
         <mat-card-title>Zaproś ucznia</mat-card-title>
-        <button mat-icon-button class="close" (click)="showInvite.set(false)" aria-label="Zamknij">
+        <button matIconButton class="close" (click)="showInvite.set(false)" aria-label="Zamknij">
           <mat-icon fontSet="material-symbols-outlined">close</mat-icon>
         </button>
       </mat-card-header>
@@ -133,7 +133,9 @@
       <a class="student" [routerLink]="['/app/students', e.id]">
         <mat-card appearance="outlined" class="pl-hover">
           <mat-card-header>
-            <div mat-card-avatar class="avatar">{{ e.student.displayName.charAt(0) }}</div>
+            <div mat-card-avatar class="avatar" [style.background]="color(e.student.id)">
+              {{ e.student.displayName.charAt(0) }}
+            </div>
             <mat-card-title>{{ e.student.displayName }}</mat-card-title>
             <mat-card-subtitle>{{ e.subject.name }} · {{ level(e.student) }}</mat-card-subtitle>
           </mat-card-header>
@@ -143,10 +145,15 @@
             } @else {
               <p class="muted">Brak określonych celów</p>
             }
-            <mat-chip-set>
-              <mat-chip [class]="'status-' + e.status">{{ statusLabel(e.status) }}</mat-chip>
-              <mat-chip>od {{ e.startedAt | date: 'd.MM.yyyy' }}</mat-chip>
-            </mat-chip-set>
+            <div class="tags">
+              <span
+                class="pl-tag"
+                [class.good]="e.status === 'active'"
+                [class.accent]="e.status === 'paused'"
+                >{{ statusLabel(e.status) }}</span
+              >
+              <span class="pl-tag">od {{ e.startedAt | date: 'd.MM.yyyy' }}</span>
+            </div>
           </mat-card-content>
         </mat-card>
       </a>

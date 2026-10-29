@@ -78,28 +78,17 @@
 
     <div class="layout">
       <section class="timeline">
-        <div class="filters" role="group" aria-label="Filtr osi czasu">
-          <button
-            type="button"
-            class="chip"
-            [class.on]="filter() === 'all'"
-            [attr.aria-pressed]="filter() === 'all'"
-            (click)="filter.set('all')"
-          >
-            Wszystko
-          </button>
+        <mat-chip-listbox
+          class="filters"
+          aria-label="Filtr osi czasu"
+          [value]="filter()"
+          (change)="filter.set($event.value ?? 'all')"
+        >
+          <mat-chip-option value="all">Wszystko</mat-chip-option>
           @for (k of kinds; track k[0]) {
-            <button
-              type="button"
-              class="chip"
-              [class.on]="filter() === k[0]"
-              [attr.aria-pressed]="filter() === k[0]"
-              (click)="filter.set(k[0])"
-            >
-              {{ k[1] }}
-            </button>
+            <mat-chip-option [value]="k[0]">{{ k[1] }}</mat-chip-option>
           }
-        </div>
+        </mat-chip-listbox>
 
         @if (upcoming(); as u) {
           <div class="upcoming">
@@ -186,7 +175,7 @@
         <section class="pl-card">
           <h2>Cele</h2>
           @if (editing()) {
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field class="full-width">
               <mat-label>Cele</mat-label>
               <textarea
                 matInput

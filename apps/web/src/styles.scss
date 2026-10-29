@@ -1,6 +1,14 @@
 @use '@angular/material' as mat;
 
 /*
+ * Jedna skala rozmiarów dla całej aplikacji: każda kontrolka (przycisk, pole, select, przełącznik,
+ * przycisk-ikona) ma wysokość $control, każdy tag (chip, status, licznik) — 2/3 tej wysokości.
+ */
+$control: 42px;
+$tag: 28px;
+$control-padding: 9px; // (42 − 24 px linii tekstu) / 2
+
+/*
  * Kierunek C „Najpierw: co teraz” — szałwiowe tło, głęboka zieleń, terakota.
  * Kolory i kształty są nadpisanymi tokenami Material 3, więc każdy komponent Material
  * (pola, przyciski, menu, listy) przejmuje wygląd bez stylowania go z osobna.
@@ -28,6 +36,8 @@ html {
   --pl-radius-card: var(--mat-sys-corner-large);
   --pl-font-display: var(--mat-sys-display-large-font);
   --pl-font-ui: var(--mat-sys-body-large-font);
+  --pl-control-h: #{$control};
+  --pl-tag-h: #{$tag};
 
   @include mat.theme(
     (
@@ -85,33 +95,45 @@ html {
       outlined-container-shape: var(--mat-sys-corner-large),
       elevated-container-color: #f7f8f1,
       elevated-container-shape: var(--mat-sys-corner-large),
-      title-text-size: 24px,
+      title-text-size: 26px,
     )
   );
 
   @include mat.button-overrides(
     (
       filled-container-shape: var(--mat-sys-corner-small),
-      filled-container-height: 40px,
+      filled-container-height: $control,
       filled-horizontal-padding: 20px,
       outlined-container-shape: var(--mat-sys-corner-small),
-      outlined-container-height: 40px,
+      outlined-container-height: $control,
+      outlined-horizontal-padding: 18px,
       outlined-outline-color: var(--mat-sys-outline),
       protected-container-shape: var(--mat-sys-corner-small),
+      protected-container-height: $control,
       text-container-shape: var(--mat-sys-corner-small),
-      text-container-height: 40px,
+      text-container-height: $control,
       tonal-container-shape: var(--mat-sys-corner-small),
-      tonal-container-height: 40px,
-      outlined-horizontal-padding: 18px,
+      tonal-container-height: $control,
       filled-label-text-weight: 700,
       outlined-label-text-weight: 700,
       text-label-text-weight: 700,
+      tonal-label-text-weight: 700,
+    )
+  );
+
+  @include mat.icon-button-overrides(
+    (
+      state-layer-size: $control,
     )
   );
 
   @include mat.form-field-overrides(
     (
-      filled-container-color: #f7f8f1,
+      container-height: $control,
+      container-vertical-padding: $control-padding,
+      filled-with-label-container-padding-top: 18px,
+      filled-with-label-container-padding-bottom: 2px,
+      filled-container-color: var(--mat-sys-surface-container-lowest),
       filled-container-shape: var(--mat-sys-corner-small),
       outlined-container-shape: var(--mat-sys-corner-small),
     )
@@ -133,15 +155,23 @@ html {
 
   @include mat.chips-overrides(
     (
+      container-height: $tag,
       container-shape-radius: var(--mat-sys-corner-small),
+      label-text-size: 13px,
+      label-text-weight: 600,
+      with-avatar-avatar-size: 18px,
+      with-icon-icon-size: 16px,
     )
   );
 
   @include mat.button-toggle-overrides(
     (
+      height: $control - 2px,
+      // + 1 px ramki grupy z każdej strony = $control
       shape: var(--mat-sys-corner-small),
-      selected-state-background-color: #23291e,
-      selected-state-text-color: #f7f8f1,
+      label-text-weight: 600,
+      selected-state-background-color: var(--mat-sys-primary),
+      selected-state-text-color: var(--mat-sys-on-primary),
     )
   );
 }
@@ -162,10 +192,48 @@ body {
 h1 {
   font-family: var(--mat-sys-display-medium-font);
   font-weight: var(--mat-sys-display-medium-weight);
-  font-size: clamp(36px, 5vw, 56px);
-  line-height: 1.05;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.1;
   letter-spacing: -0.01em;
-  margin: 0 0 16px;
+  margin: 0 0 24px;
+}
+
+/* Page header: title on the left, actions (controls) on the right — the same on every screen. */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  .title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  /* Back button + title. */
+  &.start {
+    justify-content: flex-start;
+    gap: 8px;
+  }
 }
 
 h1 em,
@@ -173,11 +241,23 @@ h1 em,
   color: var(--pl-accent-text);
 }
 
+/* One size per level: h1 page title, h2 section/card title (= mat-card-title), h3 subsection. */
 h2 {
   font-family: var(--mat-sys-headline-medium-font);
   font-weight: var(--mat-sys-headline-medium-weight);
-  font-size: 30px;
-  line-height: 1.1;
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* Material cards: the same breathing room between the header and the content everywhere. */
+.mat-mdc-card-header + .mat-mdc-card-content {
+  padding-top: 16px;
 }
 
 .display {
@@ -209,7 +289,7 @@ h2 {
 .form-stack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 16px;
 }
 
 .full-width {
@@ -255,7 +335,7 @@ h2 {
 .pl-card {
   background: var(--pl-card);
   border-radius: var(--pl-radius-card);
-  padding: 22px;
+  padding: 20px;
 }
 
 .pl-card-dark {
@@ -287,14 +367,11 @@ h2 {
   );
 }
 
-.large {
-  @include mat.button-overrides(
-    (
-      filled-container-height: 48px,
-      filled-horizontal-padding: 26px,
-      outlined-container-height: 48px,
-    )
-  );
+/* Small avatar: tag height. */
+.avatar.small {
+  width: var(--pl-tag-h);
+  height: var(--pl-tag-h);
+  font-size: 13px;
 }
 
 .eyebrow {
@@ -306,8 +383,8 @@ h2 {
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: var(--pl-control-h);
+  height: var(--pl-control-h);
   border-radius: 50%;
   display: inline-grid;
   place-items: center;
@@ -388,4 +465,36 @@ a {
 /* Side panels never scroll sideways (icon-button touch targets may stick out a few px). */
 .mat-drawer-inner-container {
   overflow-x: hidden;
+}
+
+/* Static tags (status, count, label): the same 2/3-of-a-control height as Material chips. */
+.pl-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  height: var(--pl-tag-h);
+  min-width: var(--pl-tag-h);
+  padding: 0 10px;
+  border-radius: var(--mat-sys-corner-small);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font: 600 13px/1 var(--pl-font-ui);
+  white-space: nowrap;
+
+  &.accent {
+    background: var(--mat-sys-tertiary);
+    color: var(--mat-sys-on-tertiary);
+  }
+
+  &.good {
+    background: color-mix(in srgb, var(--pl-good) 18%, var(--pl-card));
+    color: var(--pl-good);
+  }
+
+  &.warn {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
 }
