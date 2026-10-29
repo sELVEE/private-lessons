@@ -184,5 +184,8 @@
         </mat-card-actions>
       </mat-card>
     }
+    @if (!me()?.mfaSetupRequired) {
+      <pl-device-settings />
+    }
   </div>
 </div>

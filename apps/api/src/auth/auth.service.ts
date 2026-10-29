@@ -344,6 +344,29 @@ export class AuthService {
     await this.notifyPasswordChanged(user);
   }
 
+  /** Deletes the user and, for a tutor, organizations they solely own (with all teaching data). */
+  async deleteAccount(user: User): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const owned = await tx
+        .select({ orgId: memberships.organizationId })
+        .from(memberships)
+        .where(and(eq(memberships.userId, user.id), eq(memberships.role, 'owner')));
+      for (const { orgId } of owned) {
+        const owners = await tx.$count(
+          memberships,
+          and(eq(memberships.organizationId, orgId), eq(memberships.role, 'owner')),
+        );
+        if (owners === 1) await tx.delete(organizations).where(eq(organizations.id, orgId));
+      }
+      await tx.delete(users).where(eq(users.id, user.id));
+    });
+    await this.mail.send({
+      to: user.email,
+      subject: 'Konto zostało usunięte',
+      text: 'Twoje konto i powiązane dane zostały usunięte. Dziękujemy za korzystanie z platformy.',
+    });
+  }
+
   // ---------------------------------------------------------------- helpers
 
   private assertCanLogIn(user: User) {

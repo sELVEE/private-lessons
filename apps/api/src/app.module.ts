@@ -14,6 +14,7 @@ import { CommonModule } from './common/common.module.js';
 import { CsrfMiddleware } from './common/csrf.middleware.js';
 import { AllExceptionsFilter } from './common/http-exception.filter.js';
 import { ProgressModule } from './progress/progress.module.js';
+import { PushModule } from './push/push.module.js';
 import { RateLimitGuard } from './common/rate-limit.guard.js';
 import { ENV, type Env } from './config/env.js';
 import { CryptoModule } from './crypto/crypto.module.js';
@@ -24,6 +25,7 @@ import { MailModule } from './mail/mail.module.js';
 import { MaterialsModule } from './materials/materials.module.js';
 import { NotesModule } from './notes/notes.module.js';
 import { RedisModule } from './redis/redis.module.js';
+import { RetentionModule } from './retention/retention.module.js';
 import { RlsModule } from './rls/rls.module.js';
 import { TeachingModule } from './teaching/teaching.module.js';
 
@@ -53,6 +55,7 @@ export class AppModule implements NestModule {
         MailModule,
         AuditModule,
         RlsModule,
+        PushModule,
         AuthModule,
         TeachingModule,
         LessonsModule,
@@ -60,6 +63,7 @@ export class AppModule implements NestModule {
         BillingModule,
         MaterialsModule,
         ProgressModule,
+        RetentionModule,
         AdminModule,
       ],
       controllers: [HealthController],

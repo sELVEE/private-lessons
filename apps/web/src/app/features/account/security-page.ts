@@ -14,6 +14,7 @@ import QRCode from 'qrcode';
 import { firstValueFrom } from 'rxjs';
 import { applyServerErrors, toApiError } from '../../core/api-error';
 import { AuthStore } from '../../core/auth.store';
+import { DeviceSettings } from './device-settings';
 import { StudentSettings } from './student-settings';
 
 @Component({
@@ -28,6 +29,7 @@ import { StudentSettings } from './student-settings';
     MatInputModule,
     MatListModule,
     StudentSettings,
+    DeviceSettings,
   ],
   templateUrl: './security-page.html',
   styleUrl: './security-page.scss',

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module.js';
 import { lessons, users } from '../db/schema.js';
 import { MailService } from '../mail/mail.service.js';
+import { PushService } from '../push/push.service.js';
 import type { Tx } from '../rls/rls.service.js';
 
 type Lesson = typeof lessons.$inferSelect;
@@ -25,6 +26,7 @@ export class LessonHooks {
   constructor(
     @Inject(DB) private readonly db: Db,
     private readonly mail: MailService,
+    private readonly push: PushService,
   ) {}
 
   registerBilling(handler: ChargeHandler) {
@@ -53,6 +55,13 @@ export class LessonHooks {
       kind === 'cancelled'
         ? `${actor.displayName} odwołał(a) lekcję zaplanowaną na ${when(l.startsAt)}.`
         : `${actor.displayName} przełożył(a) lekcję z ${when(l.startsAt)} na ${when(newStart!)}.`;
+    await this.push
+      .notify([other.id], {
+        title: kind === 'cancelled' ? 'Lekcja odwołana' : 'Lekcja przełożona',
+        body: text,
+        url: `/app/lessons/${l.id}`,
+      })
+      .catch((err: Error) => this.logger.warn(err.message));
     await this.mail
       .send({
         to: other.email,

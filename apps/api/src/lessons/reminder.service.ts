@@ -12,6 +12,7 @@ import { ENV, type Env } from '../config/env.js';
 import { DB, type Db } from '../db/db.module.js';
 import { lessons, users } from '../db/schema.js';
 import { MailService } from '../mail/mail.service.js';
+import { PushService } from '../push/push.service.js';
 import { REDIS } from '../redis/redis.module.js';
 
 const REMIND_BEFORE_MS = 24 * 3600_000;
@@ -20,7 +21,7 @@ const student = alias(users, 'student');
 
 /**
  * Sends one e-mail reminder per lesson about 24 h before it starts. Runs every minute; a Redis
- * lock keeps several API instances from sending duplicates. Web Push comes with stage 8.
+ * lock keeps several API instances from sending duplicates. Also sends Web Push to subscribed devices.
  */
 @Injectable()
 export class ReminderService implements OnModuleInit, OnApplicationShutdown {
@@ -32,6 +33,7 @@ export class ReminderService implements OnModuleInit, OnApplicationShutdown {
     @Inject(REDIS) private readonly redis: Redis,
     @Inject(ENV) private readonly env: Env,
     private readonly mail: MailService,
+    private readonly push: PushService,
   ) {}
 
   onModuleInit() {
@@ -86,6 +88,11 @@ export class ReminderService implements OnModuleInit, OnApplicationShutdown {
         to: d.studentEmail,
         subject: `Przypomnienie: lekcja ${when}`,
         text: `Cześć ${d.studentName}! Przypominamy o lekcji z ${d.tutorName}: ${when} (${d.l.durationMin} min).${where}\n\nJeśli nie możesz, odwołaj ją w aplikacji: ${this.mail.link('/app/calendar')}`,
+      });
+      await this.push.notify([d.l.studentId, d.l.tutorId], {
+        title: 'Jutro lekcja',
+        body: `${when} · ${d.studentName} z ${d.tutorName}`,
+        url: `/app/lessons/${d.l.id}`,
       });
       await this.mail.send({
         to: d.tutorEmail,

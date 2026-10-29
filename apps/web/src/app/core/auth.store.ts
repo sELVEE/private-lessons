@@ -58,6 +58,7 @@ export class AuthStore {
   /** Called when the server says the session is gone. */
   clear(redirect = true): void {
     this._me.set(null);
+    clearOfflineData();
     this.loaded = Promise.resolve();
     if (redirect) void this.router.navigate(['/login']);
   }
@@ -66,4 +67,18 @@ export class AuthStore {
     this._me.set(me);
     this.loaded = Promise.resolve();
   }
+}
+
+/**
+ * The service worker keeps the lesson plan for offline use. On logout it must go, so the next
+ * person on a shared device does not see it.
+ */
+function clearOfflineData(): void {
+  if (typeof caches === 'undefined') return;
+  void caches
+    .keys()
+    .then((keys) =>
+      Promise.all(keys.filter((k) => k.includes(':data:')).map((k) => caches.delete(k))),
+    )
+    .catch(() => undefined);
 }

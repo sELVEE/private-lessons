@@ -633,3 +633,20 @@ export const learningGoals = pgTable(
   },
   (t) => [index('learning_goals_enrollment_idx').on(t.enrollmentId)],
 );
+
+// ---------------------------------------------------------------- stage 8: Web Push
+
+export const pushSubscriptions = pgTable(
+  'push_subscriptions',
+  {
+    id: id(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('push_subscriptions_user_idx').on(t.userId)],
+);

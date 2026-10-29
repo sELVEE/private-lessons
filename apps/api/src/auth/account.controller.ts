@@ -16,6 +16,7 @@ import {
   type MfaSetupResponse,
   type SessionInfo,
   changePasswordSchema,
+  deleteAccountSchema,
   mfaCodeSchema,
   mfaDisableSchema,
   mfaEnableSchema,
@@ -136,6 +137,42 @@ export class AccountController {
       ]);
     }
     await this.mfa.disable(user, body.code);
+  }
+
+  /**
+   * Right to erasure: deletes the account and everything that belongs to it (cascade). Audit
+   * entries stay, detached from the user. Admins are removed only by another admin.
+   */
+  @AllowDuringMfaSetup()
+  @RateLimit({ limit: 5, windowSec: 900 })
+  @Post('delete')
+  @HttpCode(204)
+  async deleteAccount(
+    @Auth() { user }: AuthContext,
+    @Body(new ZodPipe(deleteAccountSchema)) body: { password: string },
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ) {
+    if (user.isPlatformAdmin) {
+      throw new AppError(
+        HttpStatus.FORBIDDEN,
+        'admin_delete_forbidden',
+        'Konto administratora usuwa inny administrator',
+      );
+    }
+    if (!(await this.passwords.verify(user.passwordHash, body.password))) {
+      throw new AppError(HttpStatus.BAD_REQUEST, 'invalid_password', 'Nieprawidłowe hasło', [
+        { path: 'password', message: 'Nieprawidłowe hasło' },
+      ]);
+    }
+    await this.audit.log({
+      actorId: user.id,
+      action: 'account.deleted',
+      ip: clientIp(req),
+      metadata: { accountType: user.accountType },
+    });
+    await this.auth.deleteAccount(user);
+    this.sessions.clearCookie(res);
   }
 
   @RateLimit({ limit: 5, windowSec: 300 })

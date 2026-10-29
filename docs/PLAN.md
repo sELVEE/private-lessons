@@ -88,9 +88,15 @@ Legenda: ✅ zrobione · 🔜 następne · ⏳ później (świadomie odłożone)
 - Podsumowanie za 30 dni / 3 miesiące / rok: lekcje, frekwencja, zadania, średni wynik z trendem, opanowane tematy, lista do powtórki, cele, ostatnie „dalsze kroki” z raportu. Korepetytor wysyła je e-mailem uczniowi i rodzicom.
 - Uczeń i rodzic widzą postępy (tylko odczyt), RLS dla `assessments`, `topic_progress`, `learning_goals`.
 
-### Etap 8 — PWA i dopracowanie
+### Etap 8 — PWA i dopracowanie ✅
 
-- Offline dla planu lekcji, instalacja na telefonie, dostępność (WCAG), testy e2e (Playwright) każdej roli.
+- Powiadomienia Web Push (VAPID, klucze generuje `pnpm setup:env`): przypomnienia o lekcjach, odwołania i zmiany terminów; włączane w „Konto” na każdym urządzeniu. Działają w buildzie produkcyjnym / zainstalowanej aplikacji.
+- Offline: service worker trzyma ostatnio pobrany plan lekcji i listę współprac (strategia „najpierw sieć”, 7 dni); baner „jesteś offline”; czyszczenie tych danych przy wylogowaniu.
+- Komunikat o nowej wersji aplikacji z przyciskiem „Odśwież”.
+- Retencja danych (zadanie co godzinę): wygasłe sesje, tokeny i kody, nieaktywowane konta po 30 dniach, konta bez zgody rodzica po 30 dniach, dziennik audytu po 365 dniach.
+- Usunięcie konta przez użytkownika (hasło + słowo „USUŃ”), z kaskadowym usunięciem danych; korepetytor usuwa też swoją pracownię.
+- Dostępność: link „Przejdź do treści”, etykiety przycisków ikonowych, układ mobilny.
+- 🔜 Testy e2e (Playwright) każdej roli w CI, audyt WCAG.
 
 ### ⏳ Później (serwer)
 
@@ -143,13 +149,13 @@ Mapowanie wymagań na implementację. ✅ = jest w kodzie, 🔜/⏳ = zaplanowan
 
 ### 3. Dane osobowe
 
-| Wymaganie            | Realizacja                                                                                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Minimalizacja        | ✅ patrz „Decyzje”: brak nazwiska, adresu, telefonu, pełnej daty urodzenia; e-mail rodzica niezapisywany                                                             |
-| HTTPS/TLS            | ✅ ciasteczka `Secure` wymuszone w produkcji. ⏳ TLS na reverse proxy (Caddy) przy wyborze hostingu                                                                  |
-| Szyfrowanie w bazie  | ✅ AES-256-GCM z wersjonowaniem klucza (sekrety MFA). 🔜 notatki z lekcji. ⏳ szyfrowanie wolumenów/kopii                                                            |
-| Klucze               | ✅ tylko ze zmiennych środowiskowych, walidowane przy starcie. ⏳ menedżer sekretów (Infisical/Doppler/KMS) przy wyborze hostingu                                    |
-| Okres przechowywania | 🔜 zadanie cykliczne: wygasłe sesje/tokeny, nieaktywowane konta po 30 dniach, audyt po 12 miesiącach, dane ucznia po X miesiącach od końca współpracy (do ustalenia) |
+| Wymaganie            | Realizacja                                                                                                                                                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Minimalizacja        | ✅ patrz „Decyzje”: brak nazwiska, adresu, telefonu, pełnej daty urodzenia; e-mail rodzica niezapisywany                                                                                                                    |
+| HTTPS/TLS            | ✅ ciasteczka `Secure` wymuszone w produkcji. ⏳ TLS na reverse proxy (Caddy) przy wyborze hostingu                                                                                                                         |
+| Szyfrowanie w bazie  | ✅ AES-256-GCM z wersjonowaniem klucza (sekrety MFA). 🔜 notatki z lekcji. ⏳ szyfrowanie wolumenów/kopii                                                                                                                   |
+| Klucze               | ✅ tylko ze zmiennych środowiskowych, walidowane przy starcie. ⏳ menedżer sekretów (Infisical/Doppler/KMS) przy wyborze hostingu                                                                                           |
+| Okres przechowywania | ✅ zadanie cykliczne (`RetentionService`): wygasłe sesje/tokeny, nieaktywowane konta po 30 dniach, audyt po 12 miesiącach; ✅ usunięcie konta na żądanie. 🔜 dane ucznia po X miesiącach od końca współpracy (do ustalenia) |
 
 ### 4. API i serwer
 

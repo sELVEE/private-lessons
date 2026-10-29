@@ -1,3 +1,4 @@
+<a class="skip-link" href="#main">Przejdź do treści</a>
 <mat-sidenav-container class="container">
   <mat-sidenav
     #drawer
@@ -54,7 +55,12 @@
         </button>
       </mat-menu>
     </mat-toolbar>
-    <main>
+    @if (!online()) {
+      <div class="offline" role="status">
+        Jesteś offline — widzisz ostatnio pobrane dane, zmiany nie zostaną zapisane.
+      </div>
+    }
+    <main id="main" tabindex="-1">
       <router-outlet />
     </main>
   </mat-sidenav-content>

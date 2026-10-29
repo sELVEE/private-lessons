@@ -156,3 +156,8 @@ export const mfaDisableSchema = z.object({
   password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
   code: mfaCodeSchema,
 });
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+  confirm: z.literal('USUŃ', { message: 'Wpisz USUŃ, aby potwierdzić' }),
+});
