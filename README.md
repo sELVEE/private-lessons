@@ -3,6 +3,20 @@
 PWA dla korepetytorów, uczniów i rodziców: lekcje, notatki, rozliczenia, materiały i postępy.
 Plan i decyzje projektowe: [docs/PLAN.md](docs/PLAN.md).
 
+## Funkcje
+
+- **Konta**: rejestracja ucznia / korepetytora / rodzica, zgoda rodzica dla < 16 lat, MFA, sesje, reset hasła, usuwanie konta.
+- **Uczniowie**: zaproszenia kodem, linkiem lub e-mailem, współprace z celami i historią, łączenie kont rodzic ↔ dziecko.
+- **Kalendarz**: lekcje cykliczne, przekładanie, odwołania z polityką opłat, obecność, przypomnienia e-mail i push.
+- **Notatki i raporty**: wspólna, szyfrowana notatka ucznia i korepetytora do każdej lekcji; raport po lekcji dla ucznia i rodzica.
+- **Rozliczenia**: stawki, pakiety, wpłaty, korekty, salda, rozliczenia miesięczne (druk / PDF), zarobki.
+- **Materiały i zadania**: biblioteka Markdown + wzory (KaTeX), udostępnianie, zadania domowe z oddawaniem i oceną.
+- **Postępy**: oceny z wykresem, tematy (opanowane / do powtórki), cele, podsumowania e-mail.
+- **PWA**: instalacja na telefonie, plan lekcji offline, powiadomienia push.
+- **Panel administratora**: wyszukiwanie i blokowanie kont z audytem.
+
+Powiadomienia push i tryb offline działają w buildzie produkcyjnym (`docker compose --profile app up`) lub po zainstalowaniu aplikacji, nie na `ng serve`.
+
 ## Stos
 
 | Warstwa        | Technologia                                                        |
