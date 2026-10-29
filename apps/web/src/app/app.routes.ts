@@ -110,6 +110,12 @@ export const routes: Routes = [
       },
       // Later stages — placeholders until each module lands (see docs/PLAN.md).
       {
+        path: 'lessons/:id',
+        title: 'Lekcja',
+        canMatch: [roleMatch('tutor', 'student', 'parent')],
+        loadComponent: () => import('./features/lessons/lesson-page'),
+      },
+      {
         path: 'calendar',
         title: 'Kalendarz',
         canMatch: [roleMatch('tutor', 'student', 'parent')],

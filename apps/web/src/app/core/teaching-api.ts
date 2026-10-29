@@ -10,6 +10,9 @@ import type {
   InviteInfo,
   InvitePreview,
   LessonDetail,
+  NoteInfo,
+  ReportInfo,
+  ReportInput,
   LessonInfo,
   OrgSettings,
   ParentLinkCode,
@@ -94,6 +97,15 @@ export class TeachingApi {
     this.post<LessonDetail>(`/api/lessons/${id}/charge`, { chargeable });
   settings = () => this.get<OrgSettings>('/api/settings');
   saveSettings = (s: OrgSettings) => firstValueFrom(this.http.put<OrgSettings>('/api/settings', s));
+
+  note = (lessonId: string) => this.get<NoteInfo>(`/api/lessons/${lessonId}/note`);
+  saveNote = (lessonId: string, content: string) =>
+    firstValueFrom(this.http.put<NoteInfo>(`/api/lessons/${lessonId}/note`, { content }));
+  report = (lessonId: string) => this.get<ReportInfo | null>(`/api/lessons/${lessonId}/report`);
+  saveReport = (lessonId: string, input: ReportInput) =>
+    firstValueFrom(this.http.put<ReportInfo>(`/api/lessons/${lessonId}/report`, input));
+  reports = (enrollmentId: string) =>
+    this.get<ReportInfo[]>(`/api/enrollments/${enrollmentId}/reports`);
 
   private get<T>(url: string) {
     return firstValueFrom(this.http.get<T>(url));

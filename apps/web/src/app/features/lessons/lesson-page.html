@@ -1,0 +1,177 @@
+<div class="page">
+  <div class="head">
+    <button mat-icon-button (click)="location.back()" aria-label="Wstecz">
+      <mat-icon fontSet="material-symbols-outlined">arrow_back</mat-icon>
+    </button>
+    @if (lesson(); as l) {
+      <h1>{{ l.subject }} · {{ l.startsAt | date: 'EEEE d MMMM, HH:mm' }}</h1>
+    }
+  </div>
+
+  @if (error(); as e) {
+    <div class="error-banner" role="alert">{{ e }}</div>
+  }
+  @if (saved(); as s) {
+    <div class="info-banner" role="status">{{ s }}</div>
+  }
+
+  @if (lesson(); as l) {
+    <div class="cards">
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Lekcja</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <dl>
+            <dt>Uczeń</dt>
+            <dd>{{ l.student.displayName }}</dd>
+            <dt>Korepetytor</dt>
+            <dd>{{ l.tutor.displayName }}</dd>
+            <dt>Czas</dt>
+            <dd>{{ l.durationMin }} min</dd>
+            @if (l.location) {
+              <dt>Miejsce</dt>
+              <dd>{{ l.location }}</dd>
+            }
+            @if (l.topic) {
+              <dt>Temat</dt>
+              <dd>{{ l.topic }}</dd>
+            }
+            <dt>Status</dt>
+            <dd>
+              {{ statusLabel[l.status] }}
+              @if (l.attendance) {
+                · {{ attendanceLabel[l.attendance] }}
+              }
+              @if (l.cancelReason) {
+                — „{{ l.cancelReason }}”
+              }
+            </dd>
+          </dl>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>Historia zmian</mat-expansion-panel-header>
+            @for (c of l.changes; track $index) {
+              <div>
+                <strong>{{ changeLabel(c.type) }}</strong>
+                <span class="muted"> · {{ c.createdAt | date: 'd.MM HH:mm' }} · {{ c.actor }}</span>
+                @if (c.toStartsAt) {
+                  <div class="muted">
+                    {{ c.fromStartsAt | date: 'd.MM HH:mm' }} →
+                    {{ c.toStartsAt | date: 'd.MM HH:mm' }}
+                  </div>
+                }
+              </div>
+            }
+          </mat-expansion-panel>
+        </mat-card-content>
+      </mat-card>
+
+      @if (isParty()) {
+        <mat-card appearance="outlined">
+          <mat-card-header>
+            <mat-card-title>Wspólna notatka</mat-card-title>
+            <mat-card-subtitle
+              >Widzicie ją tylko Ty i
+              {{ isTutor() ? l.student.displayName : l.tutor.displayName }}</mat-card-subtitle
+            >
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field class="full-width">
+              <mat-label>Notatka</mat-label>
+              <textarea
+                matInput
+                [formControl]="noteControl"
+                rows="10"
+                placeholder="Co omówiliśmy, pytania, wzory…"
+              ></textarea>
+              @if (note()?.updatedAt) {
+                <mat-hint
+                  >Ostatnio: {{ note()?.updatedBy }},
+                  {{ note()?.updatedAt | date: 'd.MM HH:mm' }}</mat-hint
+                >
+              }
+            </mat-form-field>
+            <div class="row-actions">
+              <span></span>
+              <button mat-flat-button (click)="saveNote()">Zapisz notatkę</button>
+            </div>
+            @if (note()?.revisions?.length) {
+              <mat-expansion-panel>
+                <mat-expansion-panel-header
+                  >Poprzednie wersje ({{ note()?.revisions?.length }})</mat-expansion-panel-header
+                >
+                @for (r of note()?.revisions; track $index) {
+                  <div class="rev">
+                    <div class="muted">
+                      {{ r.editedBy }} · {{ r.createdAt | date: 'd.MM HH:mm' }}
+                    </div>
+                    <div class="pre">{{ r.content }}</div>
+                    <button mat-button (click)="restore(r.content)">Przywróć do edycji</button>
+                  </div>
+                }
+              </mat-expansion-panel>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Raport po lekcji</mat-card-title>
+          <mat-card-subtitle>Widoczny dla ucznia i rodzica</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (editingReport()) {
+            <form [formGroup]="reportForm" (ngSubmit)="saveReport()" class="form-stack">
+              <mat-form-field>
+                <mat-label>Podsumowanie</mat-label>
+                <textarea matInput formControlName="summary" rows="4"></textarea>
+                <mat-error>Opisz krótko lekcję</mat-error>
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Omówione zagadnienia</mat-label>
+                <textarea matInput formControlName="covered" rows="2"></textarea>
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Dalsze kroki</mat-label>
+                <textarea matInput formControlName="nextSteps" rows="2"></textarea>
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Zaangażowanie</mat-label>
+                <mat-select formControlName="engagement">
+                  <mat-option [value]="null">—</mat-option>
+                  @for (n of [1, 2, 3, 4, 5]; track n) {
+                    <mat-option [value]="n">{{ n }} / 5</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <div class="row-actions">
+                <button mat-button type="button" (click)="editingReport.set(false)">Anuluj</button>
+                <button mat-flat-button type="submit">Zapisz raport</button>
+              </div>
+            </form>
+          } @else if (report(); as r) {
+            <p class="pre">{{ r.summary }}</p>
+            @if (r.covered) {
+              <h4>Omówione</h4>
+              <p class="pre">{{ r.covered }}</p>
+            }
+            @if (r.nextSteps) {
+              <h4>Dalsze kroki</h4>
+              <p class="pre">{{ r.nextSteps }}</p>
+            }
+            @if (r.engagement) {
+              <p class="muted">Zaangażowanie: {{ r.engagement }}/5</p>
+            }
+            @if (isTutor()) {
+              <button mat-stroked-button (click)="editReport()">Edytuj raport</button>
+            }
+          } @else {
+            <p class="muted">Raport nie został jeszcze dodany.</p>
+            @if (isTutor() && l.status !== 'cancelled') {
+              <button mat-flat-button (click)="editReport()">Dodaj raport</button>
+            }
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

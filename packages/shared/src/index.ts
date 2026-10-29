@@ -3,3 +3,4 @@ export * from './auth.js';
 export * from './api.js';
 export * from './students.js';
 export * from './lessons.js';
+export * from './notes.js';

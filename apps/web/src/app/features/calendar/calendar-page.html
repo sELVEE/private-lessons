@@ -233,6 +233,9 @@
               </div>
             }
 
+            <div class="lesson-actions">
+              <a mat-button [routerLink]="['/app/lessons', l.id]">Szczegóły</a>
+            </div>
             @if (l.status === 'scheduled' && role() !== 'parent') {
               <div class="lesson-actions">
                 @if (isTutor()) {

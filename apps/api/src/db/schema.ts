@@ -406,3 +406,51 @@ export const lessonChanges = pgTable(
   },
   (t) => [index('lesson_changes_lesson_idx').on(t.lessonId, t.createdAt)],
 );
+
+/** Shared lesson note: editable by the lesson's tutor and student only (not parents). Encrypted. */
+export const lessonNotes = pgTable('lesson_notes', {
+  id: id(),
+  ...scoped(),
+  lessonId: uuid('lesson_id')
+    .notNull()
+    .unique()
+    .references(() => lessons.id, { onDelete: 'cascade' }),
+  contentEnc: text('content_enc').notNull(),
+  updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: createdAt(),
+});
+
+export const noteRevisions = pgTable(
+  'note_revisions',
+  {
+    id: id(),
+    noteId: uuid('note_id')
+      .notNull()
+      .references(() => lessonNotes.id, { onDelete: 'cascade' }),
+    contentEnc: text('content_enc').notNull(),
+    editedBy: uuid('edited_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('note_revisions_note_idx').on(t.noteId, t.createdAt)],
+);
+
+/** Tutor's report after a lesson; visible to the student and linked parents. */
+export const lessonReports = pgTable(
+  'lesson_reports',
+  {
+    id: id(),
+    ...scoped(),
+    lessonId: uuid('lesson_id')
+      .notNull()
+      .unique()
+      .references(() => lessons.id, { onDelete: 'cascade' }),
+    summary: text('summary').notNull(),
+    covered: text('covered').notNull().default(''),
+    nextSteps: text('next_steps').notNull().default(''),
+    engagement: smallint('engagement'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('lesson_reports_enrollment_idx').on(t.enrollmentId)],
+);

@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { RouterLink } from '@angular/router';
 import {
   ATTENDANCE_LABELS,
   type EnrollmentDetail,
@@ -31,6 +32,7 @@ import { EVENT_LABELS, statusLabel, studentLevel } from '../labels';
     MatIconModule,
     MatInputModule,
     MatListModule,
+    RouterLink,
   ],
   templateUrl: './enrollment-detail-page.html',
   styles: `

@@ -57,11 +57,11 @@ Legenda: ✅ zrobione · 🔜 następne · ⏳ później (świadomie odłożone)
 - RLS dla `lessons`, `lesson_changes`, `org_settings`.
 - ⏳ Lekcje grupowe. ⏳ Google Calendar. ⏳ Web Push.
 
-### Etap 4 — notatki i raporty
+### Etap 4 — notatki i raporty ✅
 
-- Notatka po lekcji dla każdego ucznia; edytują ją tylko korepetytor prowadzący i uczeń, którego dotyczy; rodzic — odczyt (jeśli przyznano).
-- Historia wersji notatek. Notatki szyfrowane w bazie.
-- Raport po lekcji.
+- Wspólna notatka do każdej lekcji: edytują ją wyłącznie korepetytor i uczeń tej lekcji (rodzic, właściciel organizacji i inni korepetytorzy nie mają dostępu — także na poziomie RLS). Treść szyfrowana AES-256-GCM, historia wersji z możliwością przywrócenia.
+- Raport po lekcji (podsumowanie, omówione zagadnienia, dalsze kroki, zaangażowanie 1–5): pisze korepetytor, widzą uczeń i połączeni rodzice; przy pierwszym zapisie e-mail do ucznia i rodziców.
+- Strona lekcji: szczegóły, historia zmian, notatka, raport.
 
 ### Etap 5 — rozliczenia
 

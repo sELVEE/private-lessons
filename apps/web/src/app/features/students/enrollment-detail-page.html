@@ -131,7 +131,7 @@
           </dl>
           <mat-list>
             @for (l of history(); track l.id) {
-              <mat-list-item>
+              <a mat-list-item [routerLink]="['/app/lessons', l.id]">
                 <span matListItemTitle>{{ l.startsAt | date: 'EEE d.MM.yyyy, HH:mm' }}</span>
                 <span matListItemLine class="muted">
                   {{ lessonStatus[l.status] }}
@@ -142,7 +142,7 @@
                     · {{ l.topic }}
                   }
                 </span>
-              </mat-list-item>
+              </a>
             } @empty {
               <p class="muted">Brak lekcji.</p>
             }
